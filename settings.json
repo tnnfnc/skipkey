@@ -1,0 +1,58 @@
+[
+    {
+        "type": "numeric",
+        "title": "Timeout",
+        "desc": "Set the number of minutes after which application deactivates.",
+        "section": "Settings",
+        "key": "deftimeout"
+    },
+    {
+        "type": "numeric",
+        "title": "Password Timeout",
+        "desc": "Set the number of seconds after which the secret info are deleted from the device memory clipboard.",
+        "section": "Settings",
+        "key": "defsecrettimeout"
+    },
+    {
+        "type": "bool",
+        "title": "Login auto-completion",
+        "desc": "Enable the autocompletion: the system fills user and password filelds by double clicking on the user fileld. If disabled user and password are simply copied to the clipboard, ready for paste.",
+        "section": "Settings",
+        "key": "defautocompletion"
+    },
+    {
+        "type": "numeric",
+        "title": "Password lenght",
+        "desc": "Set the default password length.",
+        "section": "Settings",
+        "key": "defplen"
+    },
+    {
+        "type": "bool",
+        "title": "Automatic",
+        "desc": "Set the default password type: generated or user defined.",
+        "section": "Settings",
+        "key": "defauto"
+    },
+    {
+        "type": "numeric",
+        "title": "Password lifetime",
+        "desc": "Set the password life time in months.",
+        "section": "Settings",
+        "key": "deflifetime"
+    },
+    {
+        "type": "numeric",
+        "title": "Expire warning",
+        "desc": "Set the number of days to be warned about password expiration.",
+        "section": "Settings",
+        "key": "defwarn"
+    },
+    {
+        "type": "bool",
+        "title": "Enable logging",
+        "desc": "Enable the activity logging",
+        "section": "Settings",
+        "key": "deflog"
+    }
+]

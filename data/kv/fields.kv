@@ -1,0 +1,66 @@
+#:kivy 1.11
+
+#---------------------------------------------------------
+# Fielda widget
+#---------------------------------------------------------
+<FieldsWidget>:
+
+
+<Field>:
+	pr_label: _lab_label
+	pr_value: _inp_value
+
+	orientation: 'horizontal'
+	size_hint: 1, None
+	height: 2*_lab_label.font_size
+	Label:
+		id: _lab_label
+		size_hint: None, 1
+		halign: 'left'
+		valign: 'middle'
+		width: dp(120)
+		text_size: self.size
+	TextInput:
+		id: _inp_value
+		disabled: True
+
+<FieldCompare>:
+	label: _lab_label
+	value: _lab_value
+	change: _lab_change
+
+	# Adapt its height to the max text's one
+	orientation: 'horizontal'
+	size_hint: 1, None
+	height: max(_lab_value.height, _lab_change.height)
+	canvas:
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: dp(.8)
+            joint: 'miter'
+
+	Label:
+		id: _lab_label
+		size_hint: None, 1
+		halign: 'left'
+		valign: 'middle'
+		width: dp(120)
+		text_size: self.size
+	Label:
+		id: _lab_value
+		halign: 'left'
+		valign: 'top'
+		# Rewrite this costraint
+		text_size: (root.width - _lab_label.width)/2, None
+		size: self.texture_size
+
+	Label:
+		padding_x: dp(5)
+		id: _lab_change
+		halign: 'left'
+		valign: 'top'
+		# Rewrite this costraint
+		text_size: (root.width - _lab_label.width)/2, None
+		size: self.texture_size
+
+

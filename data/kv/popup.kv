@@ -1,0 +1,340 @@
+##-------------------------- POPUP
+#---------------------------------------------------------
+# Login Popup
+#---------------------------------------------------------
+<LoginPopup>:
+    # Properties: Login and seed
+    pr_login_wid: _wid_login
+    pr_seed_wid: _wid_seed
+	size: root.size
+	pos: root.pos
+	auto_dismiss: False
+	BoxLayout:
+		size: root.size
+		# pos: root.pos
+		orientation: "vertical"
+		padding: screen_padding
+		#--------------------------------- Password for data encryption
+		FrameTitle:
+			id: _lab_pwd
+			text: _('Password for data encryption')
+		BoxFrame:
+			size_hint: 1, None
+			height: self.minimum_height
+			LoginPanel:
+				id: _wid_login
+
+		#--------------------------------- Seed for password generation
+		FrameTitle:
+			id: _lab_seed
+			text: _('Seed for password generation')
+		
+
+		BoxFrame:
+			size_hint_y: None
+			height: self.minimum_height
+
+			SeedPanel:
+				id: _wid_seed
+
+		#--------------------------------- Main buttons
+		GridLayout:
+			rows: 1
+			NavButton:
+				id: _btn_exit
+				text: _('Cancel')
+				on_release:
+					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
+			NavButton:
+				id: _btn_file
+				text: _('Enter')
+				on_release: 
+					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')(app)
+#---------------------------------------------------------
+# CipherPopup Popup
+#---------------------------------------------------------
+<CipherPopup>:
+    # Properties: Login and seed
+    pr_login_wid: _wid_login
+	pr_seed_wid: _wid_seed
+	pr_kderive: _spi_kderive
+	pr_cipher: _spi_cipher
+	pr_iters: _inp_iters
+
+	auto_dismiss: False
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		padding: screen_padding
+		GridLayout:
+			cols: 2
+			size_hint: 1, None
+			# height: spinner_size[1] * 2
+			#--------------------------------- Cipher
+			FrameTitle:
+				id: _lab_cipher
+				size_hint_x: 0.4
+				text: _('Cipher')
+			BoxLayout:
+				orientation: 'horizontal'
+
+				Spinner:
+					id: _spi_cipher
+					size_hint: None, 1
+					size: spinner_size
+					text: root.cipher_algorithms()[0]
+					values:
+						root.cipher_algorithms() 
+
+			#--------------------------------- Key generation			
+			FrameTitle:
+				id: _lab_keygen
+				size_hint_x: 0.4
+				text: _('Key generation')
+			BoxLayout:
+				orientation: 'horizontal'
+				Spinner:
+					id: _spi_kderive
+					size_hint: None, 1
+					size: spinner_size
+					text: root.key_derivators()[0]
+					values:
+						root.key_derivators() 
+					
+				FieldLabel:
+					id: _lab_iters
+					text: _('Iters.')
+				InputField:
+					id: _inp_iters
+					# size_hint: None, None
+					width: field_width_small
+					text: '100000'
+		#--------------------------------- Password for data encryption
+		FrameTitle:
+			id: _lab_pwd
+			text: _('Password for data encryption')
+		BoxFrame:
+			size_hint_y: None
+			height: self.minimum_height
+			UserPanel:
+				id: _wid_login
+				pos_hint: {'center_x': 0.5}
+		#--------------------------------- Seed
+		FrameTitle:
+			id: _lab_seed
+			text: _('Seed for password generation')
+		BoxFrame:
+			size_hint_y: None
+			height: self.minimum_height
+			SeedPanel:
+				id: _wid_seed
+				pos_hint: {'center_x': 0.5}
+		#--------------------------------- Main buttons
+		GridLayout:
+			rows: 1
+			NavButton:
+				id: _btn_exit
+				pos_hint: {'center_x': 0.5}
+				text: _('Cancel')
+				on_release:
+					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
+			NavButton:
+				id: _btn_file
+				pos_hint: {'center_x': 0.5}
+				text: _('OK')
+				on_release: 
+					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')(app)
+#---------------------------------------------------------
+#-------------------- EDIT TAG POPUP
+#---------------------------------------------------------
+<EditTagPopup>:
+	## Properties
+    pr_tag: _inp_tag
+	
+    auto_dismiss: False
+    size_hint: 1, 0.5
+    BoxLayout:
+        orientation: 'vertical'
+		InputField:
+			id: _inp_tag
+			hint_text: _('Custom tag')
+			size: field_size_med
+			on_text:
+				if len(self.text) > 20: self.text = self.text[:-1]
+			on_focus:
+				if hasattr(root, 'cmd_focus_tag'): getattr(root, 'cmd_focus_tag')(args)
+			on_parent:
+				self.focus = True
+		BoxLayout:
+        GridLayout:
+            cols: 2
+            NavButton:
+                id: _btn_save
+                text: _('Cancel')
+                on_release:
+                    if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')(args)           
+			NavButton:
+                id: _btn_save
+                text: _('OK')
+                on_release:
+                    if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')(app)
+#---------------------------------------------------------
+#-------------------- MESSAGE POPUP
+#---------------------------------------------------------
+<MessagePopup>:
+	## Properties
+    pr_message: _lab_message
+	pr_image: _img_image
+	
+    auto_dismiss: False
+    size_hint: 0.9, 0.5
+    orientation: "vertical"
+    padding: screen_padding
+
+    BoxLayout:
+        orientation: 'vertical'
+		# canvas.before:
+			# BorderImage:
+				## BorderImage behaves like the CSS BorderImage
+				# border: 10, 10, 10, 10
+				# source: 'data/icons/bug.png'
+				# pos: self.pos
+				# size: self.size
+		BoxLayout:
+			orientation: 'horizontal'
+			Image:
+				id: _img_image
+				#source: 'data/icons/bug.png'
+				allow_stretch: True
+				size_hint: None, 1
+				size: dp(30), dp(30)
+			Label:
+				id: _lab_message
+				markup: True
+				font_size: 1.1*font_size
+				text: _('Message')
+				valign: 'center'
+				halign: 'left'
+				text_size: self.size
+				padding_x: dp(10)
+        NavButton:
+            id: _btn_ok
+            pos_hint: {'x': 0.7}
+            text: _('OK')
+            on_release:
+				if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')(app)
+                root.dismiss()
+#---------------------------------------------------------
+#-------------------- DECISION POPUP
+#---------------------------------------------------------
+<DecisionPopup>:
+	## Properties
+    pr_message: _lab_message
+	
+    auto_dismiss: False
+    size_hint: 0.9, 0.5
+    # size: page_width-dp(20), page_height/4
+
+    # pos: root.pos
+    orientation: "vertical"
+    padding: screen_padding
+    BoxLayout:
+        orientation: 'vertical'
+		Label:
+            id: _lab_message
+            markup: True
+            font_size: 1.1*font_size
+            text: _('Message')
+		BoxLayout:
+        GridLayout:
+            cols: 2
+			NavButton:
+				id: _btn_ok
+				pos_hint: {'x': 0.7}
+				text: _('OK')
+				on_release:
+					if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')(app)
+					root.dismiss()
+			NavButton:
+				id: _btn_cancel
+				pos_hint: {'x': 0.7}
+				text: _('Cancel')
+				on_release:
+					if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')(app)
+					root.dismiss()
+#---------------------------------------------------------
+#-------------------- SECURITY POPUP
+#---------------------------------------------------------
+<InfoPopup>:
+    # Properties: Login and seed
+	pr_file: _out_file
+	pr_pbkdf: _out_pbkdf
+	pr_algorithm: _out_algorithm
+	pr_mode: _out_mode
+	pr_keysize: _out_keysize
+	pr_iterations: _out_iterations
+
+    auto_dismiss: False
+	pos: root.pos
+    padding: screen_padding
+    BoxLayout:
+        orientation: 'vertical'
+		FrameTitle:
+			text: _('Info')
+		GridLayout:
+			cols: 2
+			FieldLabel:
+				text: _('File')
+			OutputField:
+				id: _out_file
+				size_hint_x: 1
+				text: ''
+		FrameTitle:
+			text: _('Security')
+		GridLayout:
+			cols: 2
+			FieldLabel:
+				text: _('Algorithm')
+			OutputField:
+				id: _out_algorithm
+				size_hint_x: None
+				width: field_width_med
+				text: ''
+			FieldLabel:
+				text: _('Chain mode')
+			OutputField:
+				id: _out_mode
+				size_hint_x: None
+				width: field_width_med
+				text: ''
+			FieldLabel:
+				text: _('Key size')
+			OutputField:
+				id: _out_keysize
+				size_hint_x: None
+				width: field_width_med
+				text: ''
+			FieldLabel:
+				text: _('Key derivator')
+			OutputField:
+				id: _out_pbkdf
+				size_hint_x: None
+				width: field_width_med
+				text: ''
+			FieldLabel:
+				text: _('Iterations')
+			OutputField:
+				id: _out_iterations
+				size_hint_x: None
+				width: field_width_med
+				text: ''
+        BoxLayout:
+			orientation: 'vertical'
+		NavButton:
+			id: _btn_cancel
+			pos_hint: {'x': 0}
+			text: _('Cancel')
+			on_release:
+				if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')(app)
+				root.dismiss()

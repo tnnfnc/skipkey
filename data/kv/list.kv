@@ -1,0 +1,119 @@
+#---------------------------------------------------------
+# List screen
+#---------------------------------------------------------
+<ListScreen>:
+	# Properties
+    pr_tag: _spi_tag
+	pr_item_list_wid: _wid_itemlist
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: screen_padding
+		#--------------------------------- Main buttons
+		ActionBar:
+		    # pos_hint: {'top':1}
+			ActionView:
+				use_separator: True
+				ActionPrevious:
+					title: app.pr_timer
+					with_previous: False
+					app_icon: 'data/icons/skip.png'
+					previous_icon: 'data/icons/exit.png'
+					on_release:
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+				# TimerLabel:
+				ActionButton:
+					important: True
+					text: _('Back')
+					icon: 'data/icons/exit.png'
+					on_release: 
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+				ActionButton:
+					important: True
+					icon: 'data/icons/plus.png'
+					text: _('Add')
+					on_release: 
+						if hasattr(root, 'cmd_add'): getattr(root, 'cmd_add')(args)
+				# ActionOverflow:				
+				ActionGroup:
+					text: _('More...')
+					ActionButton:
+						important: False
+						text: _('Copy to...')
+						on_release:
+							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='copy', app=app)
+					ActionButton:
+						important: False
+						text: _('Import from...')
+						on_release:
+							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='import', app=app)
+					ActionButton:
+						important: False
+						text: _('Export as...')
+						on_release:
+							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='export', app=app)
+					ActionButton:
+						important: False
+						text: _('Info')
+						on_release:
+							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='info', app=app)					
+					ActionButton:
+						important: False
+						text: _('Changes')
+						on_release:
+							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='changes', app=app)
+
+        #--------------------------------- Search and Tag
+        FrameTitle:
+            id: _lab_account
+            text: _('Personal accounts')
+        GridLayout:
+            rows: 1
+            size_hint_y: None
+            height: _spi_tag.height
+			#--------------------------------- Tag
+            TagSpinner:
+                id: _spi_tag
+				# pos_hint: {'center_y': 0.5}
+                on_text:
+                    if hasattr(root, 'cmd_tag_selected'): \
+					getattr(root, 'cmd_tag_selected')(text=self.text)
+					_inp_search.text = ''
+			#--------------------------------- Items counter
+			Label:
+				id: _lab_counter
+				size_hint_x: 0.2
+			#--------------------------------- Search cockpit
+            BoxFrame:
+                orientation: 'horizontal'
+				pos_hint: {'center_y': 0.5}
+                height: _inp_search.height + self.padding[1] + self.padding[3]
+                InputField:
+                    id: _inp_search
+					pos_hint: {'center_y': 0.5}
+                    hint_text: _('find')
+                    size_hint_x: 0.5
+                    on_text: 
+                        if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')(text=self.text)
+					on_focus:
+						_spi_tag.text = _spi_tag.values[0]
+                SmallButton
+                    id: _btn_go
+					pos_hint: {'center_y': 0.5}
+                    text: _('Clear')
+                    size_hint: 0.1, None
+                    height: _inp_search.height
+                    on_release:
+						if hasattr(root, 'clear_search'): getattr(root, 'clear_search')(widget=_inp_search)
+						# _inp_search.text = ''
+						# _spi_tag.text = _spi_tag.values[0]
+        #--------------------------------- List of items
+		BBoxLayout:
+			orientation: 'horizontal'
+			ScrollView:
+				id: _scr_items
+				scroll_type: ['content', 'bars']
+				do_scroll_x: False
+				do_scroll_y: True
+                AccessList:
+                    id: _wid_itemlist

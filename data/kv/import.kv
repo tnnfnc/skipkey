@@ -1,0 +1,63 @@
+#---------------------------------------------------------
+# Import screen
+#---------------------------------------------------------
+<ImportScreen>:
+    # Kivy Properties
+    pr_mapping: _inp_mapping
+	
+	BoxLayout:
+		orientation: 'vertical'
+		size_hint_x: None
+		width: page_width
+		#--------------------------------- Main buttons
+		ActionBar:
+		    # pos_hint: {'top':1}
+			ActionView:
+				use_separator: True
+				ActionPrevious:
+					title: app.pr_timer
+					with_previous: False
+					app_icon: 'data/icons/skip.png'
+					previous_icon: 'data/icons/left_arrow.png'
+					on_release:
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+				ActionButton:
+					important: True
+					text: _('Back')
+					on_release: 
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app=app)
+				ActionButton:
+					important: True
+					text: _('Import')
+					on_release: 
+						if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')(app=app, mapping=_inp_mapping.text)
+				ActionOverflow:
+		#--------------------------------- Scroll section
+		ScrollView:
+			id: _scr_edit
+			scroll_timeout: 55 #msec
+			scroll_distance: 20 #px
+			scroll_type: ['bars', 'content']
+			do_scroll_x: False
+			do_scroll_y: True
+			BoxLayout:
+				orientation: 'vertical'
+				padding: screen_padding
+				#---------------------------- Fields
+				GridLayout:
+					cols: 1
+					FrameTitle:
+						id: _lab_mapping
+						text: _('Fields mapping')
+					FieldLabel:
+						id: _lab_mapping
+						#text: 'pippo'
+						#text: root.mapping_help()
+						text: _('Write couples separated by comma:\n(\'<source>\', \'<target>\').')
+						#getattr(root, 'mapping_help') if hasattr(root, 'mapping_help') else ''
+					TextInput:
+						id: _inp_mapping
+						hint_text: _lab_mapping.text
+						multiline: True
+						max_lines: 5
+						

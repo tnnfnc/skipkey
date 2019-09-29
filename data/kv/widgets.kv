@@ -1,0 +1,289 @@
+# ---------------------------------------------------------------------
+# ----------------------- Panels ---------------------
+# ---------------------------------------------------------------------
+# ------------------------ Login PANEL
+<LoginPanel>:
+    # Properties
+    pr_password: _inp_password
+    pr_strenght: _wid_strenght
+	
+    orientation: 'vertical'
+    size_hint_y: None
+	height: self.minimum_height
+    BoxLayout:
+        orientation: 'horizontal'
+		size_hint_y: None
+		height: button_size_y
+        FieldLabel:
+            id: _lab_pwddisp
+			size_hint_y: 1
+            text: _('Display password')
+        Switch:
+            id: _swi_pwddisp
+            size_hint_x: None
+            active: False
+    InputField:
+        id: _inp_password
+        hint_text: _('type your password')
+        password: not _swi_pwddisp.active
+        on_text: 
+            if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)
+		on_parent:
+			self.focus = True
+	VerticalSpace:
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _inp_password.width
+# ----------------------------------- USER PANEL
+<UserPanel>:
+    # Properties
+    pr_password: _inp_password
+	pr_confirm: _inp_confirm
+    pr_strenght: _wid_strenght
+    
+    orientation: 'vertical'
+    size_hint_y: None
+	height: self.minimum_height
+    # size: frame_pwd_size
+    BoxLayout:
+        orientation: 'horizontal'
+		size_hint_y: None
+		height: button_size_y
+        FieldLabel:
+            id: _lab_pwddisp
+			size_hint_y: 1
+            text: _('Display password')
+        Switch:
+            id: _swi_pwddisp
+            size_hint_x: None
+            active: False
+    InputField:
+        id: _inp_password
+        hint_text: _('type your password')
+        password: not _swi_pwddisp.active
+        on_text: 
+            if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)
+		on_focus:
+			if self.focus: _inp_confirm.text = ''
+		on_parent:
+			self.focus = True
+	VerticalSpace:
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _inp_password.width
+	VerticalSpace:
+    FieldLabel:
+        id: _lab_confirm
+        text: _('Confirm')
+    InputField:
+        id: _inp_confirm
+        password: not _swi_pwddisp.active
+        hint_text: _('confirm your password')
+		on_text:
+			if not self.text == _inp_password.text: self.foreground_color = [1, 0, 0, 1]
+			else: self.foreground_color = [0, 0, 0, 1]
+#-------------------------- SEED PANEL              
+<SeedPanel>:
+    # Properties
+    pr_strenght: _wid_strenght
+    pr_seed: _inp_seed
+
+	orientation: 'vertical'
+    size_hint_y: None
+    # size: frame_seed_size
+	height: self.minimum_height
+	BoxLayout:
+		orientation: 'horizontal'
+		size_hint_y: None
+		height: button_size_y
+		FieldLabel:
+			id: _lab_seed
+			size_hint_y: 1
+			text: _('Display seed')
+		Switch:
+			id: _swi_seed
+			size_hint_x: None
+			active: False
+    InputField:
+        id: _inp_seed
+        hint_text: _('input your seed')
+        password: not _swi_seed.active
+        on_text: 
+            if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)
+	VerticalSpace:
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _inp_seed.width
+	VerticalSpace:
+# ------------------------ AUTO PANEL
+<AutoPanel>:
+	# Kivy Properties
+	pr_length: _inp_length
+	pr_letters: _swi_letters
+	pr_symbols: _inp_symbols
+	pr_numbers: _inp_numbers
+	pr_password: _inp_password
+	pr_strenght: _wid_strenght
+	
+    orientation: 'vertical'
+    # Generate password
+    BoxLayout:
+		id: _bx_generate
+        orientation: 'horizontal'
+		size_hint_y: None
+		height: _btn_generate.height*1.5 #self.minimum_height
+        SmallButton:
+            id: _btn_generate
+			pos_hint: {'center_y': 0.5}
+            text: _('Generate')
+            on_release:
+                if hasattr(app, 'generate'): getattr(app, 'generate')(length=_inp_length.text, \
+				letters=_swi_letters.active, numbers=_inp_numbers.text, symbols=_inp_symbols.text)
+        OutputField:
+            id: _inp_password
+			size_hint_x: 1
+			pos_hint: {'center_y': 0.5}
+            text: _('Password hint')
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _bx_generate.width
+    # Password length
+	VerticalSpace:
+    GridLayout:
+        cols: 2
+        FieldLabel:
+            id: _pwdlength
+            text: _('Length')
+        InputField:
+            id: _inp_length
+            hint_text: _('password length')
+			size: field_size_small
+            on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]
+			on_parent:
+				self.focus = True
+	GridLayout:
+        cols: 4
+		# Letters
+        FieldLabel:
+            id: _lab_letters
+            text: _('Letters')
+        Switch:
+            id: _swi_letters
+            size_hint: None, None
+            height: button_size_y
+            active: len(_inp_length.text) > 0
+		BoxLayout:
+		BoxLayout:
+        # Numbers
+        FieldLabel:
+            id: _lab_numbers
+            text: _('Numbers')
+        Switch:
+            id: _swi_numbers
+            size_hint: None, None
+            height: button_size_y
+            active: len(_inp_numbers.text) > 0 and len(_inp_length.text) > 0
+			on_active: 
+                if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
+				else: _inp_numbers.text = ''
+        FieldLabel:
+            id: _lab_minnumbers
+            text: _('At least')
+        InputField:
+            id: _inp_numbers
+            hint_text: _('at least')
+			disabled: not _swi_numbers.active
+			size: field_size_small
+			on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]
+				_swi_numbers.active = len(self.text) > 0
+        # Symbols
+        FieldLabel:
+            id: _lab_symbols
+            text: _('Symbols')
+        Switch:
+            id: _swi_symbols
+            size_hint: None, None
+            height: button_size_y
+            active: len(_inp_symbols.text) > 0 and len(_inp_length.text) > 0
+			on_active:
+                if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
+				else: _inp_symbols.text = ''
+        FieldLabel:
+            id: _lab_minsymbols
+            text: _('At least')
+        InputField:
+            id: _inp_symbols
+            hint_text: _('at least')
+			disabled: not _swi_symbols.active
+			size: field_size_small
+			on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]
+				_swi_symbols.active = len(self.text) > 0
+	BoxLayout:
+#-------------------- PASSWORD STRENGHT               
+<PasswordStrenght>:
+    ## Properties
+    pr_strenght: _prb_strenght
+    
+    orientation: 'horizontal'
+    size_hint: None, None
+    height: 1.2*field_height
+	padding: box_padding
+	canvas:
+		Color:
+			rgb: table_color
+		Line:
+			rectangle: self.x, self.y, self.width, self.height
+			width: 1.0
+			joint: 'bevel'
+		
+    FieldLabel:
+        id: _lab_strenght
+		pos_hint: {'center_y': 0.5}
+        text: _('Strenght')
+    OutputField:
+        id: _inp_strenght
+		pos_hint: {'center_y': 0.5}
+        text: '0.0%'
+        size_hint_x: None
+		width: 2.2*label_height
+    ProgressBar:
+        id: _prb_strenght
+		pos_hint: {'center_y': 0.5}
+        max: 100
+        value: 0
+        on_value:
+            _inp_strenght.text = '{:.2%}'.format(self.value/100)
+## -------------------- TAG SPINNER
+<TagSpinner>:
+    #pos_hint: {'center': (.5, .5)}
+    #id: _spi_tag
+    size_hint: None, 1
+    size: spinner_size
+#-------------------- Bubble options: Login - Password - Edit/View
+<ItemActionBubble>:
+    # Bubble:
+	#background_color: 0.9, 0.9, 0.7, 1
+	#border: 1, 1, 0, 0
+	# background_image = 'path/to/background/image'
+	# arrow_image = 'path/to/arrow/image'
+	size_hint: (None, None)
+	size: (dp(320), dp(80))
+	BubbleButton:
+		text: _('url')
+		on_release:
+			if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')(app)	
+	BubbleButton:
+		text: _('Login')
+		on_release:
+			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')(app)
+	BubbleButton:
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(app)
+	BubbleButton:
+		text: _('Edit')
+		on_release: 
+			if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')(app)
