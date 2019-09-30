@@ -118,3 +118,87 @@
 				text: _('Save')
 				on_release: 
 					if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')(_wid_filechooser.path, _inp_file.text)
+#---------------------------------------------------------
+#-------------------- MESSAGE POPUP
+#---------------------------------------------------------
+<MessagePopup>:
+	## Properties
+    pr_message: _lab_message
+	pr_image: _img_image
+	
+    auto_dismiss: False
+    size_hint: 0.9, 0.5
+    orientation: "vertical"
+    # padding: screen_padding
+
+    BoxLayout:
+        orientation: 'vertical'
+		# canvas.before:
+			# BorderImage:
+				## BorderImage behaves like the CSS BorderImage
+				# border: 10, 10, 10, 10
+				# source: 'data/icons/bug.png'
+				# pos: self.pos
+				# size: self.size
+		BoxLayout:
+			orientation: 'horizontal'
+			Image:
+				id: _img_image
+				#source: 'data/icons/bug.png'
+				allow_stretch: True
+				size_hint: None, 1
+				size: dp(30), dp(30)
+			Label:
+				id: _lab_message
+				markup: True
+				font_size: 1.1*font_size
+				text: _('Message')
+				valign: 'center'
+				halign: 'left'
+				text_size: self.size
+				padding_x: dp(10)
+        NavButton:
+            id: _btn_ok
+            pos_hint: {'x': 0.7}
+            text: _('OK')
+            on_release:
+				if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')(app)
+                root.dismiss()
+#---------------------------------------------------------
+#-------------------- DECISION POPUP
+#---------------------------------------------------------
+<DecisionPopup>:
+	## Properties
+    pr_message: _lab_message
+	
+    auto_dismiss: False
+    size_hint: 0.9, 0.5
+    # size: page_width-dp(20), page_height/4
+
+    # pos: root.pos
+    orientation: "vertical"
+    padding: screen_padding
+    BoxLayout:
+        orientation: 'vertical'
+		Label:
+            id: _lab_message
+            markup: True
+            font_size: 1.1*font_size
+            text: _('Message')
+		BoxLayout:
+        GridLayout:
+            cols: 2
+			NavButton:
+				id: _btn_ok
+				pos_hint: {'x': 0.7}
+				text: _('OK')
+				on_release:
+					if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')(app)
+					root.dismiss()
+			NavButton:
+				id: _btn_cancel
+				pos_hint: {'x': 0.7}
+				text: _('Cancel')
+				on_release:
+					if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')(app)
+					root.dismiss()

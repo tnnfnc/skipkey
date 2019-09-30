@@ -18,7 +18,7 @@ kivy.require('1.11.0')  # Current kivy version
 SINGLE_SEL = '0' '''Only one cell is selected.'''
 MULTI_SEL = '1' '''The row is selected as long as one of its cells is.'''
 
-Builder.load_file('data/kv/itemlist.kv')
+Builder.load_file('kv/itemlist.kv')
 
 
 def selection(widget, select=False):
@@ -241,7 +241,7 @@ class ItemCell(Label):
 
 if __name__ == '__main__':
     import model
-    import skipkey
+    # import skipkey
     # 'name': '',  # new name
     # 'url': '',  # Check valid url
     # 'login': '',  # Any string
@@ -291,7 +291,5 @@ if __name__ == '__main__':
                 self.widget.add(item)
             return self.widget
     cell_widths = {'name': 100, 'url': 100, 'login': 100}
-    b = skipkey.ItemActionBubble()
     widget = ItemList(mode=SINGLE_SEL, cell_widths=cell_widths)
-    widget.add_bubble(b)
     TestingApp(widget=widget).run()

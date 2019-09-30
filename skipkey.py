@@ -26,13 +26,20 @@
 
     """
 #import kivy_environment
+import os
+import sys
+dummy = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dummy)
 
 import gettext
 import model
 import passwordmeter
-import cryptostuff
-from fields import FieldsWidget
-from fields import FieldCompare
+import cryptofachade
+from filemanager import OpenFilePopup, SaveFilePopup
+from filemanager import message as message
+from filemanager import decision as decision
+from comparator import Comparator, Comparison
+# from fields import Comparate
 from itemlist import ItemList
 from daemon import LoginDaemon
 from datetime import datetime
@@ -55,8 +62,6 @@ from kivy.graphics import InstructionGroup
 from kivy.metrics import dp
 import kivy.metrics as metrix
 from kivy.core.clipboard import Clipboard
-from kivy import utils
-import os
 import re
 import json
 import base64
@@ -68,7 +73,7 @@ __version__ = '1.0.0'
 
 # Global
 current_dir = os.path.dirname(os.path.realpath(__file__))
-dummy = os.path.dirname(model.__file__)
+
 
 # print(f'Current dir: {current_dir}')
 icons_dir = '%s\data\icons' % (current_dir)
@@ -77,23 +82,23 @@ data_dir = '%s\data' % (current_dir)
 # Translations
 
 
-def _(x): return x
-
-
 locale_dir = '%s\locale' % (current_dir)
 # locale_dir = 'locale'
-if _(1) == 1:
+try:
     it = gettext.translation('skipkey', localedir=locale_dir, languages=['it'])
     it.install()
     _ = it.gettext
-    # print(f'Locale dir: {locale_dir}')
+except FileNotFoundError as e:
+    def _(x): return x
+    def _(x): return x
+    print(f'No translation found: {e}')
 
 
 def dp(pix):
     return metrix.dp(pix)
 
 
-Builder.load_file('data/kv/commons.kv')
+Builder.load_file('kv/commons.kv')
 
 
 ''' Tag list:
@@ -175,49 +180,6 @@ test_items.extend([
 item_mask = ('name', 'login', 'url')
 # item_mask = None
 
-message_popup = None
-decision_popup = None
-
-
-def message(title, text, type='i'):
-    global message_popup
-
-    if not message_popup:
-        message_popup = MessagePopup()
-
-    text = utils.escape_markup(f'{text}')
-    if type == 'e':
-        text = ''.join(('[b][color=ff0000]', text, '[/color][/b]'))
-        message_popup.pr_image.source = 'data/icons/bug.png'
-    elif type == 'w':
-        text = ''.join(('[b][color=ffff00]', text, '[/color][/b]'))
-        message_popup.pr_image.source = 'data/icons/pen.png'
-    elif type == 'i':
-        text = ''.join(('[b][color=00ff00]', text, '[/color][/b]'))
-        message_popup.pr_image.source = 'data/icons/ok.png'
-    else:
-        pass
-
-    message_popup.title = title
-    message_popup.pr_message.text = text
-    message_popup.open()
-
-
-def decision(title, text, fn_ok=None, fn_canc=None, ok_kwargs=None, canc_kwargs=None, **kwargs):
-    text = ''.join(('[b]', utils.escape_markup(text), '[/b]'))
-    global decision_popup
-    if not decision_popup:
-        decision_popup = DecisionPopup()
-
-    decision_popup.title = title
-    decision_popup.pr_message.text = text
-    decision_popup.fn_ok = fn_ok
-    decision_popup.fn_canc = fn_canc
-    decision_popup.ok_kwargs = ok_kwargs
-    decision_popup.canc_kwargs = canc_kwargs
-
-    decision_popup.open()
-
 
 class SecurityException(Exception):
 
@@ -225,16 +187,10 @@ class SecurityException(Exception):
         super(SecurityException, self).__init__(*args, **kwargs)
 
 
-class OpenFilePopup(Popup):
-    # Widget hooks
-    filechooser = ObjectProperty(None)
+class OpenFile(OpenFilePopup):
 
     def __init__(self, *args, **kwargs):
-        super(OpenFilePopup, self).__init__(**kwargs)
-        #self.filechooser.rootpath = os.getcwd()
-        self.home = os.getcwd()
-        self.filechooser.path = self.home
-        self.filechooser.filters = [self.is_valid, ]
+        super(OpenFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
 
     def cmd_load(self, path, selection):
@@ -255,12 +211,10 @@ class OpenFilePopup(Popup):
         return True
 
 
-class ImportFilePopup(OpenFilePopup):
-    # Widget hooks
-    filechooser = ObjectProperty(None)
+class ImportFile(OpenFilePopup):
 
     def __init__(self, *args, **kwargs):
-        super(ImportFilePopup, self).__init__(**kwargs)
+        super(ImportFile, self).__init__(**kwargs)
 
     def cmd_load(self, path, selection):
         '''Call the import screen'''
@@ -278,15 +232,10 @@ class ImportFilePopup(OpenFilePopup):
         return str(file).endswith('csv') or str(file).endswith('txt')
 
 
-class SaveFilePopup(Popup):
-    # Widget hooks
-    filechooser = ObjectProperty(None)
+class SaveFile(SaveFilePopup):
 
     def __init__(self, *args, **kwargs):
-        super(SaveFilePopup, self).__init__(**kwargs)
-        self.home = os.getcwd()
-        self.filechooser.path = self.home
-        # self.filechooser.filters = [self.is_valid]
+        super(SaveFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
         self.mode = SAVE  # or NEW
 
@@ -316,10 +265,10 @@ class SaveFilePopup(Popup):
         self.dismiss()
 
 
-class ExportFilePopup(SaveFilePopup):
+class ExportFile(SaveFilePopup):
 
     def __init__(self, *args, **kwargs):
-        super(ExportFilePopup, self).__init__(**kwargs)
+        super(ExportFile, self).__init__(**kwargs)
 
     def do_save(self, file):
         f = file
@@ -333,47 +282,6 @@ class ExportFilePopup(SaveFilePopup):
         except Exception as e:
             message(_('Export failed: %s') % (e.args),
                     f'{os.path.basename(file)}', 'e')
-        return False
-
-
-class MessagePopup(Popup):
-    # Widget hooks
-    pr_message = ObjectProperty(None)
-    pr_image = ObjectProperty(None)
-
-    def __init__(self, *args, **kwargs):
-        super(MessagePopup, self).__init__(**kwargs)
-
-
-class DecisionPopup(Popup):
-    # Widget hooks
-    pr_message = ObjectProperty(None)
-
-    def __init__(self, title='', text='', fn_ok=None, fn_canc=None, ok_kwargs=None, canc_kwargs=None, *args, **kwargs):
-        super(DecisionPopup, self).__init__(**kwargs)
-        self.fn_ok = fn_ok
-        self.ok_kwargs = ok_kwargs
-        self.fn_canc = fn_canc
-        self.canc_kwargs = canc_kwargs
-        self.pr_message.text = text
-        self.title = title
-
-    def cmd_ok(self, app):
-        if self.fn_ok:
-            try:
-                self.fn_ok(**self.ok_kwargs)
-                return True
-            except Exception:
-                return False
-        return True
-
-    def cmd_cancel(self, app):
-        if self.fn_canc:
-            try:
-                self.fn_canc(**self.canc_kwargs)
-                return False
-            except Exception:
-                return False
         return False
 
 
@@ -453,7 +361,7 @@ class CipherPopup(Popup):
                 self.file = self.file[0]
             # Build security:
             if self.pr_kderive.text and self.pr_cipher.text and self.pr_iters.text:
-                cd = cryptostuff.cryptodict(**cryptostuff.default_cryptod)
+                cd = cryptofachade.cryptodict(**cryptofachade.default_cryptod)
                 cd['algorithm'] = self.pr_cipher.text
                 cd['pbkdf'] = self.pr_kderive.text
                 cd['iterations'] = int(self.pr_iters.text)
@@ -488,11 +396,11 @@ class CipherPopup(Popup):
 
     def cipher_algorithms(self):
         '''List of available ciphers algorithm'''
-        return list(cryptostuff.cipher_algorithms().keys())
+        return list(cryptofachade.cipher_algorithms().keys())
 
     def key_derivators(self):
         '''List of available key derivation functions'''
-        return list(cryptostuff.key_derivators().keys())
+        return list(cryptofachade.key_derivators().keys())
 
     def reset(self):
         self.pr_login_wid.pr_password.text = ''
@@ -659,14 +567,14 @@ class EnterScreen(Screen):
     def cmd_new(self, app):
         '''Create a new file e go to login'''
         file = ''
-        popup = SaveFilePopup()
+        popup = SaveFile()
         popup.title = _('New file: %s') % (file)
         popup.open()
         return True
 
     def cmd_open(self, app):
         '''Open a file from filesystem'''
-        popup = OpenFilePopup()
+        popup = OpenFile()
         popup.title = _('Open')
         popup.open()
         return True
@@ -714,17 +622,17 @@ class ListScreen(Screen):
             self.security_popup.set_fields(app.cryptod, file=app.file)
             self.security_popup.open()
         elif action == COPY:
-            popup = SaveFilePopup()
+            popup = SaveFile()
             popup.filechooser.rootpath = app.file
             popup.title = _('Copy to')
             popup.mode = COPY
             popup.open()
         elif action == IMPORT:
-            popup = ImportFilePopup()
+            popup = ImportFile()
             popup.title = _('Import from:')
             popup.open()
         elif action == EXPORT:
-            popup = ExportFilePopup()
+            popup = ExportFile()
             popup.title = _('Export to:')
             popup.open()
         elif action == CHANGES:
@@ -1021,14 +929,14 @@ class ChangesScreen(Screen):
     # Widget hooks
     #pr_accounts = ObjectProperty(None)
     pr_actions = ObjectProperty(None)
-    pr_itemfields_wid = ObjectProperty(None)
+    pr_comparator_wid = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ChangesScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def _fill_fields(self, mementos):
-        self.pr_itemfields_wid.clear()
+        self.pr_comparator_wid.clear()
         try:
             formers = mementos[self.pr_actions.values.index(
                 self.pr_actions.text)]['body']
@@ -1036,8 +944,8 @@ class ChangesScreen(Screen):
                 items=self.app.items, key='name', value=formers['name'])]
 
             for key, former in formers.items():
-                self.pr_itemfields_wid.add(
-                    field=FieldCompare, key=key, name=SkipKeyApp.LABELS[key], last=values[key], former=former)
+                self.pr_comparator_wid.add(
+                    field=Comparison, key=key, name=SkipKeyApp.LABELS[key], last=values[key], former=former)
         except ValueError:
             pass
         except IndexError:
@@ -1212,7 +1120,7 @@ class AccessList(ItemList):
         self.add_bubble(Factory.ItemActionBubble())
 
 
-class ItemFields(FieldsWidget):
+class ItemFields(Comparator):
     def __init__(self, *args, **kwargs):
         super(ItemFields, self).__init__(*args, **kwargs)
 
@@ -1225,50 +1133,62 @@ class ItemActionBubble(Bubble):
         self.item = None
         # Clear clipboard scheduled event
         self.evt_clipboard = None
-        # self.background_color = (1, 0, 0, .5) #50% translucent red
-        # self.border = [0, 0, 0, 0]
-
-        # background_image = 'path/to/background/image'
-        # arrow_image = 'path/to/arrow/image'
 
     def cmd_url(self, app):
-        # print(self.item.item['url'])
-        Clipboard.copy(self.item.item['url'])
         # TODO System call to browser
+        url = self.item.item['url']
+        self._publish(app, url)
+        # print(self.item.item['url'])
+        # Clipboard.copy(self.item.item['url'])
+        # self.reset()
+        return True
+
+    def cmd_user(self, app):
+        '''Publish user.'''
+        user = self.item.item['login']
+        self._publish(app, user)
+        # self.reset()
+        return True
+
+    def cmd_password(self, app):
+        '''Publish password.'''
+        p = self._password(app)
+        self._publish(app, p)
         # self.reset()
         return True
 
     def cmd_login(self, app):
-        # print(self.item.item['login'])
-        Clipboard.copy(self.item.item['login'])
+        '''Publish 'user TAB password'.'''
+        p = self._password(app)
+        login = f'{self.item.item["login"]}\t{p}'
+        self._publish(app, login)
         self.reset()
         return True
 
-    def cmd_password(self, app):
-        # Depends on item 'auto' or 'user'
-        autocompletion = app.config.getdefault(
-            SkipKeyApp.SETTINGS, SkipKeyApp.AUTOCOMP, True) == '1'
-
+    def _password(self, app):
         if self.item.item['auto'] == 'False':
             p = app.decrypt(self.item.item['password'])
+        # Clipboard.copy(self.item.item['login'])
         else:
             p = app.show(self.item.item)
+        return p
+
+    def _publish(self, app, text):
+        autocompletion = app.config.getdefault(
+            SkipKeyApp.SETTINGS, SkipKeyApp.AUTOCOMP, True) == '1'
         timeout = int(app.config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDTIME, '15'))
-        login = f'{self.item.item["login"]}\t{p}'
-        if p == False:
+        if text == False:
             return False
         if autocompletion:
-            daemon = LoginDaemon(text=login, timeout=timeout)
+            daemon = LoginDaemon(text=text, timeout=timeout)
             daemon.start()
-            self.reset()
         else:
-            Clipboard.copy(login)
+            Clipboard.copy(text)
             # Once at a time
             if app.evt_clipboard:
                 app.evt_clipboard.cancel()
             app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
-            self.reset()
         return True
 
     def cmd_edit(self, app):
@@ -1285,7 +1205,6 @@ class ItemActionBubble(Bubble):
 
     def cb_clean(self, dt):
         Clipboard.copy(' ')
-        # print(f'cleaned clipboard: {dt} - {Clipboard.paste()}')
 
     def on_touch_down(self, touch):
         '''Remove bubble when click outside it'''
@@ -1360,20 +1279,8 @@ class SkipKeyApp(App):
         #
         self.count_down = 0
 
-#    def hh_mm_ss(self):
-#        hh = int(self.count_down/3600)
-#        mm = int((self.count_down % 3600)/60)
-#        ss = int((self.count_down % 3600) % 60)
-#        if hh == 0:
-#            hh = '00'
-#        if mm == 0:
-#            mm = '00'
-#        if ss == 0:
-#            ss = '00'
-#        return f'Timeout: {hh}:{mm}:{ss}'
-
     def build(self):
-        self.title = 'SkipKey'
+        self.title = 'SkipKey %s' % (__version__)
         # path = os.path.dirname(os.path.realpath(__file__))
         self.icon = '%s\\%s' % (icons_dir, ICON)
         # ----------------> App configuration
@@ -1695,7 +1602,7 @@ class SkipKeyApp(App):
         else:
             letters = 0
         try:
-            pattern = cryptostuff.Pattern(
+            pattern = cryptofachade.Pattern(
                 lett=letters,
                 num=numbers,
                 sym=symbols,
@@ -1739,7 +1646,7 @@ class SkipKeyApp(App):
                 letters = 0
             else:
                 letters = 1
-            pattern = cryptostuff.Pattern(
+            pattern = cryptofachade.Pattern(
                 lett=letters,
                 num=item['numbers'],
                 sym=item['symbols'],
@@ -1756,9 +1663,9 @@ class SkipKeyApp(App):
     def secure(self, cryptod, passwd, seed):
         '''Set up the security only one time!'''
         try:
-            self.cipher_fachade = cryptostuff.CipherFachade()
-            self.keywrapper = cryptostuff.KeyWrapper()
-            self.seedwrapper = cryptostuff.KeyWrapper()
+            self.cipher_fachade = cryptofachade.CipherFachade()
+            self.keywrapper = cryptofachade.KeyWrapper()
+            self.seedwrapper = cryptofachade.KeyWrapper()
             # Wrapping secret key
             key = self.cipher_fachade.key_derivation_function(
                 cryptod).derive(passwd)
@@ -1899,7 +1806,7 @@ class SkipKeyApp(App):
         try:
             # Get the seed:
             try:
-                local_cf = cryptostuff.CipherFachade()
+                local_cf = cryptofachade.CipherFachade()
                 key = local_cf.key_derivation_function(
                     cryptod).derive(passwd)
                 seed = local_cf.key_derivation_function(
