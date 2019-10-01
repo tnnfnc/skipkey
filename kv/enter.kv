@@ -28,34 +28,33 @@
 					icon: 'data/icons/open.png'
 					text: _('Open')
 					on_release: 
-						if hasattr(root, 'cmd_open'): getattr(root, 'cmd_open')(app)
+						if hasattr(root, 'cmd_open'): getattr(root, 'cmd_open')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/new.png'
 					text: _('New')
 					on_release: 
-						if hasattr(root, 'cmd_new'): getattr(root, 'cmd_new')(app)
+						if hasattr(root, 'cmd_new'): getattr(root, 'cmd_new')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/x.png'
 					text: _('Exit')
 					on_release: 
-						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
+						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
                 ActionOverflow:
                 ActionButton:
 					important: True
 					text: _('Clear recents')
 					on_release: 
-						if hasattr(root, 'cmd_clear'): getattr(root, 'cmd_clear')(app)
+						if hasattr(root, 'cmd_clear'): getattr(root, 'cmd_clear')()
 
 		Spinner:
 			id: _spi_recentfiles
 			text: _('Recent files')
 			size_hint: 1, None
 			size: spinner_size
-			values: getattr(app, 'get_recent_files')()
 			on_text: 
-				if hasattr(root, 'cmd_recent'): getattr(root, 'cmd_recent')(self, app)
+				if hasattr(root, 'cmd_recent'): getattr(root, 'cmd_recent')()
 		
 		BoxLayout:
 			orientation: 'horizontal'

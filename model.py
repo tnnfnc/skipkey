@@ -206,62 +206,6 @@ def memento(item, key='name', action='', **kvargs):
         h = None
     return h
 
-# class memento_manager():
-
-#     def __init__(self, *args, *kwargs):
-#         self.mm = []
-
-#     def _memento(item, key='name', action='', **kvargs):
-#         '''Return a memento item: a dictionary: name, timestamp, action and a
-#         body containing the item serialized into a json string.'''
-#         try:
-#             h = {'name': item['name'],
-#                 'timestamp': Date.now(),
-#                 'action': action,
-#                 'body': json.dumps(item)}
-#             for k, v in kvargs.items():
-#                 h[k] = v
-#         except KeyError:
-#             h = None
-#         return h
-
-#     def add_one(item, key='name', action='', **kvargs):
-#         '''Return the list of mementos ordered by the name from the last to the former'''
-#         data = _memento(item, key='name', action='', **kvargs)
-#         if data[key] in mm:
-#             mm[data[key]].append(data)
-#         else:
-#             mm[data[key]] = [data,]
-
-#     def add(mementos, key='name'):
-#         '''Return the list of mementos ordered by the name from the last to the former'''
-#         for h in mementos:
-#             data = ('%s' % (h['action']), '%s' % (h['timestamp']), json.loads(h['body']))
-#             if h[key] in mm:
-#                 mm[h[key]].append(data)
-#             else:
-#                 mm[h[key]] = [data,]
-
-
-
-# def mementos_by_key(mementos, key='name'):
-#     '''Return the list of mementos ordered by the name from the last to the former'''
-#     mm= {}
-#     for h in mementos:
-#         data = ('%s - %s' % (h['action'], h['timestamp']), json.loads(h['body']))
-#         if h[key] in mm:
-#             mm[h[key]].append(data)
-#         else:
-#             mm[h[key]] = [data,]
-#     return mm
-
-# def parse_memento_by_key(mementos):
-#     '''Return the list of memento actions and the list of memento objects'''
-#     actions = [k[0] for k in mementos]
-#     mementos = [k[1] for k in mementos]
-#     return actions, mementos
-
-
 mapping = {
     'Access': 'name',
     'url': 'url',

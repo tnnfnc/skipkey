@@ -69,7 +69,12 @@ import kivy
 import threading
 kivy.require('1.11.0')  # Current kivy version
 
-__version__ = '1.0.0'
+MAJOR = 1
+MINOR = 0
+MICRO = 1
+RELEASE = True
+
+__version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 # Global
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -241,6 +246,8 @@ class SaveFile(SaveFilePopup):
 
     def cmd_save(self, path, selection):
         if selection:
+            if not os.path.dirname(selection):
+                selection = '%s\\%s' % (path, selection)
             if not os.path.exists(selection):
                 self.do_save(selection)
             else:
@@ -546,15 +553,21 @@ class EnterScreen(Screen):
 
     def __init__(self, *args, **kwargs):
         super(EnterScreen, self).__init__(**kwargs)
+        self.app = None
+    
+    def on_enter(self):
+        '''Load recent files'''
+        self.app = App.get_running_app()
+        self.pr_recentfiles.values = self.app.get_recent_files()
 
-    def cmd_recent(self, spinner, app):
+    def cmd_recent(self):
         '''Choose a recent file and go to login'''
-        if spinner.text == 'Recent files':
+        if self.pr_recentfiles.text == 'Recent files':
             return False
-        file = spinner.text
-        if file and file in app.files:
-            spinner.text = 'Recent files'
-            file = app.files[file]
+        file = self.pr_recentfiles.text
+        if file and file in self.app.files:
+            self.pr_recentfiles.text = 'Recent files'
+            file = self.app.files[file]
             popup = LoginPopup()
             popup.title = _('Login to: %s') % (file)
             popup.file = file
@@ -564,7 +577,7 @@ class EnterScreen(Screen):
             return False
         return True
 
-    def cmd_new(self, app):
+    def cmd_new(self):
         '''Create a new file e go to login'''
         file = ''
         popup = SaveFile()
@@ -572,21 +585,21 @@ class EnterScreen(Screen):
         popup.open()
         return True
 
-    def cmd_open(self, app):
+    def cmd_open(self):
         '''Open a file from filesystem'''
         popup = OpenFile()
         popup.title = _('Open')
         popup.open()
         return True
 
-    def cmd_clear(self, app):
-        app.clear_recent_files()
-        self.pr_recentfiles.values = app.get_recent_files()
+    def cmd_clear(self):
+        self.app.clear_recent_files()
+        self.pr_recentfiles.values = self.app.get_recent_files()
         return True
 
-    def cmd_exit(self, app):
+    def cmd_exit(self):
         '''Exit app'''
-        app.stop()
+        self.app.stop()
         # sys.exit()
         return True
 
@@ -847,14 +860,14 @@ class EditScreen(Screen):
     def item_check(self, item):
         log = []
         if item['name'] == '':
-            log.append('Name is mandatory')
+            log.append(_('Name is mandatory'))
         if item['password'] == '':
-            log.append('No password defined')
+            log.append(_('No password defined'))
         if item['email']:
             m = re.search(
                 r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", item['email'])
             if not m:
-                log.append(f"Check email adress:\n{item['email']}")
+                log.append(_('Check email adress: %s') % (item['email']))
         if len(log) > 0:
             message(_('Warning'), '\n'.join(
                 [f'{j+1} - {x}' for j, x in enumerate(log)]), 'w')
