@@ -1,0 +1,3 @@
+title=skipkey
+author=Franco Toninato
+orientation=portrait

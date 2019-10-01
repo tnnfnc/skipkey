@@ -3,31 +3,31 @@
 #---------------------------------------------------------
 # Fielda widget
 #---------------------------------------------------------
-<FieldsWidget>:
+<Comparator>:
 
 
-<Field>:
+# <Field>:
+	# pr_label: _lab_label
+	# pr_value: _inp_value
+
+	# orientation: 'horizontal'
+	# size_hint: 1, None
+	# height: 2*_lab_label.font_size
+	# Label:
+		# id: _lab_label
+		# size_hint: None, 1
+		# halign: 'left'
+		# valign: 'middle'
+		# width: dp(120)
+		# text_size: self.size
+	# TextInput:
+		# id: _inp_value
+		# disabled: True
+
+<Comparison>:
 	pr_label: _lab_label
-	pr_value: _inp_value
-
-	orientation: 'horizontal'
-	size_hint: 1, None
-	height: 2*_lab_label.font_size
-	Label:
-		id: _lab_label
-		size_hint: None, 1
-		halign: 'left'
-		valign: 'middle'
-		width: dp(120)
-		text_size: self.size
-	TextInput:
-		id: _inp_value
-		disabled: True
-
-<FieldCompare>:
-	label: _lab_label
-	value: _lab_value
-	change: _lab_change
+	pr_last: _lab_value
+	pr_former: _lab_change
 
 	# Adapt its height to the max text's one
 	orientation: 'horizontal'
