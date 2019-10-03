@@ -95,7 +95,7 @@ def search_items(items, text, fields=('name', 'tag', 'description', 'login', 'ur
     return [items[x] for x in f_list if f_list]
 
 
-def in_items(items, value, key):
+def in_items(items, value, key, casefold=False):
     """
     Return if a value is found in a key.
         Parameters
@@ -108,6 +108,9 @@ def in_items(items, value, key):
 
         Return if a value is found for the specified key in the list.
     """
+    if casefold:
+        value = str(value).casefold().strip()
+        return value in [str(i[key]).casefold().strip() for i in items]
     return value in [i[key] for i in items]
 
 
@@ -316,6 +319,10 @@ if __name__ == '__main__':
     print(f'\n --------> search items: \n {search_items(items, "ree")}')
 
     print(f"\n --------> in items: \n {in_items(items, 'item 6', 'name')}")
+
+    print(f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name', casefold=True)}")
+
+    print(f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name')}")
 
     print(
         f"\n --------> index of items: \n {index_of(items, 'item 6', 'name')}")

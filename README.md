@@ -27,7 +27,7 @@ Packaging with pyinstaller 'golden rules' for avoiding hassles:
 FINAL SCRIPT with local pyinstaller:
 environment = skipkey
 
-..\Scripts\pyinstaller --name skipkey --noconsole --paths="..\skipkey" --add-data="..\skipkey\*.json;." --add-data="..\skipkey\locale\it\LC_MESSAGES\*;locale\it\LC_MESSAGES\." --add-data="..\skipkey\data\icons\*;data\icons\." --add-data="..\skipkey\data\*.*;data\." --add-data="..\skipkey\data\kv\*.*;data\kv\." --icon ..\skipkey\data\icons\skip_big.ico --hidden-import=win32timezone ..\skipkey\skipkey.py
+..\Scripts\pyinstaller --name skipkey --noconsole --paths="..\skipkey" --add-data="..\skipkey\*.json;." --add-data="..\skipkey\locale\it\LC_MESSAGES\*;locale\it\LC_MESSAGES\." --add-data="..\skipkey\data\icons\*;data\icons\." --add-data="..\skipkey\data\*.*;data\." --add-data="..\skipkey\kv\*.*;kv\." --icon ..\skipkey\data\icons\skip_big.ico --hidden-import=win32timezone ..\skipkey\skipkey.py
 
 How to use:
 

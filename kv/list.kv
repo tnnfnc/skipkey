@@ -4,6 +4,7 @@
 <ListScreen>:
 	# Properties
     pr_tag: _spi_tag
+    pr_search: _inp_search
 	pr_item_list_wid: _wid_itemlist
     
     BoxLayout:
@@ -76,9 +77,7 @@
                 id: _spi_tag
 				# pos_hint: {'center_y': 0.5}
                 on_text:
-                    if hasattr(root, 'cmd_tag_selected'): \
-					getattr(root, 'cmd_tag_selected')(text=self.text)
-					_inp_search.text = ''
+                    if hasattr(root, 'cmd_tag_selected'): getattr(root, 'cmd_tag_selected')()
 			#--------------------------------- Items counter
 			Label:
 				id: _lab_counter
@@ -94,7 +93,7 @@
                     hint_text: _('find')
                     size_hint_x: 0.5
                     on_text: 
-                        if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')(text=self.text)
+                        if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')()
 					on_focus:
 						_spi_tag.text = _spi_tag.values[0]
                 SmallButton
@@ -104,7 +103,7 @@
                     size_hint: 0.1, None
                     height: _inp_search.height
                     on_release:
-						if hasattr(root, 'clear_search'): getattr(root, 'clear_search')(widget=_inp_search)
+						if hasattr(root, 'clear_search'): getattr(root, 'clear_search')()
 						# _inp_search.text = ''
 						# _spi_tag.text = _spi_tag.values[0]
         #--------------------------------- List of items

@@ -26,52 +26,52 @@
 
     """
 #import kivy_environment
+import threading
+import kivy
+import base64
+import json
+import re
+from kivy.core.clipboard import Clipboard
+import kivy.metrics as metrix
+from kivy.metrics import dp
+from kivy.graphics import InstructionGroup
+from kivy.graphics import Rectangle
+from kivy.graphics import Color
+from kivy.factory import Factory
+from kivy.properties import StringProperty
+from kivy.properties import ObjectProperty
+from kivy.lang.builder import Builder
+from kivy.uix.bubble import Bubble
+from kivy.uix.spinner import Spinner
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.popup import Popup
+from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import ScreenManager
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.app import App
+from datetime import datetime
+from daemon import LoginDaemon
+from itemlist import ItemList
+from comparator import Comparator, Comparison
+from filemanager import decision as decision
+from filemanager import message as message
+from filemanager import OpenFilePopup, SaveFilePopup
+import cryptofachade
+import passwordmeter
+import model
+import gettext
 import os
 import sys
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
 
-import gettext
-import model
-import passwordmeter
-import cryptofachade
-from filemanager import OpenFilePopup, SaveFilePopup
-from filemanager import message as message
-from filemanager import decision as decision
-from comparator import Comparator, Comparison
 # from fields import Comparate
-from itemlist import ItemList
-from daemon import LoginDaemon
-from datetime import datetime
-from kivy.app import App
-from kivy.core.window import Window
-from kivy.clock import Clock
-from kivy.uix.screenmanager import ScreenManager
-from kivy.uix.screenmanager import Screen
-from kivy.uix.popup import Popup
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.spinner import Spinner
-from kivy.uix.bubble import Bubble
-from kivy.lang.builder import Builder
-from kivy.properties import ObjectProperty
-from kivy.properties import StringProperty
-from kivy.factory import Factory
-from kivy.graphics import Color
-from kivy.graphics import Rectangle
-from kivy.graphics import InstructionGroup
-from kivy.metrics import dp
-import kivy.metrics as metrix
-from kivy.core.clipboard import Clipboard
-import re
-import json
-import base64
-import kivy
-import threading
 kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 1
+MICRO = 2
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -461,91 +461,34 @@ class EditTagPopup(Popup):
 
     def cmd_save(self, app):
         '''Delete the current tag and deletes the items tag accordingly'''
-        sm = app.root
-        if self.mode:
-            if self.mode == DELETE \
-                    and self.delete_tag(self.old, '', sm.get_screen(LIST).pr_tag) \
-                    and self.delete_tag(self.old, '', sm.get_screen(EDIT).pr_tag):
-                app.delete_tag(self.old, TAGS)
-                self.mode = self.old = None
-                self.dismiss()
-            elif self.mode == ADD \
-                    and self.add_tag(self.pr_tag.text, sm.get_screen(LIST).pr_tag) \
-                    and self.add_tag(self.pr_tag.text, sm.get_screen(EDIT).pr_tag):
-                sm.get_screen(LIST).pr_tag.text = sm.get_screen(
-                    LIST).pr_tag.values[0]
-                self.mode = self.old = None
-                self.dismiss()
-            elif self.mode == RENAME \
-                    and self.rename_tag(old=self.old, new=self.pr_tag.text, spinner=sm.get_screen(LIST).pr_tag) \
-                    and self.rename_tag(old=self.old, new=self.pr_tag.text, spinner=sm.get_screen(EDIT).pr_tag):
-                sm.get_screen(LIST).pr_tag.text = sm.get_screen(
-                    LIST).pr_tag.values[0]
-                app.rename_tag(self.old, self.pr_tag.text)
-                self.mode = self.old = None
-                self.dismiss()
+        tag = self.pr_tag.text
+        if tag == _(TAGS):
+            message(tag, _('Action failed because: %s is already used.') %
+                    (tag), 'w')
+            return False
+
+        if self.mode == DELETE and self.old:
+            tag = ''
+        elif self.mode == ADD and self.old == '':
+            # tag = tag
+            if model.in_items(items=app.items, value=tag, key='tag', casefold=True):
+                message(
+                    tag, _('Action failed because: %s is already used.') % (tag), 'w')
+                return False
             else:
-                pass
+                app.root.get_screen(EDIT).pr_tag.text = tag
+        elif self.mode == RENAME and self.old:
+            tag = tag
         else:
-            pass
+            return False
+
+        for item in model.item_iterator(items=app.items, key='tag', value=self.old):
+            item_old = item.copy()
+            item['tag'] = tag
+            app.add_memento(new=item, old=item_old, action=UPDATE)
+        self.mode = self.old = None
+        self.dismiss()
         return True
-
-    # def cmd_focus_tag(self, *args):
-    #     '''Check the field is not empty leaving focus.'''
-    #     if not args[1]:  # Focus lost!
-    #         # print(f'Focus lost: {args[0].text}!')
-    #         pass
-    #     return True
-
-    def rename_tag(self, old, new, spinner):
-        '''Rename the tag of all items from the old value
-        to the new one'''
-        # print(f'Rename tag from {old} to {new}!')
-        old = str(old)
-        new = str(new)
-        if old and new and not new in spinner.values and old != TAGS and new != TAGS:
-            try:
-                i = spinner.values.index(old)
-                spinner.values[i] = new
-                spinner.text = new
-            except ValueError as e:
-                message(_('Tag'), _('Rename tag %s to %s:\n %s') %
-                        (old, new, e), 'e')
-                return False
-            return True
-        message(_('Tag'), _(
-            'Rename tag failed:\n %s is already used.') % (new), 'w')
-        return False
-
-    def delete_tag(self, old, new, spinner):
-        '''Rename the tag of all items from the old value
-        to the new one'''
-        # print(f'Delete tag from {old} to {new}!')
-        old = str(old)
-        if old and not old == TAGS:
-            try:
-                spinner.values.remove(old)
-                spinner.text = TAGS
-            except ValueError as e:
-                message(_('Tag'), _('Delete tag %s:\n%s') % (old, e), 'e')
-                return False
-            return True
-        message(_('Tag'), _('The tag "%s" does not exist') % (old), 'e')
-        return False
-
-    def add_tag(self, new, spinner):
-        '''Rename the tag of all items from the old value
-        to the new one'''
-        # print(f'Add tag {new}!')
-        new = str(new)
-        if new and not new in spinner.values and not new == TAGS:
-            spinner.values.append(new)
-            spinner.text = new
-
-            return True
-        message(_('Tag'), _(
-            'Error in adding the new tag %s') % (new), 'e')
-        return False
 
 
 class EnterScreen(Screen):
@@ -554,7 +497,7 @@ class EnterScreen(Screen):
     def __init__(self, *args, **kwargs):
         super(EnterScreen, self).__init__(**kwargs)
         self.app = None
-    
+
     def on_enter(self):
         '''Load recent files'''
         self.app = App.get_running_app()
@@ -607,33 +550,57 @@ class EnterScreen(Screen):
 class ListScreen(Screen):
     # Widget hooks
     pr_tag = ObjectProperty(None)
+    pr_search = ObjectProperty(None)
     pr_item_list_wid = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.security_popup = None
+        self.infopopup = None
+
+    def on_enter(self):
+        '''Call when enter screen'''
+        # Init tags
+        tags = self.build_tags()
+        self.pr_tag.values = tags
+        self.app.root.get_screen(EDIT).pr_tag.values = tags
+
+        if not self.pr_tag.text:
+            self.pr_tag.text = self.pr_tag.values[0]
+        elif self.pr_tag.text != self.pr_tag.values[0]:
+            self.cmd_tag_selected()
+        elif self.pr_search.text:
+            self.cmd_search()
+        else:
+            self._fill_items()
+            pass
+        self.counter()
+
+    def on_leave(self):
+        '''Call when leave screen'''
+        pass
+
+    def build_tags(self):
+        t = list(set(i['tag'] for i in self.app.items))
+        t.sort(key=str.lower)
+        tags = [TAGS, ] + t
+        return tags
 
     def _fill_items(self):
-        if self.pr_item_list_wid.count < len(self.app.items):
-            self.pr_item_list_wid.clear()
-            for i in self.app.items:
-                self.pr_item_list_wid.add(i)
-            self.counter()
-
-    def cmd_enter(self, **kwargs):
-        '''Display items and get tags'''
-        self.cmd_tag_selected(self.pr_tag.text)
-        super(ListScreen, self).cmd_enter(**kwargs)
+        # if self.pr_item_list_wid.count < len(self.app.items):
+        self.pr_item_list_wid.clear()
+        for i in self.app.items:
+            self.pr_item_list_wid.add(i)
+        self.counter()
 
     def cmd_option(self, action, app):
         '''This is a menu'''
         if action == INFO:
-            if not self.security_popup:
-                self.security_popup = InfoPopup()
-                self.security_popup.title = _('Info')
-            self.security_popup.set_fields(app.cryptod, file=app.file)
-            self.security_popup.open()
+            if not self.infopopup:
+                self.infopopup = InfoPopup()
+                self.infopopup.title = _('Info')
+            self.infopopup.set_fields(app.cryptod, file=app.file)
+            self.infopopup.open()
         elif action == COPY:
             popup = SaveFile()
             popup.filechooser.rootpath = app.file
@@ -655,12 +622,14 @@ class ListScreen(Screen):
             pass
         return True
 
-    def cmd_tag_selected(self, text):
-        if text == TAGS:
+    def cmd_tag_selected(self):
+        '''On tag selected'''
+        self.pr_search.text = ''
+        if self.pr_tag.text == TAGS:
             self._fill_items()
         else:
             sublst = model.filter_items(
-                items=self.app.items, value=text, key='tag')
+                items=self.app.items, value=self.pr_tag.text, key='tag')
             sublst.sort(key=lambda x: str.lower(x['name']))
             self.pr_item_list_wid.clear()
             for i in sublst:
@@ -668,28 +637,27 @@ class ListScreen(Screen):
         self.counter()
         return True
 
-    def clear_search(self, widget):
-        '''Better schedule this!'''
-        if len(widget.text) > 0:
-            widget.text = ''
+    def clear_search(self):
+        '''Clear the search text field'''
+        if len(self.pr_search.text) > 0:
+            self.pr_search.text = ''
         self._fill_items()
 
-    def cmd_search(self, text, after=False, at_least=3):
-        '''Better schedule this!'''
-        if len(text) < at_least:
+    def cmd_search(self, after=False, at_least=3):
+        '''Search items for the input text'''
+        if len(self.pr_search.text) < at_least:
             self._fill_items()
             return False
         items = self.app.items
         self.pr_item_list_wid.clear()
         if after:
-            sublst = model.search_items(items=items, text=text)
+            sublst = model.search_items(items=items, text=self.pr_search.text)
             sublst.sort(key=lambda x: str.lower(x['name']))
             for i in sublst:
                 self.pr_item_list_wid.add(i)
             self.counter()
         else:
-            Clock.schedule_once(lambda dt: self.cmd_search(
-                text=text, after=True), 0.5)
+            Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.5)
         return True
 
     def cmd_add(self, args):
@@ -711,6 +679,8 @@ class ListScreen(Screen):
         '''Return to login:
         Stop the running mode Return to login screen'''
         if after:
+            self.pr_item_list_wid.clear()
+            self.pr_tag.text = ''
             app.initialize()
             self.manager.transition.direction = 'right'
             self.manager.current = ENTER
@@ -720,7 +690,7 @@ class ListScreen(Screen):
                 decision(_('Leave'), _('Exit %s without saving?') % (os.path.basename(app.file)),
                          fn_ok=self.cmd_back, ok_kwargs={'app': app, 'after': True})
             else:
-                self.cmd_back(app, True)
+                self.cmd_back(app=app, after=True)
         return False
 
     def counter(self):
@@ -1007,7 +977,7 @@ class TagSpinner(Spinner):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # global tags
-        self.text = TAGS
+        # self.text = TAGS
 
 
 class LoginPanel(BoxLayout):
@@ -1384,15 +1354,6 @@ class SkipKeyApp(App):
         self.save(file=self.file)
         return super().on_stop()
 
-    def build_tags(self):
-        t = list(set(i['tag'] for i in self.items))
-        t.sort(key=str.lower)
-        tags = [TAGS, ] + t
-
-        self.root.get_screen(LIST).pr_tag.values = tags
-        self.root.get_screen(LIST).cmd_tag_selected(tags[0])
-        self.root.get_screen(EDIT).pr_tag.values = tags
-
     def open(self, file, passwd, seed):
         '''Open the file and prepare the records'''
         try:
@@ -1404,7 +1365,7 @@ class SkipKeyApp(App):
                     cryptod,
                     self.keywrapper.secret(self.session_key)
                 )
-                self.build_tags()
+                # self.build_tags()
                 self.items.sort(key=lambda x: str.lower(x['name']))
                 self.update_recent_files(file)
                 return True
@@ -1484,7 +1445,7 @@ class SkipKeyApp(App):
     def save_item(self, item, history=True, after=False):
         if after:
             # print(f'This item was saved! {item}')
-            item_list = self.root.get_screen(LIST).pr_item_list_wid
+            # item_list = self.root.get_screen(LIST).pr_item_list_wid
             index = model.index_of(self.items, item['name'], 'name')
             if index > -1:  # Update
                 if history:
@@ -1500,9 +1461,9 @@ class SkipKeyApp(App):
                 if history:
                     self.add_memento(new=None, old=item, action=APPEND)
             self.items.sort(key=lambda k: str(k['name']).lower())
-            item_list.clear()
-            for i in self.items:
-                item_list.add(i)
+            # item_list.clear()
+            # for i in self.items:
+            #     item_list.add(i)
         else:
             Clock.schedule_once(lambda dt: self.save_item(
                 item=item, history=history, after=True), 0)
@@ -1515,22 +1476,6 @@ class SkipKeyApp(App):
         '''
         if new != old:
             self.history[0:0] = [model.memento(item=old, action=action)]
-
-    def delete_tag(self, old, new):
-        '''Delete tag from all items and subtitute with a placeholder'''
-        for item in model.item_iterator(items=self.items, key='tag', value=old):
-            old = item.copy()
-            item['tag'] = new
-            self.add_memento(new=item, old=old, action=UPDATE)
-        return True
-
-    def rename_tag(self, old, new):
-        '''Rename tag of all items'''
-        for item in model.item_iterator(items=self.items, key='tag', value=old):
-            old = item.copy()
-            item['tag'] = new
-            self.add_memento(new=item, old=old, action=UPDATE)
-        return True
 
     def encrypt(self, text):
         """
