@@ -52,8 +52,8 @@ from kivy.core.window import Window
 from kivy.app import App
 from datetime import datetime
 from daemon import LoginDaemon
-from itemlist import ItemList
-from comparator import Comparator, Comparison
+from polyitemlist import ItemList, ItemComposite, Comparison
+# from comparator import Comparator, Comparison
 from filemanager import decision as decision
 from filemanager import message as message
 from filemanager import OpenFilePopup, SaveFilePopup
@@ -182,7 +182,8 @@ test_items.extend([
     new_item(name='item 8', tag='Gov')]
 )
 '''Column mask'''
-item_mask = ('name', 'login', 'url')
+# item_mask = ('name', 'login', 'url')
+item_mask = {'name': dp(200), 'login': dp(200), 'url': ''}
 # item_mask = None
 
 
@@ -590,7 +591,7 @@ class ListScreen(Screen):
         # if self.pr_item_list_wid.count < len(self.app.items):
         self.pr_item_list_wid.clear()
         for i in self.app.items:
-            self.pr_item_list_wid.add(i)
+            self.pr_item_list_wid.add(ItemComposite, **i)
         self.counter()
 
     def cmd_option(self, action, app):
@@ -633,7 +634,7 @@ class ListScreen(Screen):
             sublst.sort(key=lambda x: str.lower(x['name']))
             self.pr_item_list_wid.clear()
             for i in sublst:
-                self.pr_item_list_wid.add(i)
+                self.pr_item_list_wid.add(ItemComposite, **i)
         self.counter()
         return True
 
@@ -654,7 +655,7 @@ class ListScreen(Screen):
             sublst = model.search_items(items=items, text=self.pr_search.text)
             sublst.sort(key=lambda x: str.lower(x['name']))
             for i in sublst:
-                self.pr_item_list_wid.add(i)
+                self.pr_item_list_wid.add(ItemComposite, **i)
             self.counter()
         else:
             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.5)
@@ -927,8 +928,12 @@ class ChangesScreen(Screen):
                 items=self.app.items, key='name', value=formers['name'])]
 
             for key, former in formers.items():
-                self.pr_comparator_wid.add(
-                    field=Comparison, key=key, name=SkipKeyApp.LABELS[key], last=values[key], former=former)
+                self.pr_comparator_wid.add(item_cls=Comparison,
+                                           key=key, name=SkipKeyApp.LABELS[key],
+                                           last=values[key],
+                                           former=former)
+                # self.pr_comparator_wid.add(
+                #     field=Comparison, key=key, name=SkipKeyApp.LABELS[key], last=values[key], former=former)
         except ValueError:
             pass
         except IndexError:
@@ -1098,14 +1103,19 @@ class PasswordStrenght(BoxLayout):
 class AccessList(ItemList):
     def __init__(self, *args, **kwargs):
         cell_widths = {'name': dp(200), 'login': dp(200)}
-        super(AccessList, self).__init__(mask=item_mask,
-                                         cell_widths=cell_widths, *args, **kwargs)
+        super(AccessList, self).__init__(mask=item_mask, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
+# class AccessList(ItemList):
+#     def __init__(self, *args, **kwargs):
+#         cell_widths = {'name': dp(200), 'login': dp(200)}
+#         super(AccessList, self).__init__(mask=item_mask,
+#                                          cell_widths=cell_widths, *args, **kwargs)
+#         self.add_bubble(Factory.ItemActionBubble())
 
 
-class ItemFields(Comparator):
+class FieldDiff(ItemList):
     def __init__(self, *args, **kwargs):
-        super(ItemFields, self).__init__(*args, **kwargs)
+        super(FieldDiff, self).__init__(*args, **kwargs)
 
 
 class ItemActionBubble(Bubble):
@@ -1119,7 +1129,7 @@ class ItemActionBubble(Bubble):
 
     def cmd_url(self, app):
         # TODO System call to browser
-        url = self.item.item['url']
+        url = self.item.kwargs['url']
         self._publish(app, url)
         # print(self.item.item['url'])
         # Clipboard.copy(self.item.item['url'])
@@ -1128,7 +1138,7 @@ class ItemActionBubble(Bubble):
 
     def cmd_user(self, app):
         '''Publish user.'''
-        user = self.item.item['login']
+        user = self.item.kwargs['login']
         self._publish(app, user)
         # self.reset()
         return True
@@ -1143,17 +1153,17 @@ class ItemActionBubble(Bubble):
     def cmd_login(self, app):
         '''Publish 'user TAB password'.'''
         p = self._password(app)
-        login = f'{self.item.item["login"]}\t{p}'
+        login = f'{self.item.kwargs["login"]}\t{p}'
         self._publish(app, login)
         self.reset()
         return True
 
     def _password(self, app):
-        if self.item.item['auto'] == 'False':
-            p = app.decrypt(self.item.item['password'])
+        if self.item.kwargs['auto'] == 'False':
+            p = app.decrypt(self.item.kwargs['password'])
         # Clipboard.copy(self.item.item['login'])
         else:
-            p = app.show(self.item.item)
+            p = app.show(self.item.kwargs)
         return p
 
     def _publish(self, app, text):
@@ -1175,7 +1185,7 @@ class ItemActionBubble(Bubble):
         return True
 
     def cmd_edit(self, app):
-        app.root.get_screen(EDIT).set_item(self.item.item)
+        app.root.get_screen(EDIT).set_item(self.item.kwargs)
         app.root.transition.direction = 'left'
         app.root.current = EDIT
         self.reset()
@@ -1445,7 +1455,6 @@ class SkipKeyApp(App):
     def save_item(self, item, history=True, after=False):
         if after:
             # print(f'This item was saved! {item}')
-            # item_list = self.root.get_screen(LIST).pr_item_list_wid
             index = model.index_of(self.items, item['name'], 'name')
             if index > -1:  # Update
                 if history:

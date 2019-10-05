@@ -1,0 +1,101 @@
+#:kivy 1.11
+# MULTI ITEMS WIDGET
+#---------------------------------------------------------
+# ITEM LIST (box of full list height)
+#---------------------------------------------------------
+<Item>: # Extend Item
+
+<SubItem>:
+	canvas:
+		Color:
+			rgb: 1, 1, 1, 1
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: 1.5
+            #joint: 'miter'
+			
+
+#---------------------------------------------------------
+# Fielda widget
+#---------------------------------------------------------
+<Comparison>:
+	pr_label: _lab_label
+	pr_last: _lab_value
+	pr_former: _lab_change
+
+	# Adapt its height to the max text's one
+	orientation: 'horizontal'
+	size_hint: 1, None
+	height: max(_lab_value.height, _lab_change.height)
+	canvas:
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: dp(.8)
+            joint: 'miter'
+
+	Label:
+		id: _lab_label
+		size_hint: None, 1
+		halign: 'left'
+		valign: 'middle'
+		width: dp(120)
+		text_size: self.size
+	Label:
+		id: _lab_value
+		halign: 'left'
+		valign: 'top'
+		# Rewrite this costraint
+		text_size: (root.width - _lab_label.width)/2, None
+		size: self.texture_size
+
+	Label:
+		padding_x: dp(5)
+		id: _lab_change
+		halign: 'left'
+		valign: 'top'
+		# Rewrite this costraint
+		text_size: (root.width - _lab_label.width)/2, None
+		size: self.texture_size
+
+#---------------------------------------------------------
+# Fielda widget
+#---------------------------------------------------------		
+<ProgressItem>:
+	orientation: 'horizontal'
+	size_hint_y: None
+	height: dp(25)
+	Label:
+		id: _lab_label
+		text: 'label'
+	Label:
+		id: _lab_number
+		text: '%s' % (0)
+		
+	ProgressBar:
+		id: _prb_before
+		# size_hint_x: None
+		# width: dp(150)
+		# value: 100
+		canvas:
+			BorderImage:
+                border: dp(3), dp(3), dp(3), dp(0)
+                pos: self.x, self.center_y - dp(1.5)
+                size: self.value*self.width/self.max, dp(4)
+                source: 'data/green.png'
+			Line:
+				points: self.x + self.width, self.y, self.x + self.width, self.y + self.height
+				width: dp(1.1)
+	ProgressBar:
+		id: _prb_after
+		# size_hint_x: None
+		# width: dp(150)
+		# value: 100
+		canvas:
+			BorderImage:
+                border: dp(3), dp(0), dp(3), dp(0)
+                pos: self.x, self.center_y - dp(1.5)
+                size: self.value*self.width/self.max, dp(4)
+                source: 'data/red.png'
+			Line:
+				points: self.x, self.y, self.x, self.y + self.height
+				width: dp(1.1)
