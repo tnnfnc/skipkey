@@ -8,6 +8,7 @@ import csv
 import re
 from datetime import datetime
 
+
 def new_item(strict=True, **args):
     """
     Item builder.
@@ -60,6 +61,7 @@ def new_item(strict=True, **args):
             template[key] = str(args[key])
 
     return template
+
 
 def search_items(items, text, fields=('name', 'tag', 'description', 'login', 'url', 'email')):
     """
@@ -199,15 +201,16 @@ def memento(item, key='name', action='', **kvargs):
     body containing the item serialized into a json string.'''
     try:
         h = {'name': item['name'],
-            'timestamp': datetime.now(),
+             'timestamp': datetime.now(),
              'action': action,
              'body': item}
-            #  'body': json.dumps(item)}
+        #  'body': json.dumps(item)}
         for k, v in kvargs.items():
             h[k] = v
     except KeyError:
         h = None
     return h
+
 
 mapping = {
     'Access': 'name',
@@ -270,6 +273,18 @@ def normalize(item):
         item['login'] = item['email']
     if item['url'] == '':
         item['url'] = item['name']
+    # Check and repair date: 'created', 'changed'
+    d = item['created'].split('/')
+    try:
+        item['created'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
+            d[0], d[1], d[2])
+    except Exception:
+        item['created'] = datetime.now().isoformat(sep=' ', timespec='seconds')
+    try:
+        item['changed'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
+            d[0], d[1], d[2])
+    except Exception:
+        item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
 
 
 def set_fields(widget, fields={}):
@@ -277,30 +292,29 @@ def set_fields(widget, fields={}):
         if the label has id _lab_name the fileld name must be name.
         """
     for key, wid in widget.ids.items():
-        if key.startswith('_lab_'): #label
-#            wid.text = _(wid.text)
+        if key.startswith('_lab_'):  # label
+            #            wid.text = _(wid.text)
             pass
-        elif key.startswith('_inp_'): #inputfield
+        elif key.startswith('_inp_'):  # inputfield
             wid.text = fields[key[5:]]
             pass
-        elif key.startswith('_out_'): #outputfield
+        elif key.startswith('_out_'):  # outputfield
             wid.text = fields[key[5:]]
             pass
-        elif key.startswith('_btn_'): #button
+        elif key.startswith('_btn_'):  # button
             pass
-        elif key.startswith('_swi_'): #switch
+        elif key.startswith('_swi_'):  # switch
             pass
-        elif key.startswith('_spi_'): #spinner
+        elif key.startswith('_spi_'):  # spinner
             pass
-        elif key.startswith('_wid_'): #widget
+        elif key.startswith('_wid_'):  # widget
             pass
-        elif key.startswith('_scr_'): #scroll
+        elif key.startswith('_scr_'):  # scroll
             pass
-        elif key.startswith('_prb_'): #progress bar
+        elif key.startswith('_prb_'):  # progress bar
             pass
         else:
             pass
-
 
 
 if __name__ == '__main__':
@@ -320,9 +334,11 @@ if __name__ == '__main__':
 
     print(f"\n --------> in items: \n {in_items(items, 'item 6', 'name')}")
 
-    print(f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name', casefold=True)}")
+    print(
+        f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name', casefold=True)}")
 
-    print(f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name')}")
+    print(
+        f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name')}")
 
     print(
         f"\n --------> index of items: \n {index_of(items, 'item 6', 'name')}")

@@ -50,13 +50,14 @@ from kivy.uix.screenmanager import ScreenManager
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.app import App
-from datetime import datetime
+from datetime import datetime, timedelta
 from daemon import LoginDaemon
-from polyitemlist import ItemList, ItemComposite, Comparison
+from polyitemlist import ItemList, ItemComposite, Comparison, ProgressItem
 # from comparator import Comparator, Comparison
-from filemanager import decision as decision
-from filemanager import message as message
-from filemanager import OpenFilePopup, SaveFilePopup
+# from filemanager import decision as decision
+# from filemanager import message as message
+# from filemanager import message, decision
+from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
 import model
@@ -94,7 +95,6 @@ try:
     it.install()
     _ = it.gettext
 except FileNotFoundError as e:
-    def _(x): return x
     def _(x): return x
     print(f'No translation found: {e}')
 
@@ -277,6 +277,21 @@ class ExportFile(SaveFilePopup):
 
     def __init__(self, *args, **kwargs):
         super(ExportFile, self).__init__(**kwargs)
+
+    def cmd_save(self, path, selection):
+        if selection:
+            if not os.path.dirname(selection):
+                selection = '%s\\%s' % (path, selection)
+            if not os.path.exists(selection):
+                self.do_save(selection)
+            else:
+                decision(
+                    self.title,
+                    _('%s exists:\noverwrite?') % (
+                        os.path.basename(selection)),
+                    fn_ok=self.do_save,
+                    ok_kwargs={'file': selection, })
+        return False
 
     def do_save(self, file):
         f = file
@@ -549,19 +564,27 @@ class EnterScreen(Screen):
 
 
 class ListScreen(Screen):
+
     # Widget hooks
     pr_tag = ObjectProperty(None)
     pr_search = ObjectProperty(None)
+    pr_expiring = ObjectProperty(None)
     pr_item_list_wid = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.infopopup = None
+        self.state_method = self.on_enter_default
 
     def on_enter(self):
         '''Call when enter screen'''
-        # Init tags
+        self.state_method()
+
+    def on_enter_default(self):
+        if self.pr_tag.disabled:
+            self.pr_tag.disabled = False
+            self.pr_search.disabled = False
         tags = self.build_tags()
         self.pr_tag.values = tags
         self.app.root.get_screen(EDIT).pr_tag.values = tags
@@ -696,6 +719,44 @@ class ListScreen(Screen):
 
     def counter(self):
         self.ids['_lab_counter'].text = f'{self.pr_item_list_wid.count} / {len(self.app.items)}'
+
+    def cmd_expiring(self, widget, state, after=False):
+        if state == 'down':
+            self.state_method = self.on_enter_expiring
+        else:
+            self.state_method = self.on_enter_default
+        self.on_enter()
+
+    def on_enter_expiring(self, after=False):
+        if after:
+            if not self.pr_tag.disabled:
+                self.pr_tag.disabled = True
+                self.pr_search.disabled = True
+            pwd_warn = float(self.app.config.getdefault(
+                SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
+            pwd_lifetime = float(self.app.config.getdefault(
+                SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
+            today = datetime.now()
+            self.pr_item_list_wid.clear()
+            for i in self.app.items:
+                try:
+                    if i['changed']:
+                        changed = datetime.fromisoformat(i['changed'])
+                    elif i['created']:
+                        changed = datetime.fromisoformat(i['created'])
+                    else:
+                        continue
+                    expire_date = changed + timedelta(days=30*pwd_lifetime)
+                    left = expire_date - today
+                    if left.days <= pwd_warn:
+                        self.pr_item_list_wid.add(
+                            item_cls=ProgressItem, max=pwd_warn, name=i['name'], date=expire_date)
+                except Exception:
+                    continue
+            self.counter()
+        else:
+            Clock.schedule_once(lambda dt: self.on_enter_expiring(after=True))
+        return True
 
 
 class EditScreen(Screen):
@@ -890,20 +951,24 @@ class ImportScreen(Screen):
             items = model.import_csv(
                 file=self.file, delimiter='\t', mapping=mapping)
             # Add default keys
+            items_ = []
             for item in items:
                 item = model.new_item(**item)
                 item['password'] = app.encrypt(item['password'])
                 item['auto'] = 'False'
                 model.normalize(item)
-                app.items.append(item)
-                app.add_memento(new=None, old=item, action=IMPORT)
-            app.build_tags()
-            app.root.transition.direction = 'right'
-            app.root.current = LIST
+                items_.append(item)
         except Exception as e:
             message(_('Error'), _(
                 'Check the syntax:\n%s') % (e.args[0]), 'w')
-        pass
+            return False
+        if len(items_) > 0:
+            for item in items_:
+                app.items.append(item)
+                app.add_memento(new=None, old=item, action=IMPORT)
+            app.root.transition.direction = 'right'
+            app.root.current = LIST
+        return True
 
     def mapping_help(self):
         return _('Write couples separated by comma:\n(\'<source>\', \'<target>\').')
@@ -941,10 +1006,6 @@ class ChangesScreen(Screen):
 
     def on_enter(self):
         if len(self.app.history) > 0:
-            # self.pr_actions.values = [
-            #     '%010s - %08s - %s' % (m['timestamp'].isoformat(sep=' ', timespec='seconds'),
-            #                       m['action'],
-            #                       m['name']) for m in self.app.history]
             self.pr_actions.values = ['{: <10s} - {: <10s} - {:s}'.format(
                 m['name'], m['action'], m['timestamp'].isoformat(sep=' ', timespec='seconds')) for m in self.app.history]
             self.pr_actions.text = self.pr_actions.values[0]
@@ -1105,12 +1166,6 @@ class AccessList(ItemList):
         cell_widths = {'name': dp(200), 'login': dp(200)}
         super(AccessList, self).__init__(mask=item_mask, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
-# class AccessList(ItemList):
-#     def __init__(self, *args, **kwargs):
-#         cell_widths = {'name': dp(200), 'login': dp(200)}
-#         super(AccessList, self).__init__(mask=item_mask,
-#                                          cell_widths=cell_widths, *args, **kwargs)
-#         self.add_bubble(Factory.ItemActionBubble())
 
 
 class FieldDiff(ItemList):
@@ -1185,7 +1240,10 @@ class ItemActionBubble(Bubble):
         return True
 
     def cmd_edit(self, app):
-        app.root.get_screen(EDIT).set_item(self.item.kwargs)
+        item = app.items[model.index_of(
+            items=app.items, value=self.item.kwargs['name'], key='name')]
+        app.root.get_screen(EDIT).set_item(item)
+        # app.root.get_screen(EDIT).set_item(self.item.kwargs)
         app.root.transition.direction = 'left'
         app.root.current = EDIT
         self.reset()
@@ -1215,7 +1273,7 @@ class SkipKeyApp(App):
     PWDTIME = 'defsecrettimeout'
     PWDLEN = 'defplen'
     PWDAUTO = 'defauto'
-    PWDLIFET = 'deflifetime'
+    PWDLIFETIME = 'deflifetime'
     PWDWARN = 'defwarn'
     LOG = 'deflog'
     # Translations
@@ -1311,7 +1369,7 @@ class SkipKeyApp(App):
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDTIME, 15)  # sec.
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDAUTO, True)
-        config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFET, 6)
+        config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.LOG, 0)
         config.adddefaultsection(SkipKeyApp.RECENT_FILES)

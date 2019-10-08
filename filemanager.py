@@ -89,9 +89,6 @@ class SaveFilePopup(Popup):
         super(SaveFilePopup, self).__init__(**kwargs)
         self.home = os.getcwd()
         self.filechooser.path = self.home
-        # self.filechooser.filters = [self.is_valid]
-        # self.filechooser.dirselect = False
-        # self.mode = SAVE  # or NEW
 
     def cmd_save(self, path, selection):
         '''To be implemented in the extending subclass.'''

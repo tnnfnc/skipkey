@@ -126,12 +126,13 @@ class ItemList(FloatLayout):
             y = list(map(sum, zip(y_view, (0, item.height/2))))
             self.bubble.arrow_pos = 'bottom_mid'
         else:
-            y = list(map(sum, zip(y_view, (0, + item.height/2 - self.bubble.height))))
+            y = list(
+                map(sum, zip(y_view, (0, + item.height/2 - self.bubble.height))))
             self.bubble.arrow_pos = 'top_mid'
 
         self.bubble.pos = (0, y[1])
         self.add_widget(self.bubble)
-      
+
         # Calculate position
         # print('Parent of item list h=%s, y=%s' % (self.parent.height, self.parent.y))
         # print('Item list h=%s, y=%s' % (self.height, self.parent.y))
@@ -141,7 +142,6 @@ class ItemList(FloatLayout):
         # print('Item y=%s' % (item.y))
         # y_item - y_scroll = y_view
         # print('Scroll to parent coord (%s, %s) to (%s, %s)' % (item.x, item.y, *y_view))
-        
 
 
 class Item(GridLayout):
@@ -288,6 +288,8 @@ class ProgressItem(Item):
     def __init__(self, max=100, **kwargs):
         super(ProgressItem, self).__init__(**kwargs)
         self.max = max
+        if 'max' in self.kwargs:
+            self.max = int(self.kwargs.pop('max'))
         self.__build()
 
     def __build(self):
@@ -422,7 +424,7 @@ if __name__ == '__main__':
                                 last=v*8, former='old_%s' % (v)*18)
             # To progress
             for k in to_progress:
-                self.widget.add(item_cls=ProgressItem,
+                self.widget.add(item_cls=ProgressItem, max='44',
                                 name=k['name'], date=k['date'])
 
             return self.widget

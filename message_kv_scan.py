@@ -13,9 +13,9 @@ Created on Thu Jan 31 08:39:17 2019
 import re
 import os
 import sys
-sys.path.append("D:\\Dropbox\\Franco\\francython")
 sys.path.append("C:\\Users\\it280\\Google Drive\\Projects\\python")
 sys.path.append("C:\\Users\\franco\\Google Drive\\Projects\\python\\demos")
+sys.path.append("C:\\Users\\it280\\Google Drive\\Projects\\python\\demos")
 import utility
 # Import your modules
 f_ext = 'py'
@@ -83,4 +83,4 @@ def _(text):
 
 for i, l in enumerate(log):
     print(f" merged {i+1} of {len(log)}: {l}")
-print('FILE COMPLETED: {f_path}')
+print(f'FILE COMPLETED: {f_path}')
