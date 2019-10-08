@@ -72,7 +72,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 2
+MICRO = 3
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -1184,41 +1184,40 @@ class ItemActionBubble(Bubble):
 
     def cmd_url(self, app):
         # TODO System call to browser
-        url = self.item.kwargs['url']
+        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        url = item['url']
         self._publish(app, url)
-        # print(self.item.item['url'])
-        # Clipboard.copy(self.item.item['url'])
-        # self.reset()
         return True
 
     def cmd_user(self, app):
         '''Publish user.'''
-        user = self.item.kwargs['login']
+        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        user = item['login']
         self._publish(app, user)
-        # self.reset()
         return True
 
     def cmd_password(self, app):
         '''Publish password.'''
         p = self._password(app)
         self._publish(app, p)
-        # self.reset()
         return True
 
     def cmd_login(self, app):
         '''Publish 'user TAB password'.'''
+        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
         p = self._password(app)
-        login = f'{self.item.kwargs["login"]}\t{p}'
+        login = f'{item["login"]}\t{p}'
         self._publish(app, login)
         self.reset()
         return True
 
     def _password(self, app):
-        if self.item.kwargs['auto'] == 'False':
-            p = app.decrypt(self.item.kwargs['password'])
+        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        if item['auto'] == 'False':
+            p = app.decrypt(item['password'])
         # Clipboard.copy(self.item.item['login'])
         else:
-            p = app.show(self.item.kwargs)
+            p = app.show(item)
         return p
 
     def _publish(self, app, text):
