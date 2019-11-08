@@ -1,4 +1,20 @@
-"""SkipKey: a help to password management"""
+"""
+ItemList
+========
+
+The :class: `ItemList` implements a container for items, like a list.
+The :class: `Item` is the basic item widget for the list: at present
+there are these subclasses of `Item`:
+
+    -:class: `ItemComposite` that provides an in-line `SubItem` structure,
+    -:class: `Comparison` that provides a comparison between an 'old' vs  a 'new' 
+        object, emphasizing changes of the tho contents,
+    -:class: `ProgressItem` that provides a way to represent the
+        last changed date with respect to a deadline date.
+
+
+SkipKey: a help to password management
+"""
 # from progresslist import ProgressItem
 from datetime import datetime, timedelta
 import kivy
@@ -28,6 +44,9 @@ Builder.load_file('kv/polyitemlist.kv')
 
 
 def selection(widget, select=False):
+    """
+    Emphasizes the widget adding a clear transparent background.
+    """
     group = len(widget.canvas.get_group('sel')) > 0
     if not group:
         sel = InstructionGroup(group='sel')
@@ -44,7 +63,20 @@ def selection(widget, select=False):
 
 # class ItemList(BoxLayout):
 class ItemList(FloatLayout):
-    '''List of items'''
+    """
+    The widget works as a container for a list of items. Items can be added and removed.
+    It supports an optional bubble-menu that can be activate by touching the item and
+    displayed over it.
+
+    Parameters:
+    -----------
+    - mask: 
+        a dictionary of field-name that must be displayed in the 'ItemComposite',
+        default is None.
+    - sel_mode: 
+        is selection mode: possible values are 'SINGLE' (one line at a time),
+        or 'MULTI' (one or more lines at a time).
+    """
 
     def __init__(self, mask=None, sel_mode=SINGLE, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
@@ -61,50 +93,78 @@ class ItemList(FloatLayout):
 
     @property
     def count(self):
+        """
+        Property:
+        ---------
+            the number of items.
+        """
         return len(self.container.children)
 
     @property
     def items(self):
+        """
+        Property:
+        ---------
+            items list.
+        """
         return self.container.children
 
     def add_bubble(self, bubble):
+        """
+        Add a bubble menu.
+        Parameters:
+        -----------
+            bubble: the Bubble menu.
+        """
         if self.bubble:
             self.remove_widget(self.bubble)
         self.bubble = bubble
 
-    def add(self, item_cls, **kwargs):
-        '''Add an item to the list.'''
-        item = item_cls(header=self, kwargs=kwargs)
+    def add(self, item_class, **kwargs):
+        """
+        Add an item to the list.
+        This method internally calls the _add method.
+        Parameters
+        ----------
+        item_class: the 'Item' subclass to be instantiated.
+
+        kwargs: named parameters to instantiate the 'item_class'.
+        Returns:
+        -------
+        Boolean: True when added.
+        """
+        item = item_class(header=self, kwargs=kwargs)
         self._add(item)
         return True
 
     def _add(self, item_widget):
-        '''Add an item widget to the widget list.'''
+        '''Internal: add an item widget to the widget list.'''
         self.container.add_widget(item_widget)
         self.container.height += item_widget.height
         self.height = self.container.height
         return True
 
-    def remove(self, row):
-        '''Remove item from the list'''
+    def remove(self, item):
+        '''Remove the item from the 'ItemList'.'''
         for i in self.items():
-            if i.item == row:
+            if i.item == item:
                 self._remove(i)
         return True
 
     def _remove(self, item_widget):
-        '''Remove the item widget from the widget list'''
+        '''Internal: remove the item widget from the widget list.'''
         self.container.remove_widget(item_widget)
         return True
 
     def clear(self):
-        '''Remove items from the list'''
+        '''Remove all 'Items' from the 'ItemList'. '''
         self.container.clear_widgets()
         self.container.height = 0
         self.height = self.container.height
         return True
 
-    def select(self, item):
+    def _select(self, item):
+        '''Internal: select the item according to the selection mode.'''
         if self.sel_mode == MULTI:
             # Do nothing
             pass
@@ -118,6 +178,7 @@ class ItemList(FloatLayout):
             self.show_bubble(item)
 
     def show_bubble(self, item):
+        '''Internal: shows the bubble menu over the touched item.'''
         self.remove_widget(self.bubble)
         self.bubble.item = item
         scroll = self.container.parent
@@ -133,19 +194,16 @@ class ItemList(FloatLayout):
         self.bubble.pos = (0, y[1])
         self.add_widget(self.bubble)
 
-        # Calculate position
-        # print('Parent of item list h=%s, y=%s' % (self.parent.height, self.parent.y))
-        # print('Item list h=%s, y=%s' % (self.height, self.parent.y))
-        # print('List container h=%s, y=%s' % (self.container.height, self.container.y))
-        # print('ScrollY y=%s, y=%s' % (self.container.parent.scroll_y, self.container.height*self.container.parent.scroll_y))
-        # print('Bubble h=%s' % (self.bubble.height))
-        # print('Item y=%s' % (item.y))
-        # y_item - y_scroll = y_view
-        # print('Scroll to parent coord (%s, %s) to (%s, %s)' % (item.x, item.y, *y_view))
-
 
 class Item(GridLayout):
-    '''Item is a row made of adjacent cells, each one has a key (see cells property)'''
+    """Item is the base class implementing an item for the 'ItemList'.
+    kwargs parameters:
+    ------------------------
+    - 'header':
+        named parameter is the 'ItemList' reference.
+    - 'kwargs':
+        named parameter is the 'Item' initialization parameters dict.
+    """
     header = ObjectProperty(None)
     kwargs = ObjectProperty(None)
 
@@ -156,24 +214,26 @@ class Item(GridLayout):
         self.selected = False  # True/False
 
     def on_touch_down(self, touch):
-        '''Exclude on_ref_press'''
+        '''On touch down it emphasizes the item according to the solection mode.
+        The touch event is consumed.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
-                self.select()
+                self._select()
                 # Consume event
                 return True
         # Bubble up event
         return super().on_touch_down(touch)
 
-    def select(self):
-        '''The row is selected as long as one of its cells is.'''
+    def _select(self):
+        '''Internal: select the item and propagates to the 'ItemList'.'''
         self.selected = not self.selected
         selection(self, self.selected)
-        self.header.select(self)
+        self.header._select(self)
 
 
 class ItemComposite(Item):
-    '''Item is a row made of adjacent cells, each one has a key (see cells property)'''
+    '''Item is a row made of adjacent cells, each one is a 'SubItem' instance.
+    has a key (see cells property)'''
 
     def __init__(self, **kwargs):
         super(ItemComposite, self).__init__(**kwargs)
@@ -191,29 +251,33 @@ class ItemComposite(Item):
         return self._cells
 
     def _fill(self):
+        """Internal: fill the composite with the 'kwargs' parameters."""
         for k, v in self.kwargs.items():
             cell = SubItem(item=self, sid=k)
             cell.text = v
-            self.add_cell(cell)
+            self._add(cell)
             self._cells[k] = cell
 
     def _fill_mask(self):
+        """Internal: fill the composite with the 'kwargs' parameters."""
         for key in self.header.mask:
             cell = SubItem(item=self, sid=key)
             if key in self.kwargs:
                 cell.text = self.kwargs[key]
-                self.add_cell(cell)
+                self._add(cell)
                 self._cells[key] = cell
             else:
                 pass
 
-    def add_cell(self, item_cell):
+    def _add(self, item_cell):
+        """Internal: add a subitem to the composite."""
         self.add_widget(item_cell)
         self.width += item_cell.width
         if self.header.mask:
             item_cell.bind(texture_size=self._set_width)
 
     def _set_width(self, *args):
+        """Internal: set the width according to the defined mask."""
         # Set the width according to the defined dictionary
         subitem = args[0]
         if subitem.sid in self.header.mask and self.header.mask[subitem.sid]:
@@ -224,6 +288,15 @@ class ItemComposite(Item):
 
 
 class SubItem(Label):
+    """
+    Implements a part of a 'ItemComposite' object.
+    kwargs named parameters:
+    ------------------------
+    - 'item':
+        named parameter is the 'ItemComposite' reference.
+    - 'sid':
+        named parameter is the field key.
+    """
     item = ObjectProperty(None)
     sid = StringProperty('')
 
@@ -234,21 +307,34 @@ class SubItem(Label):
         self.padding_x = dp(2)
 
     def on_touch_down(self, touch):
-        '''Exclude on_ref_press'''
+        '''On touch down it emphasizes the item according to the solection mode.
+        The touch event is consumed.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
-                self.select()
+                self._select()
                 return True
         # Bubble up event
         return super().on_touch_down(touch)
 
-    def select(self):
+    def _select(self):
+        '''Internal: select the item and propagates to the 'ItemList'.'''
         self.selected = not self.selected
         selection(self, self.selected)
 
 
 class Comparison(Item):
-
+    """
+    Provides a comparison between an 'old' vs  a 'new' object, 
+    emphasizing changes of its content.
+    kwargs parameters:
+    -------------------
+    - 'name':
+        named parameter is the label displayed in the item.
+    - 'last':
+        named parameter is the new content.
+    - 'former':
+        named parameter is the old content.
+    """
     pr_label = ObjectProperty(None)
     pr_last = ObjectProperty(None)
     pr_former = ObjectProperty(None)
@@ -284,33 +370,29 @@ class Comparison(Item):
 
 
 class ProgressItem(Item):
+    """
+    Provides a way to graphically represent the last changed date
+    with respect to 'today' date. 
+    It renders the passed date wuth a progress bar in a [-max, +max] range
+    centered on today.
+    Parameters:
+    -----------
+    kwargs named parameters: 
+        'max' named parameters is the half date range in days.
+        'name' named parameters is label displayed in the item.
+        'date' named parameters is the date .
+
+    """
 
     def __init__(self, max=100, **kwargs):
         super(ProgressItem, self).__init__(**kwargs)
         self.max = max
         if 'max' in self.kwargs:
             self.max = int(self.kwargs.pop('max'))
-        self.__build()
+        self._build()
 
-    def __build(self):
-        self.set_indicator()
-        # self.orientation = 'horizontal'
-        # self.label = Label()
-        # self.before_bar = ProgressBar(size_hint_x=None)
-        # self.after_bar = ProgressBar(size_hint_x=None)
-        # with self.before_bar.canvas:
-        #     Color((1, 1, 1))
-        #     Line(points=[self.before_bar.x + self.before_bar.width, self.before_bar.y, self.before_bar.x +
-        #                  self.before_bar.width, self.before_bar.y + self.before_bar.height], width=1.1)
-        # with self.after_bar.canvas:
-        #     Color((1, 1, 1))
-        #     Line(points=[self.after_bar.x, self.after_bar.y, self.after_bar.x,
-        #                  self.after_bar.y + self.after_bar.height], width=1.1)
-        # self.add_widget(self.label)
-        # self.add_widget(self.before_bar)
-        # self.add_widget(self.after_bar)
-
-    def set_indicator(self, *args):
+    def _build(self, *args):
+        """Internal."""
         if 'date' in self.kwargs:
             self.date = self.kwargs['date']
         if 'name' in self.kwargs:
@@ -416,15 +498,15 @@ if __name__ == '__main__':
         def build(self):
             # Items
             for item in items:
-                self.widget.add(item_cls=ItemComposite, **item)
-                self.widget.add(item_cls=Item, **item)
+                self.widget.add(item_class=ItemComposite, **item)
+                self.widget.add(item_class=Item, **item)
             # Comparator
             for k, v in to_compare.items():
-                self.widget.add(item_cls=Comparison, key=k, name=k,
+                self.widget.add(item_class=Comparison, key=k, name=k,
                                 last=v*8, former='old_%s' % (v)*18)
             # To progress
             for k in to_progress:
-                self.widget.add(item_cls=ProgressItem, max='44',
+                self.widget.add(item_class=ProgressItem, max='44',
                                 name=k['name'], date=k['date'])
 
             return self.widget

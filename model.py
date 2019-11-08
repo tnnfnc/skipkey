@@ -128,12 +128,12 @@ def index_of(items, value, key):
     key : the key.
 
         Return the list index where the value is found for the specified key,
-    otherwise -1 is returned.
+    otherwise None is returned.
     """
     try:
         return [i[key] for i in items].index(value)
     except ValueError:
-        return -1
+        return None
 
 
 def filter_items(items, value, key):
@@ -198,7 +198,7 @@ def item_iterator(items, key, value):
 
 def memento(item, key='name', action='', **kvargs):
     '''Return a memento item: a dictionary: name, timestamp, action and a
-    body containing the item serialized into a json string.'''
+    body containing the object.'''
     try:
         h = {'name': item['name'],
              'timestamp': datetime.now(),

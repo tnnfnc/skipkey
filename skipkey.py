@@ -1,5 +1,4 @@
-"""SkipKey: a help to password management
-    Program for password management.
+"""SkipKey: a help to password management.
     Conventions:
 
         - Define kv field as _<prefix>_<name>, prefixes:
@@ -53,10 +52,6 @@ from kivy.app import App
 from datetime import datetime, timedelta
 from daemon import LoginDaemon
 from polyitemlist import ItemList, ItemComposite, Comparison, ProgressItem
-# from comparator import Comparator, Comparison
-# from filemanager import decision as decision
-# from filemanager import message as message
-# from filemanager import message, decision
 from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
@@ -72,7 +67,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 3
+MICRO = 4
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -106,12 +101,12 @@ def dp(pix):
 Builder.load_file('kv/commons.kv')
 
 
-''' Tag list:
+""" Tag list:
 1) initialized at new file or at opening from all values found in items list
 2) updated from the EditTagPopup
 3) accessed everywere is is needed
 4) tag element must be present, it disables all filters
-'''
+"""
 TAGS = _('all...')  # Default standinf for all tags
 # Command specification
 COPY = 'copy'
@@ -139,24 +134,11 @@ ICON = 'skip.png'
 # =============================================================================
 
 
-def selection(widget, select=False):
-    group = len(widget.canvas.get_group('sel')) > 0
-    if not group:
-        sel = InstructionGroup(group='sel')
-        sel.add(Color(1, 1, 1, 0.3))
-        sel.add(Rectangle(pos=widget.pos, size=widget.size))
-    with widget.canvas:
-        if select and not group:
-            widget.canvas.add(sel)
-        elif not select and group:
-            widget.canvas.remove_group('sel')
-        else:
-            pass  # Nothing to do here!
-
-
-# Builder.load_file('commons.kv')
-
 def hh_mm_ss(seconds):
+    """
+    Converts seconds into hh:mm:ss padded with zeros.
+
+    """
     hh = int(seconds/3600)
     mm = int((seconds % 3600)/60)
     ss = int((seconds % 3600) % 60)
@@ -164,11 +146,11 @@ def hh_mm_ss(seconds):
     return out
 
 
-'''Items:
+"""Items:
 1) initialized at new file or at opening from the items
 2) updated from the Edit screen
 3) accessed everywere is is needed
-'''
+"""
 new_item = model.new_item
 test_items = []
 test_items.extend([
@@ -181,7 +163,7 @@ test_items.extend([
     new_item(name='item 7', tag='Gov'),
     new_item(name='item 8', tag='Gov')]
 )
-'''Column mask'''
+"""Column mask"""
 # item_mask = ('name', 'login', 'url')
 item_mask = {'name': dp(200), 'login': dp(200), 'url': ''}
 # item_mask = None
@@ -194,13 +176,18 @@ class SecurityException(Exception):
 
 
 class OpenFile(OpenFilePopup):
+    """
+    Open file pop up.
+    """
 
     def __init__(self, *args, **kwargs):
         super(OpenFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
 
     def cmd_load(self, path, selection):
-        '''Call login to decipher file'''
+        """
+        Call login screen to decipher file.
+        """
         if selection:
             popup = LoginPopup()
             popup.title = _('Login to: %s') % (", ".join(selection))
@@ -210,7 +197,9 @@ class OpenFile(OpenFilePopup):
         return False
 
     def cmd_cancel(self):
-        #        Window.width += 1
+        """
+        Cancel without doing nothing.
+        """
         self.dismiss()
 
     def is_valid(self, folder, file):
@@ -218,12 +207,17 @@ class OpenFile(OpenFilePopup):
 
 
 class ImportFile(OpenFilePopup):
+    """
+    Import a '.csv' file containing password.
+    """
 
     def __init__(self, *args, **kwargs):
         super(ImportFile, self).__init__(**kwargs)
 
     def cmd_load(self, path, selection):
-        '''Call the import screen'''
+        """
+        Call the import screen 'ImportScreen'.
+        """
         app = App.get_running_app()
         if app and selection:
             if isinstance(selection, list):
@@ -235,10 +229,16 @@ class ImportFile(OpenFilePopup):
         return False
 
     def is_valid(self, folder, file):
+        """
+        Filter: displays only '.csv' files.
+        """
         return str(file).endswith('csv') or str(file).endswith('txt')
 
 
 class SaveFile(SaveFilePopup):
+    """
+    Save file popup.
+    """
 
     def __init__(self, *args, **kwargs):
         super(SaveFile, self).__init__(**kwargs)
@@ -246,6 +246,9 @@ class SaveFile(SaveFilePopup):
         self.mode = SAVE  # or NEW
 
     def cmd_save(self, path, selection):
+        """
+        Save the file: worns when it exsts.
+        """
         if selection:
             if not os.path.dirname(selection):
                 selection = '%s\\%s' % (path, selection)
@@ -261,6 +264,9 @@ class SaveFile(SaveFilePopup):
         return False
 
     def do_save(self, file):
+        """
+        Save and exit the popup.
+        """
         f = file
         popup = CipherPopup()
         popup.title = f'{self.title} to: {f}'
@@ -270,15 +276,24 @@ class SaveFile(SaveFilePopup):
         self.dismiss()
 
     def cmd_cancel(self):
+        """
+        Cancel and exit the popup.
+        """
         self.dismiss()
 
 
 class ExportFile(SaveFilePopup):
+    """
+    Export file popup.
+    """
 
     def __init__(self, *args, **kwargs):
         super(ExportFile, self).__init__(**kwargs)
 
     def cmd_save(self, path, selection):
+        """
+        Save the file: worns when it exsts.
+        """
         if selection:
             if not os.path.dirname(selection):
                 selection = '%s\\%s' % (path, selection)
@@ -294,6 +309,10 @@ class ExportFile(SaveFilePopup):
         return False
 
     def do_save(self, file):
+        """
+        Export the current file to '.csv' password file.
+        It calls 'SkipKeyApp.export()'.
+        """
         f = file
         if isinstance(file, list):
             f = file[0]
@@ -309,6 +328,7 @@ class ExportFile(SaveFilePopup):
 
 
 class LoginPopup(Popup):
+    """"Login popup to decipher and set the random key."""
     # Widget hooks
     pr_login_wid = ObjectProperty(None)
     pr_seed_wid = ObjectProperty(None)
@@ -320,11 +340,8 @@ class LoginPopup(Popup):
         self.title = title
 
     def cmd_enter(self, app):
-        '''Button callback:
-        Check login was successful (file opened)
-        Check the key was set
-        Recover tags from the list
-        Then enter the list screen'''
+        """Button callback: enter the 'ListScreen'. 
+        Preconditions: enter decipher password and casual seed."""
         if self.pr_login_wid.pr_password.text and self.pr_seed_wid.pr_seed.text:
             # Check login was successful (file opened) and check the key was set
             if isinstance(self.file, list):
@@ -348,21 +365,22 @@ class LoginPopup(Popup):
         return True
 
     def cmd_exit(self, app):
-        '''Button callback:
-        Check login was successful (file opened)
-        Check the key was set
-        Then enter the list screen'''
+        """Exit login screen doing nothing."""
         self.reset()
         self.dismiss()
         return True
 
     def reset(self):
+        """Reset user input."""
         self.pr_login_wid.pr_password.text = ''
         # self.pr_login.confirm.text = ''
         self.pr_seed_wid.pr_seed.text = ''
 
 
 class CipherPopup(Popup):
+    """Cipher file popup enable user to choose a password and a casual seed,
+    and an algorithm for cripring the file and generating the casual secret key
+    from the seed."""
     # Widget hooks
     pr_login_wid = ObjectProperty(None)
     pr_seed_wid = ObjectProperty(None)
@@ -377,7 +395,7 @@ class CipherPopup(Popup):
         self.mode = SAVE  # or COPY
 
     def cmd_enter(self, app):
-        '''Enter the list screen.'''
+        """Set the security and enter the list screen."""
         if self.pr_login_wid.pr_password.text and self.pr_seed_wid.pr_seed.text:
             # Check login was successful (file opened) and check the key was set
             if isinstance(self.file, list):
@@ -409,29 +427,29 @@ class CipherPopup(Popup):
         return True
 
     def cmd_exit(self, app):
-        '''Button callback:
-        Check login was successful (file opened)
-        Check the key was set
-        Then enter the list screen'''
+        """Exit the popup doing nothing"""
         self.reset()
         self.dismiss()
         return True
 
     def cipher_algorithms(self):
-        '''List of available ciphers algorithm'''
+        """Returns the list of available ciphers algorithms."""
         return list(cryptofachade.cipher_algorithms().keys())
 
     def key_derivators(self):
-        '''List of available key derivation functions'''
+        """Returns the list of available key derivation functions."""
         return list(cryptofachade.key_derivators().keys())
 
     def reset(self):
+        """Clear user input."""
         self.pr_login_wid.pr_password.text = ''
         self.pr_login_wid.pr_confirm.text = ''
         self.pr_seed_wid.pr_seed.text = ''
 
 
 class InfoPopup(Popup):
+    """Popup to display information about current file and
+    security settings."""
     # Properties: Login and seed
     pr_keyderive = ObjectProperty(None)
     pr_algorithm = ObjectProperty(None)
@@ -445,6 +463,7 @@ class InfoPopup(Popup):
         pass
 
     def set_fields(self, cryptod, **kwargs):
+        """Set the value of widget fields."""
         try:
             self.pr_file.text = kwargs['file']
             self.pr_algorithm.text = cryptod['algorithm']
@@ -461,6 +480,9 @@ class InfoPopup(Popup):
 
 
 class EditTagPopup(Popup):
+    """Tag management popup. Tag can be added, deleted and renamed.
+    When renamed: all item list entry tag is replaced with the renamed one.
+    When deleted: all items with the deleted tag are cleared."""
     # Widget hooks
     pr_tag = ObjectProperty(None)
 
@@ -470,13 +492,13 @@ class EditTagPopup(Popup):
         self.old = None
 
     def cmd_cancel(self, args):
-        '''Cancel without change anything. '''
+        """Cancel without change anything. """
         self.mode = self.old = None
         self.dismiss()
         return True
 
     def cmd_save(self, app):
-        '''Delete the current tag and deletes the items tag accordingly'''
+        """Save and apply change to items."""
         tag = self.pr_tag.text
         if tag == _(TAGS):
             message(tag, _('Action failed because: %s is already used.') %
@@ -508,6 +530,7 @@ class EditTagPopup(Popup):
 
 
 class EnterScreen(Screen):
+    """App enter screen."""
     pr_recentfiles = ObjectProperty(None)
 
     def __init__(self, *args, **kwargs):
@@ -515,12 +538,12 @@ class EnterScreen(Screen):
         self.app = None
 
     def on_enter(self):
-        '''Load recent files'''
+        """Load recent files."""
         self.app = App.get_running_app()
         self.pr_recentfiles.values = self.app.get_recent_files()
 
     def cmd_recent(self):
-        '''Choose a recent file and go to login'''
+        """Choose a recent file and call login screen."""
         if self.pr_recentfiles.text == 'Recent files':
             return False
         file = self.pr_recentfiles.text
@@ -537,7 +560,7 @@ class EnterScreen(Screen):
         return True
 
     def cmd_new(self):
-        '''Create a new file e go to login'''
+        """Create a new file e go to login screen."""
         file = ''
         popup = SaveFile()
         popup.title = _('New file: %s') % (file)
@@ -545,26 +568,27 @@ class EnterScreen(Screen):
         return True
 
     def cmd_open(self):
-        '''Open a file from filesystem'''
+        """Open an existing file from filesystem and call login screen."""
         popup = OpenFile()
         popup.title = _('Open')
         popup.open()
         return True
 
     def cmd_clear(self):
+        """Clear recent files."""
         self.app.clear_recent_files()
         self.pr_recentfiles.values = self.app.get_recent_files()
         return True
 
     def cmd_exit(self):
-        '''Exit app'''
+        """Exit the app doing nothing. """
         self.app.stop()
         # sys.exit()
         return True
 
 
 class ListScreen(Screen):
-
+    """Main screen with the list of user accounts."""
     # Widget hooks
     pr_tag = ObjectProperty(None)
     pr_search = ObjectProperty(None)
@@ -575,13 +599,15 @@ class ListScreen(Screen):
         super(ListScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.infopopup = None
-        self.state_method = self.on_enter_default
+        self.on_enter_callback = self.on_enter_default
 
     def on_enter(self):
-        '''Call when enter screen'''
-        self.state_method()
+        """Call when enter screen."""
+        self.on_enter_callback()
 
     def on_enter_default(self):
+        """Call back 'on_enter'. Prepare data to display the list.
+        Default view."""
         if self.pr_tag.disabled:
             self.pr_tag.disabled = False
             self.pr_search.disabled = False
@@ -600,17 +626,53 @@ class ListScreen(Screen):
             pass
         self.counter()
 
+    def on_enter_expiring(self, after=False):
+        """Call back 'on_enter'. Prepare data to display the list. 
+        Expiring accounts view."""
+        if after:
+            if not self.pr_tag.disabled:
+                self.pr_tag.disabled = True
+                self.pr_search.disabled = True
+            pwd_warn = float(self.app.config.getdefault(
+                SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
+            pwd_lifetime = float(self.app.config.getdefault(
+                SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
+            today = datetime.now()
+            self.pr_item_list_wid.clear()
+            for i in self.app.items:
+                try:
+                    if i['changed']:
+                        changed = datetime.fromisoformat(i['changed'])
+                    elif i['created']:
+                        changed = datetime.fromisoformat(i['created'])
+                    else:
+                        continue
+                    expire_date = changed + timedelta(days=30*pwd_lifetime)
+                    left = expire_date - today
+                    if left.days <= pwd_warn:
+                        self.pr_item_list_wid.add(
+                            item_class=ProgressItem, max=pwd_warn, name=i['name'], date=expire_date)
+                except Exception:
+                    continue
+            self.counter()
+        else:
+            Clock.schedule_once(lambda dt: self.on_enter_expiring(after=True))
+        return True
+
     def on_leave(self):
-        '''Call when leave screen'''
+        """Call when leave screen. Do nothing."""
         pass
 
     def build_tags(self):
+        """Internal. Extract a list of tag alphabetically
+        ordered from the item list."""
         t = list(set(i['tag'] for i in self.app.items))
         t.sort(key=str.lower)
         tags = [TAGS, ] + t
         return tags
 
     def _fill_items(self):
+        """Internal. Fill the item list. Every item is an account."""
         # if self.pr_item_list_wid.count < len(self.app.items):
         self.pr_item_list_wid.clear()
         for i in self.app.items:
@@ -618,7 +680,7 @@ class ListScreen(Screen):
         self.counter()
 
     def cmd_option(self, action, app):
-        '''This is a menu'''
+        """Screen menu command."""
         if action == INFO:
             if not self.infopopup:
                 self.infopopup = InfoPopup()
@@ -647,7 +709,7 @@ class ListScreen(Screen):
         return True
 
     def cmd_tag_selected(self):
-        '''On tag selected'''
+        """Filter list everytime a tag is selected."""
         self.pr_search.text = ''
         if self.pr_tag.text == TAGS:
             self._fill_items()
@@ -662,13 +724,13 @@ class ListScreen(Screen):
         return True
 
     def clear_search(self):
-        '''Clear the search text field'''
+        """Clear the search text field."""
         if len(self.pr_search.text) > 0:
             self.pr_search.text = ''
         self._fill_items()
 
     def cmd_search(self, after=False, at_least=3):
-        '''Search items for the input text'''
+        """Search items from the field input text."""
         if len(self.pr_search.text) < at_least:
             self._fill_items()
             return False
@@ -685,7 +747,7 @@ class ListScreen(Screen):
         return True
 
     def cmd_add(self, args):
-        '''Add a new account'''
+        """Add a new item account. Call 'EditScreen'."""
         # Apply configuration
         config = self.app.config
         item = new_item()
@@ -700,8 +762,9 @@ class ListScreen(Screen):
         return True
 
     def cmd_back(self, app, after=False):
-        '''Return to login:
-        Stop the running mode Return to login screen'''
+        """Return to login: stop the running mode and return
+        to login screen. Warns the user that everything is cleared and
+        data are going to be lost."""
         if after:
             self.pr_item_list_wid.clear()
             self.pr_tag.text = ''
@@ -718,48 +781,21 @@ class ListScreen(Screen):
         return False
 
     def counter(self):
+        """Return the number of displayed item accounts over the total item."""
         self.ids['_lab_counter'].text = f'{self.pr_item_list_wid.count} / {len(self.app.items)}'
 
     def cmd_expiring(self, widget, state, after=False):
+        """Toggle the view between the standard account list
+        and the password expiring list."""
         if state == 'down':
-            self.state_method = self.on_enter_expiring
+            self.on_enter_callback = self.on_enter_expiring
         else:
-            self.state_method = self.on_enter_default
+            self.on_enter_callback = self.on_enter_default
         self.on_enter()
-
-    def on_enter_expiring(self, after=False):
-        if after:
-            if not self.pr_tag.disabled:
-                self.pr_tag.disabled = True
-                self.pr_search.disabled = True
-            pwd_warn = float(self.app.config.getdefault(
-                SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
-            pwd_lifetime = float(self.app.config.getdefault(
-                SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
-            today = datetime.now()
-            self.pr_item_list_wid.clear()
-            for i in self.app.items:
-                try:
-                    if i['changed']:
-                        changed = datetime.fromisoformat(i['changed'])
-                    elif i['created']:
-                        changed = datetime.fromisoformat(i['created'])
-                    else:
-                        continue
-                    expire_date = changed + timedelta(days=30*pwd_lifetime)
-                    left = expire_date - today
-                    if left.days <= pwd_warn:
-                        self.pr_item_list_wid.add(
-                            item_cls=ProgressItem, max=pwd_warn, name=i['name'], date=expire_date)
-                except Exception:
-                    continue
-            self.counter()
-        else:
-            Clock.schedule_once(lambda dt: self.on_enter_expiring(after=True))
-        return True
 
 
 class EditScreen(Screen):
+    """Account editing screen."""
     # Widget hooks
     pr_name = ObjectProperty(None)
     pr_tag = ObjectProperty(None)
@@ -782,7 +818,7 @@ class EditScreen(Screen):
         self.item = None
 
     def set_item(self, item):
-        '''Initialise field from a dictionary'''
+        """Initialise screen fields from a dictionary."""
         self.item = item
         self.pr_name.text = item['name']
         self.pr_login.text = item['login']
@@ -805,20 +841,20 @@ class EditScreen(Screen):
         pass
 
     def cmd_back(self, app):
-        '''Return to list, discard all changes.'''
+        """Discard all changes, return to list screen."""
         self.manager.transition.direction = 'right'
         self.manager.current = LIST
         return True
 
     def cmd_delete(self, app):
-        '''Delete this account, return to list.'''
+        """Delete this account, return to list screen."""
         if app.delete_item(self.item):
             self.manager.transition.direction = 'right'
             self.manager.current = LIST
         return True
 
     def cmd_save(self, app):
-        '''Save this account, return to list.'''
+        """Save this account, return to list screen."""
         tag = self.pr_tag.text
         if tag == TAGS:
             tag = ''
@@ -873,6 +909,7 @@ class EditScreen(Screen):
         return True
 
     def _call_tag_popup(self, instance, spinner, mode):
+        """Edit tag: call edit tag popup."""
         popup = EditTagPopup()
         if mode == DELETE:
             popup.title = ': '.join((instance.text, spinner.text))
@@ -890,6 +927,7 @@ class EditScreen(Screen):
         popup.open()
 
     def item_check(self, item):
+        """Check mandatory fields before saving the account item."""
         log = []
         if item['name'] == '':
             log.append(_('Name is mandatory'))
@@ -907,25 +945,27 @@ class EditScreen(Screen):
         return True
 
     def cmd_selectiontag(self, spinner):
-        '''Nothing to do here'''
+        """Nothing to do here."""
         # print(f'select {spinner.text}')
         return True
 
     def cmd_renametag(self, instance, spinner):
-        '''Rename the current tag and updates all items accordingly
-        to the renamed tag. '''
+        """Rename the current tag and updates all items accordingly
+        to the renamed tag. """
         return self._call_tag_popup(instance, spinner, RENAME)
 
     def cmd_deletetag(self, instance, spinner):
-        '''Delete the current tag and deletes the items tag accordingly'''
+        """Delete the current tag and deletes the items tag accordingly."""
         return self._call_tag_popup(instance, spinner, DELETE)
 
     def cmd_addtag(self, instance, spinner):
-        '''Delete the current tag and deletes the items tag accordingly'''
+        """Delete the current tag from the items."""
         return self._call_tag_popup(instance, spinner, ADD)
 
 
 class ImportScreen(Screen):
+    """Screen enabling the import of a '.csv' password file
+    into the current one."""
     pr_mapping = ObjectProperty(None)
 
     def __init__(self, **kwargs):
@@ -933,17 +973,23 @@ class ImportScreen(Screen):
         self.file = None
 
     def on_enter(self, **kwargs):
-        '''Load a template'''
+        """Load a template for mapping the column headers of the input
+        file to the headers of the current file."""
         text = ',\n'.join(
             [f"('{i}', '{j}')" for i, j in model.mapping.items()])
         self.pr_mapping.text = text
         super(ImportScreen, self).on_enter(**kwargs)
 
     def cmd_back(self, app):
+        """Go back to the list screen without doing anything."""
         app.root.transition.direction = 'right'
         app.root.current = LIST
 
     def cmd_import(self, app, mapping):
+        """Import the '.csv' into current file. Once the mapping is applied,
+        new accounts are formed and appended to the current list.
+        New records are normalized by adding calculated values in place of missing
+        information. Nevertheless errors may occurs."""
         try:
             match = re.findall(
                 r"(\(\'[^,^\']+?\',.\'[^,^\']+?\'\),?)", mapping)
@@ -975,36 +1021,48 @@ class ImportScreen(Screen):
 
 
 class ChangesScreen(Screen):
+    """Screen collecting all changes during a program session. 
+    It enables user to restore values unintentionally changed.
+    The new account is replaced with the unchanged one. 
+    At present, once the program is closed changes history is lost."""
     # Widget hooks
-    #pr_accounts = ObjectProperty(None)
     pr_actions = ObjectProperty(None)
-    pr_comparator_wid = ObjectProperty(None)
+    pr_changed_item_list_wid = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ChangesScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def _fill_fields(self, mementos):
-        self.pr_comparator_wid.clear()
-        try:
-            formers = mementos[self.pr_actions.values.index(
-                self.pr_actions.text)]['body']
-            values = self.app.items[model.index_of(
-                items=self.app.items, key='name', value=formers['name'])]
+        """
+        Fetch changes from the app history.
 
-            for key, former in formers.items():
-                self.pr_comparator_wid.add(item_cls=Comparison,
-                                           key=key, name=SkipKeyApp.LABELS[key],
-                                           last=values[key],
-                                           former=former)
-                # self.pr_comparator_wid.add(
-                #     field=Comparison, key=key, name=SkipKeyApp.LABELS[key], last=values[key], former=former)
-        except ValueError:
-            pass
-        except IndexError:
+        Parameters:
+        -----------
+        - mementos:
+        list of memento objects. 
+        """
+        self.pr_changed_item_list_wid.clear()
+        try:
+            # Doesn't work with deleted records
+            former = mementos[self.pr_actions.values.index(
+                self.pr_actions.text)]['body']
+            try:  # No records found
+                current = self.app.items[model.index_of(
+                    items=self.app.items, key='name', value=former['name'])]
+            except Exception:
+                current = former
+
+            for key, value in former.items():
+                self.pr_changed_item_list_wid.add(item_class=Comparison,
+                                                  key=key, name=SkipKeyApp.LABELS[key],
+                                                  last=current[key],
+                                                  former=value)
+        except Exception:
             pass
 
     def on_enter(self):
+        """Screen initialization."""
         if len(self.app.history) > 0:
             self.pr_actions.values = ['{: <10s} - {: <10s} - {:s}'.format(
                 m['name'], m['action'], m['timestamp'].isoformat(sep=' ', timespec='seconds')) for m in self.app.history]
@@ -1015,13 +1073,14 @@ class ChangesScreen(Screen):
             self.pr_actions.text = self.pr_actions.values[0]
 
     def cmd_back(self, app):
-        '''Return to list, discard all changes.'''
+        """Return to list, discard all changes."""
         self.manager.transition.direction = 'right'
         self.manager.current = LIST
         return True
 
     def cmd_undo(self, *args):
-        '''set the last changed, delete from history'''
+        """Set the original item and discard the last changed one,
+        deletes it from history. Undo of Undo is, at present, impossible."""
         try:
             pos = self.pr_actions.values.index(self.pr_actions.text)
             item = self.app.history[pos]['body']
@@ -1040,13 +1099,16 @@ class ChangesScreen(Screen):
 
 
 class TagSpinner(Spinner):
+    """Generic tag spinner."""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # global tags
-        # self.text = TAGS
 
 
 class LoginPanel(BoxLayout):
+    """
+    Panel for user login.
+    """
     # Widget hooks
     pr_password = ObjectProperty(None)
     pr_strenght = ObjectProperty(None)
@@ -1055,18 +1117,26 @@ class LoginPanel(BoxLayout):
         super(LoginPanel, self).__init__(**kwargs)
 
     def cmd_text(self, text):
-        '''Check input for non allowed characters, and update password strenght
-        '''
+        """
+        Callback for TextInput on_text event. 
+        """
         self.pr_strenght.set_strength(text)
 
     def changed(self):
-        '''Return if the pasword has been changed'''
+        """
+        Return if the pasword has been changed.
+        """
         if self.pr_password.text:
             return self.pr_password.text != ''
         return False
 
 
 class UserPanel(BoxLayout):
+    """
+    Panel for changing password.
+
+    It is used by LoginPopup, CipherPopup. 
+    """
     # Widget hooks
     pr_password = ObjectProperty(None)
     pr_confirm = ObjectProperty(None)
@@ -1078,22 +1148,33 @@ class UserPanel(BoxLayout):
         self.bind(minimum_height=self.setter('height'))
 
     def cmd_text(self, text):
-        '''Check input for non allowed characters, and update password strenght
-        '''
+        """
+        Callback for TextInput on_text event. 
+        """
         self.pr_strenght.set_strength(text)
 
     def set_item(self, item):
+        """
+        Initialize the input fields. 
+        """
         self.pr_password.text = ''
         self.pr_confirm.text = ''
 
     def changed(self):
-        '''Return if the pasword has been changed'''
+        """
+        Return True if the pasword has been changed.
+        """
         if self.pr_password.text and self.pr_confirm.text:
             return self.pr_password.text != '' and self.pr_password.text == self.pr_confirm.text
         return False
 
 
 class SeedPanel(BoxLayout):
+    """
+    Panel for random seed input.
+
+    It is used by LoginPopup, CipherPopup.
+    """
     # Widget hooks
     pr_seed = ObjectProperty(None)
     pr_strenght = ObjectProperty(None)
@@ -1102,21 +1183,26 @@ class SeedPanel(BoxLayout):
         super(SeedPanel, self).__init__(**kwargs)
 
     def cmd_text(self, text):
-        '''Check input for non allowed characters, and update password strenght
-        '''
-        self.set_strength(text)
-
-    def set_strength(self, value):
-        self.pr_strenght.set_strength(value)
+        """
+        Callback for TextInput on_text event. 
+        """
+        self.pr_strenght.set_strength(text)
 
     def changed(self):
-        '''Return if the seed has been changed'''
+        """
+        Return True if the seed has been changed.
+        """
         if self.pr_seed.text:
             return self.pr_seed.text != ''
         return False
 
 
 class AutoPanel(BoxLayout):
+    """
+    Panel for generating the password.
+
+    It is used in EditScreen.
+    """
     # Widget hooks
     pr_length = ObjectProperty(None)
     pr_letters = ObjectProperty(None)
@@ -1134,6 +1220,9 @@ class AutoPanel(BoxLayout):
         self.pr_strenght.set_strength(text)
 
     def set_item(self, item):
+        """
+        Initialize the input fields from currently edited account item.
+        """
         self.pr_length.text = item['length']
         self.pr_symbols.text = item['symbols']
         self.pr_numbers.text = item['numbers']
@@ -1142,13 +1231,18 @@ class AutoPanel(BoxLayout):
         self.pr_password.text = ''
 
     def changed(self):
-        '''Return if the pasword has been changed'''
+        """
+        Return True if the pasword has been changed.
+        """
         if self.pr_password.text:
             return self.pr_password.text != ''
         return False
 
 
 class PasswordStrenght(BoxLayout):
+    """
+    Password strength gauge.
+    """
     # Widget hooks
     pr_strenght = ObjectProperty(None)
 
@@ -1156,24 +1250,51 @@ class PasswordStrenght(BoxLayout):
         super(PasswordStrenght, self).__init__(**kwargs)
 
     def set_strength(self, text):
-        '''Set the password strenght value.
-        '''
+        """
+        Set the password strenght value.
+
+        It evaluates the password strength from the algorithm
+        in passwordmeter.py.
+        """
         self.pr_strenght.value = passwordmeter.strength(text)
 
 
-class AccessList(ItemList):
+class AccountItemList(ItemList):
+    """
+    Accounts list container.
+
+    The list is managed in EditScreen.
+    """
+
     def __init__(self, *args, **kwargs):
         cell_widths = {'name': dp(200), 'login': dp(200)}
-        super(AccessList, self).__init__(mask=item_mask, **kwargs)
+        super(AccountItemList, self).__init__(mask=item_mask, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
 
 
-class FieldDiff(ItemList):
+class ChangedItemList(ItemList):
+    """
+    Container of changed account items.
+
+    The list is managed in ChangesScreen.
+    """
+
     def __init__(self, *args, **kwargs):
-        super(FieldDiff, self).__init__(*args, **kwargs)
+        super(ChangedItemList, self).__init__(*args, **kwargs)
 
 
 class ItemActionBubble(Bubble):
+    """
+    Bubble context menu for a selected account item.
+
+    Menu options:
+    -------------
+    - Get the account url. 
+    - Get the account user. 
+    - Get the account password. 
+    - Get the account login: 'user' [tab] 'password'. 
+    - Edit the account item: leave the screen and enter 'EditScreen'.
+    """
 
     def __init__(self, **kwargs):
         super(ItemActionBubble, self).__init__(**kwargs)
@@ -1184,27 +1305,36 @@ class ItemActionBubble(Bubble):
 
     def cmd_url(self, app):
         # TODO System call to browser
-        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        item = app.items[model.index_of(
+            items=app.items, value=self.item.kwargs['name'], key='name')]
         url = item['url']
         self._publish(app, url)
         return True
 
     def cmd_user(self, app):
-        '''Publish user.'''
-        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        """
+        Publish user.
+        """
+        item = app.items[model.index_of(
+            items=app.items, value=self.item.kwargs['name'], key='name')]
         user = item['login']
         self._publish(app, user)
         return True
 
     def cmd_password(self, app):
-        '''Publish password.'''
+        """
+        Publish password.
+        """
         p = self._password(app)
         self._publish(app, p)
         return True
 
     def cmd_login(self, app):
-        '''Publish 'user TAB password'.'''
-        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        """
+        Publish 'user TAB password' and dismiss bubble.
+        """
+        item = app.items[model.index_of(
+            items=app.items, value=self.item.kwargs['name'], key='name')]
         p = self._password(app)
         login = f'{item["login"]}\t{p}'
         self._publish(app, login)
@@ -1212,7 +1342,8 @@ class ItemActionBubble(Bubble):
         return True
 
     def _password(self, app):
-        item = app.items[model.index_of(items=app.items, value=self.item.kwargs['name'], key='name')]
+        item = app.items[model.index_of(
+            items=app.items, value=self.item.kwargs['name'], key='name')]
         if item['auto'] == 'False':
             p = app.decrypt(item['password'])
         # Clipboard.copy(self.item.item['login'])
@@ -1235,10 +1366,19 @@ class ItemActionBubble(Bubble):
             # Once at a time
             if app.evt_clipboard:
                 app.evt_clipboard.cancel()
-            app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
+            app.evt_clipboard = Clock.schedule_once(
+                lambda dt: Clipboard.copy(' '), timeout)
+            # app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
         return True
 
+    # def cb_clean(self, dt):
+    #     Clipboard.copy(' ')
     def cmd_edit(self, app):
+        """
+        Edit the account item. 
+
+        Leave the screen and enter 'EditScreen'.
+        """
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwargs['name'], key='name')]
         app.root.get_screen(EDIT).set_item(item)
@@ -1253,11 +1393,10 @@ class ItemActionBubble(Bubble):
         self.item = None
         self.parent.remove_widget(self)
 
-    def cb_clean(self, dt):
-        Clipboard.copy(' ')
-
     def on_touch_down(self, touch):
-        '''Remove bubble when click outside it'''
+        """
+        Remove bubble when click outside it.
+        """
         if not self.collide_point(touch.x, touch.y):
             self.reset()
         return super(ItemActionBubble, self).on_touch_down(touch)
@@ -1373,28 +1512,6 @@ class SkipKeyApp(App):
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.LOG, 0)
         config.adddefaultsection(SkipKeyApp.RECENT_FILES)
 
-    # def cmd_config_change(self, config, section, key, value):
-    #     """Event handler fired when a configuration token has been changed by
-    #     the settings page."""
-    #     if config is self.config:
-    #         token = (section, key)
-    #         if token == ('section1', 'key1'):
-    #             print('Our key1 has been changed to', value)
-    #         elif token == ('section1', 'key2'):
-    #             print('Our key2 has been changed to', value)
-    #         else:
-    #             print(f'Settings {section}-{key}: {value}')
-
-    # def display_settings(self, settings):
-        """Overrride to change how settings are displayed.
-        To check preferences manually call App.open_settings() and App.close_settings()"""
-        # super().display_settings(settings)
-        # if not self.sm.has_screen(SkipKeyApp.SETTINGS):
-        #     s = SettingsScreen(name=SkipKeyApp.SETTINGS)
-        #     s.add_widget(settings)
-        #     self.sm.add_widget(s)
-        # self.sm.current = SkipKeyApp.SETTINGS
-
     def on_start(self):
         """Event handler for the on_start event which is fired after initialization
         (after build() has been called) but before the application has started running."""
@@ -1422,7 +1539,7 @@ class SkipKeyApp(App):
         return super().on_stop()
 
     def open(self, file, passwd, seed):
-        '''Open the file and prepare the records'''
+        """Open the file and prepare the records"""
         try:
             with open(file, mode='r') as f:
                 cryptod = json.load(f)
@@ -1448,7 +1565,7 @@ class SkipKeyApp(App):
         return False
 
     def update_recent_files(self, file):
-        '''Update the list of recently opened files'''
+        """Update the list of recently opened files"""
         # print(f'App.update_recent_files(file: {file})')
         # Total number of saved files: numf
         file = f'{file}'
@@ -1470,7 +1587,7 @@ class SkipKeyApp(App):
         return True
 
     def clear_recent_files(self):
-        '''Clear the list of recently opened files'''
+        """Clear the list of recently opened files"""
         # print(f'App.clear_recent_files()')
         for i in range(self.MAXF):
             self.config.set(SkipKeyApp.RECENT_FILES, f'_{i}', '')
@@ -1478,8 +1595,8 @@ class SkipKeyApp(App):
         return True
 
     def get_recent_files(self):
-        '''Update the list of recently opened files, these can have the same name,
-        but different path: only available files are appended to the list.'''
+        """Update the list of recently opened files, these can have the same name,
+        but different path: only available files are appended to the list."""
         # numf = self.config.getdefaultint(SkipKeyApp.RECENT_FILES, 'numf', 0)
         self.files = dict()
         j = 0
@@ -1493,17 +1610,14 @@ class SkipKeyApp(App):
     def delete_item(self, item, after=False):
         # print('This item was deleted!')
         if after:
-            item_list = self.root.get_screen(LIST).pr_item_list_wid
+            # item_list = self.root.get_screen(LIST).pr_item_list_wid
             index = model.index_of(self.items, item['name'], 'name')
-            if index > -1:  # Delete
+            if index != None:  # Delete
                 self.add_memento(
-                    new=item, old=self.items.pop(index), action=DELETE)
+                    new=None, old=self.items.pop(index), action=DELETE)
             else:
                 return False
             self.items.sort(key=lambda k: str(k['name']).lower())
-            item_list.clear()
-            for i in self.items:
-                item_list.add(i)
         else:
             Clock.schedule_once(lambda dt: self.delete_item(
                 item=item, after=True), 0)
@@ -1513,7 +1627,7 @@ class SkipKeyApp(App):
         if after:
             # print(f'This item was saved! {item}')
             index = model.index_of(self.items, item['name'], 'name')
-            if index > -1:  # Update
+            if index != None:  # Update
                 if history:
                     self.add_memento(
                         new=item, old=self.items[index], action=UPDATE)
@@ -1527,19 +1641,16 @@ class SkipKeyApp(App):
                 if history:
                     self.add_memento(new=None, old=item, action=APPEND)
             self.items.sort(key=lambda k: str(k['name']).lower())
-            # item_list.clear()
-            # for i in self.items:
-            #     item_list.add(i)
         else:
             Clock.schedule_once(lambda dt: self.save_item(
                 item=item, history=history, after=True), 0)
         return True
 
     def add_memento(self, new, old, action=''):
-        '''History Data model: for the present the history is a back up of
+        """History Data model: for the present the history is a back up of
         the data model.
         {'name': item_name, 'changed': timestamp, 'item': item_json_dump}
-        '''
+        """
         if new != old:
             self.history[0:0] = [model.memento(item=old, action=action)]
 
@@ -1685,7 +1796,7 @@ class SkipKeyApp(App):
         return False
 
     def secure(self, cryptod, passwd, seed):
-        '''Set up the security only one time!'''
+        """Set up the security only one time!"""
         try:
             self.cipher_fachade = cryptofachade.CipherFachade()
             self.keywrapper = cryptofachade.KeyWrapper()
@@ -1709,7 +1820,7 @@ class SkipKeyApp(App):
         return True
 
     def unsecure(self):
-        '''Set up the security'''
+        """Set up the security"""
         self.cipher_fachade = None
         self.session_key = None
         self.session_seed = None
@@ -1719,7 +1830,7 @@ class SkipKeyApp(App):
         return True
 
     def timeout(self, after=False):
-        '''Security timeout'''
+        """Security timeout"""
         if after:
             self.count_down -= 1
             self.pr_timer = hh_mm_ss(self.count_down)
@@ -1740,7 +1851,7 @@ class SkipKeyApp(App):
         return True
 
     def initialize(self):
-        '''Initializes app context'''
+        """Initializes app context"""
         self.unsecure()
         # Data model
         self.items = []
