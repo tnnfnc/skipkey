@@ -1,3 +1,4 @@
+#:kivy 1.11
 ##-------------------------- POPUP
 #---------------------------------------------------------
 # Login Popup
@@ -6,40 +7,46 @@
     # Properties: Login and seed
     pr_login_wid: _wid_login
     pr_seed_wid: _wid_seed
-	size: root.size
-	pos: root.pos
+
 	auto_dismiss: False
+	size_hint: 0.9, 0.9
+	size_hint_max_x: 2*field_width_long
 	BoxLayout:
-		size: root.size
-		# pos: root.pos
 		orientation: "vertical"
-		padding: screen_padding
 		#--------------------------------- Password for data encryption
 		FrameTitle:
 			id: _lab_pwd
 			text: _('Password for data encryption')
-		BoxFrame:
-			size_hint: 1, None
-			height: self.minimum_height
+		GridLayout:
+			cols: 3
+			size_hint_y: None
+			height: 3*field_height
+			Widget:
+				size_hint_x: 0.2
 			LoginPanel:
 				id: _wid_login
-
-		#--------------------------------- Seed for password generation
+				size_hint_max_x: field_width_long
+			Widget:
+				size_hint_x: 0.2
+			#--------------------------------- Seed for password generation
 		FrameTitle:
 			id: _lab_seed
 			text: _('Seed for password generation')
-		
-
-		BoxFrame:
+		GridLayout:
+			cols: 3
 			size_hint_y: None
-			height: self.minimum_height
-
+			height: 3*field_height
+			Widget:
+				size_hint_x: 0.2
 			SeedPanel:
 				id: _wid_seed
-
+				size_hint_max_x: field_width_long
+			Widget:
+				size_hint_x: 0.2
 		#--------------------------------- Main buttons
 		GridLayout:
-			rows: 1
+			cols: 3
+			Widget:
 			NavButton:
 				id: _btn_exit
 				text: _('Cancel')
@@ -62,35 +69,28 @@
 	pr_iters: _inp_iters
 
 	auto_dismiss: False
+	size_hint: 0.9, 0.9
+	size_hint_max_x: 2*field_width_long
 	BoxLayout:
-		size: root.size
-		pos: root.pos
 		orientation: "vertical"
-		padding: screen_padding
 		GridLayout:
 			cols: 2
-			size_hint: 1, None
-			# height: spinner_size[1] * 2
+			size_hint_y: None
+			height: spinner_size[1] * 2
 			#--------------------------------- Cipher
-			FrameTitle:
+			FieldLabel:
 				id: _lab_cipher
-				size_hint_x: 0.4
 				text: _('Cipher')
-			BoxLayout:
-				orientation: 'horizontal'
-
-				Spinner:
-					id: _spi_cipher
-					size_hint: None, 1
-					size: spinner_size
-					text: root.cipher_algorithms()[0]
-					values:
-						root.cipher_algorithms() 
-
+			Spinner:
+				id: _spi_cipher
+				size_hint: None, 1
+				size: spinner_size
+				text: root.cipher_algorithms()[0]
+				values:
+					root.cipher_algorithms() 
 			#--------------------------------- Key generation			
-			FrameTitle:
+			FieldLabel:
 				id: _lab_keygen
-				size_hint_x: 0.4
 				text: _('Key generation')
 			BoxLayout:
 				orientation: 'horizontal'
@@ -101,47 +101,56 @@
 					text: root.key_derivators()[0]
 					values:
 						root.key_derivators() 
-					
 				FieldLabel:
 					id: _lab_iters
 					text: _('Iters.')
 				InputField:
 					id: _inp_iters
-					# size_hint: None, None
 					width: field_width_small
 					text: '100000'
 		#--------------------------------- Password for data encryption
 		FrameTitle:
 			id: _lab_pwd
 			text: _('Password for data encryption')
-		BoxFrame:
 			size_hint_y: None
-			height: self.minimum_height
+		GridLayout:
+			cols: 3
+			size_hint_y: None
+			height: 5*field_height
+			Widget:
+				size_hint_x: 0.2
 			UserPanel:
 				id: _wid_login
-				pos_hint: {'center_x': 0.5}
+				size_hint_max_x: field_width_long
+			Widget:
+				size_hint_x: 0.2
 		#--------------------------------- Seed
 		FrameTitle:
 			id: _lab_seed
 			text: _('Seed for password generation')
-		BoxFrame:
 			size_hint_y: None
-			height: self.minimum_height
+		GridLayout:
+			cols: 3
+			size_hint_y: None
+			height: 3*field_height
+			Widget:
+				size_hint_x: 0.2
 			SeedPanel:
 				id: _wid_seed
-				pos_hint: {'center_x': 0.5}
+				size_hint_max_x: field_width_long
+			Widget:
+				size_hint_x: 0.2
 		#--------------------------------- Main buttons
 		GridLayout:
-			rows: 1
+			cols: 3
+			Widget:
 			NavButton:
 				id: _btn_exit
-				pos_hint: {'center_x': 0.5}
 				text: _('Cancel')
 				on_release:
 					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
 			NavButton:
 				id: _btn_file
-				pos_hint: {'center_x': 0.5}
 				text: _('OK')
 				on_release: 
 					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')(app)
@@ -153,7 +162,8 @@
     pr_tag: _inp_tag
 	
     auto_dismiss: False
-    size_hint: 1, 0.5
+	size_hint: 0.9, 0.5
+	size_hint_max_x: 1*field_width_long
     BoxLayout:
         orientation: 'vertical'
 		InputField:
@@ -168,7 +178,8 @@
 				self.focus = True
 		BoxLayout:
         GridLayout:
-            cols: 2
+            cols: 3
+			Widget:
             NavButton:
                 id: _btn_save
                 text: _('Cancel')
@@ -180,7 +191,7 @@
                 on_release:
                     if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')(app)
 #---------------------------------------------------------
-#-------------------- SECURITY POPUP
+#-------------------- INFO POPUP
 #---------------------------------------------------------
 <InfoPopup>:
     # Properties: Login and seed
@@ -192,19 +203,20 @@
 	pr_iterations: _out_iterations
 
     auto_dismiss: False
-	pos: root.pos
-    padding: screen_padding
+	size_hint: 0.9, 0.9
+	# pos: root.pos
+    # padding: screen_padding
     BoxLayout:
         orientation: 'vertical'
 		FrameTitle:
 			text: _('Info')
-		GridLayout:
-			cols: 2
+		BoxLayout:
+			orientation: 'horizontal'
 			FieldLabel:
 				text: _('File')
+				size_hint_x: 0.3
 			OutputField:
 				id: _out_file
-				size_hint_x: 1
 				text: ''
 		FrameTitle:
 			text: _('Security')
@@ -212,38 +224,33 @@
 			cols: 2
 			FieldLabel:
 				text: _('Algorithm')
+				size_hint_x: 0.5
 			OutputField:
 				id: _out_algorithm
-				size_hint_x: None
-				width: field_width_med
 				text: ''
 			FieldLabel:
 				text: _('Chain mode')
+				size_hint_x: 0.5
 			OutputField:
 				id: _out_mode
-				size_hint_x: None
-				width: field_width_med
 				text: ''
 			FieldLabel:
 				text: _('Key size')
+				size_hint_x: 0.5
 			OutputField:
 				id: _out_keysize
-				size_hint_x: None
-				width: field_width_med
 				text: ''
 			FieldLabel:
 				text: _('Key derivator')
+				size_hint_x: 0.5
 			OutputField:
 				id: _out_pbkdf
-				size_hint_x: None
-				width: field_width_med
 				text: ''
 			FieldLabel:
 				text: _('Iterations')
+				size_hint_x: 0.5
 			OutputField:
 				id: _out_iterations
-				size_hint_x: None
-				width: field_width_med
 				text: ''
         BoxLayout:
 			orientation: 'vertical'

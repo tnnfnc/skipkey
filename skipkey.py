@@ -67,7 +67,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 4
+MICRO = 5 
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -251,7 +251,7 @@ class SaveFile(SaveFilePopup):
         """
         if selection:
             if not os.path.dirname(selection):
-                selection = '%s\\%s' % (path, selection)
+                selection = os.path.join(path, selection) #s\\%s' % (path, selection)
             if not os.path.exists(selection):
                 self.do_save(selection)
             else:
@@ -413,6 +413,7 @@ class CipherPopup(Popup):
                     'Please selectan algorithm'), 'w')
                 return False
             if self.mode is SAVE and app.secure(cryptod=cd, passwd=p, seed=s) and app.save(file=self.file, force=True):
+                app.file = self.file
                 self.dismiss()
                 app.root.transition.direction = 'left'
                 app.root.current = LIST
@@ -1608,9 +1609,10 @@ class SkipKeyApp(App):
         return self.files.keys()
 
     def delete_item(self, item, after=False):
-        # print('This item was deleted!')
+        """
+        Delete an item from the item list.
+        """
         if after:
-            # item_list = self.root.get_screen(LIST).pr_item_list_wid
             index = model.index_of(self.items, item['name'], 'name')
             if index != None:  # Delete
                 self.add_memento(
@@ -1624,8 +1626,13 @@ class SkipKeyApp(App):
         return True
 
     def save_item(self, item, history=True, after=False):
+        """
+        Save a new item and to the item list.
+
+        The item identifier is its name, so it is not possible to have
+        more than une item with the same name.
+        """
         if after:
-            # print(f'This item was saved! {item}')
             index = model.index_of(self.items, item['name'], 'name')
             if index != None:  # Update
                 if history:
@@ -1869,19 +1876,22 @@ class SkipKeyApp(App):
     def save(self, file, force=False):
         """
         Save items into a file.
-        The file is encrypted.
-            Parameters
+        
+        The file is saved if any changes was made, otherwise return
+        without saving. If the optional parameter force is True, then
+        the file is saved even if no changes were made.
+        The file is always encrypted.
+        Parameters
         ----------
-        file : the file path.
+        - file : 
+        the file path.
+        - force : 
+        force the saving.
 
-        cryptod : the cryprographic stuff for generating the secret key.
-
-            Returns
+        Returns
         -------
-        type :
-            Raises
-        ------
-        Exception
+        True : 
+        if the file was saved, otherwise returns False.
         """
         if file and self.session_key and (len(self.history) > 0 or force):
             try:

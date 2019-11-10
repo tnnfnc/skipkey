@@ -56,17 +56,11 @@
 		#--------------------------------- Scroll section
 		ScrollView:
 			id: _scr_edit
-			# scroll_timeout: 55 #msec
-			# scroll_distance: 20 #px
-			# scroll_type: ['bars', 'content']
-			# do_scroll_x: False
-			# do_scroll_y: True
 			BBoxLayout:
 				orientation: 'vertical'
-				padding: screen_padding
+				# padding: screen_padding
 				size_hint_y: None
 				height: page_height
-
 				FrameTitle:
 					id: _lab_account
 					text: _('Account data')
@@ -77,6 +71,7 @@
 						cols: 2
 						FieldLabel:
 							id: _lab_name
+							size_hint_x: 0.5
 							text: _('Name')
 						InputField:
 							id: _inp_name
@@ -85,18 +80,21 @@
 								self.focus = True
 						FieldLabel:
 							id: _lab_web
+							size_hint_x: 0.5
 							text: _('Web site')
 						InputField:
 							id: _inp_url
 							hint_text: _('web site url')
 						FieldLabel:
 							id: _lab_login
+							size_hint_x: 0.5
 							text: _('Login user')
 						InputField:
 							id: _inp_login
 							hint_text: _('login user')
 						FieldLabel:
 							id: _lab_mail
+							size_hint_x: 0.5
 							text: _('e-mail')
 						InputField:
 							id: _inp_mail
@@ -105,6 +103,7 @@
 						FieldLabel:
 							id: _lab_description
 							size_hint_y: 1
+							size_hint_x: 0.5
 							text: _('Free text')
 						InputField:
 							id: _inp_description
@@ -114,6 +113,7 @@
 				# ------------------------------- Edit screen > Security
 						FieldLabel:
 							id: _lab_date
+							size_hint_x: 0.5
 							text: _('Created')
 						OutputField:
 							id: _out_date
@@ -121,11 +121,13 @@
 						# Changed on
 						FieldLabel:
 							id: _lab_cdate
+							size_hint_x: 0.5
 							text: _('Changed')
 						OutputField:
 							id: _out_cdate
 						FieldLabel:
 							id: _lab_cipherpwd
+							size_hint_x: 0.5
 							text: _('Cipher Data')
 						OutputField:
 							id: _out_cipherpwd
@@ -152,20 +154,8 @@
 							id: _btn_rename
 							pos_hint: {'center_y': 0.5}
 							text: _('Rename')
-							# background_normal: 'data/icons/rename.png'
-							# background_down: 'data/icons/rename.png'
 							on_release:
 								if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
-
-							# Image:
-								# source: 'data/icons/rename.png'
-								# pos: self.pos
-								# size: self.size							
-							# canvas:
-								# BorderImage:
-									# source: 'data/icons/rename.png'
-									# pos: self.pos
-									# size: self.size
 						SmallButton
 							id: _btn_add
 							pos_hint: {'center_y': 0.5}
@@ -173,9 +163,6 @@
 							text: _('Add')
 							on_release: 
 								if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
-							# Image:
-								# source: 'data/icons/pen.png'
-								# size: _btn_add.size
 						SmallButton
 							id: _btn_delete
 							pos_hint: {'center_y': 0.5}
@@ -201,11 +188,33 @@
 					do_default_tab: False
 					on_current_tab: 
 						if hasattr(root, 'cmd_current_tab'): getattr(root, 'cmd_current_tab')(self)
+
 					TabbedPanelItem:
 						text: _('Auto')
-						AutoPanel:
-							id: _wid_auto_tab
+						
+						GridLayout:
+							cols: 3
+							size_hint_y: None
+							height: 6*field_height
+							Widget:
+								size_hint_x: 0.2
+							AutoPanel:
+								id: _wid_auto_tab
+								size_hint_max_x: 2*field_width_long
+							Widget:
+								size_hint_x: 0.2
+						
 					TabbedPanelItem:
 						text: _('User')
-						UserPanel:
-							id: _wid_user_tab
+						GridLayout:
+							cols: 3
+							size_hint_y: None
+							height: 6*field_height
+							Widget:
+								size_hint_x: 0.2
+							UserPanel:
+								id: _wid_user_tab
+								size_hint_max_x: 2*field_width_long
+							Widget:
+								size_hint_x: 0.2
+						
