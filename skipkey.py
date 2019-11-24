@@ -67,7 +67,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 5 
+MICRO = 6
 RELEASE = True
 
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -251,7 +251,8 @@ class SaveFile(SaveFilePopup):
         """
         if selection:
             if not os.path.dirname(selection):
-                selection = os.path.join(path, selection) #s\\%s' % (path, selection)
+                # s\\%s' % (path, selection)
+                selection = os.path.join(path, selection)
             if not os.path.exists(selection):
                 self.do_save(selection)
             else:
@@ -596,11 +597,17 @@ class ListScreen(Screen):
     pr_expiring = ObjectProperty(None)
     pr_item_list_wid = ObjectProperty(None)
 
+    class Find():
+        def __init__(self, pattern=None, sublist=[], *args, **kwargs):
+            self.sublist = sublist
+            self.pattern = pattern
+
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.infopopup = None
         self.on_enter_callback = self.on_enter_default
+        self.find = ListScreen.Find()  # Working sublist of items
 
     def on_enter(self):
         """Call when enter screen."""
@@ -621,6 +628,8 @@ class ListScreen(Screen):
         elif self.pr_tag.text != self.pr_tag.values[0]:
             self.cmd_tag_selected()
         elif self.pr_search.text:
+            # Refresh list to take into account possible deleted items
+            self.find = ListScreen.Find()
             self.cmd_search()
         else:
             self._fill_items()
@@ -673,8 +682,11 @@ class ListScreen(Screen):
         return tags
 
     def _fill_items(self):
-        """Internal. Fill the item list. Every item is an account."""
-        # if self.pr_item_list_wid.count < len(self.app.items):
+        """
+        Internal. Fill the item list. 
+
+        Every item is an account.
+        """
         self.pr_item_list_wid.clear()
         for i in self.app.items:
             self.pr_item_list_wid.add(ItemComposite, **i)
@@ -731,20 +743,46 @@ class ListScreen(Screen):
         self._fill_items()
 
     def cmd_search(self, after=False, at_least=3):
-        """Search items from the field input text."""
-        if len(self.pr_search.text) < at_least:
-            self._fill_items()
-            return False
-        items = self.app.items
-        self.pr_item_list_wid.clear()
+        """
+        Search items from the field input text.
+
+        For performance reasons it's better search for sublist.
+        """
         if after:
-            sublst = model.search_items(items=items, text=self.pr_search.text)
-            sublst.sort(key=lambda x: str.lower(x['name']))
-            for i in sublst:
+            # Search text: add characters -> search on sublist
+            if self.find.pattern and str(self.pr_search.text).casefold().startswith(str(self.find.pattern).casefold()):
+                sublist = model.search_items(
+                    items=self.find.sublist, text=self.pr_search.text)
+                sublist.sort(key=lambda x: str.lower(x['name']))
+                self.find = ListScreen.Find(self.pr_search.text, sublist)
+            # Search text: less characters - search on full list
+            # Search text: changed characters - search on full list
+            else:
+                sublist = model.search_items(
+                    items=self.app.items, text=self.pr_search.text)
+                sublist.sort(key=lambda x: str.lower(x['name']))
+                self.find = ListScreen.Find(self.pr_search.text, sublist)
+                pass
+
+            self.pr_item_list_wid.clear()
+            for i in sublist:
                 self.pr_item_list_wid.add(ItemComposite, **i)
             self.counter()
         else:
-            Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.5)
+            Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
+        # if len(self.pr_search.text) < at_least:
+        #     self._fill_items()
+        #     return False
+        # items = self.app.items
+        # self.pr_item_list_wid.clear()
+        # if after:
+        #     sublst = model.search_items(items=items, text=self.pr_search.text)
+        #     sublst.sort(key=lambda x: str.lower(x['name']))
+        #     for i in sublst:
+        #         self.pr_item_list_wid.add(ItemComposite, **i)
+        #     self.counter()
+        # else:
+        #     Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
         return True
 
     def cmd_add(self, args):
@@ -1876,7 +1914,7 @@ class SkipKeyApp(App):
     def save(self, file, force=False):
         """
         Save items into a file.
-        
+
         The file is saved if any changes was made, otherwise return
         without saving. If the optional parameter force is True, then
         the file is saved even if no changes were made.
