@@ -56,82 +56,29 @@ from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
 import model
-import gettext
+import appconfig as conf
 import os
 import sys
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
 
-# from fields import Comparate
+# =============================================================================
+# Kivy config
+# =============================================================================
 kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
 MICRO = 6
 RELEASE = True
-
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-# Global
-current_dir = os.path.dirname(os.path.realpath(__file__))
-
-
-# print(f'Current dir: {current_dir}')
-icons_dir = '%s\data\icons' % (current_dir)
-data_dir = '%s\data' % (current_dir)
-
-# Translations
-
-
-locale_dir = '%s\locale' % (current_dir)
-# locale_dir = 'locale'
-try:
-    it = gettext.translation('skipkey', localedir=locale_dir, languages=['it'])
-    it.install()
-    _ = it.gettext
-except FileNotFoundError as e:
-    def _(x): return x
-    print(f'No translation found: {e}')
-
+_ = conf.translate(['it'])
 
 def dp(pix):
     return metrix.dp(pix)
 
-
 Builder.load_file('kv/commons.kv')
-
-
-""" Tag list:
-1) initialized at new file or at opening from all values found in items list
-2) updated from the EditTagPopup
-3) accessed everywere is is needed
-4) tag element must be present, it disables all filters
-"""
-TAGS = _('all...')  # Default standinf for all tags
-# Command specification
-COPY = 'copy'
-SAVE = 'save'
-DELETE = 'delete'
-ADD = 'add'
-RENAME = 'rename'
-UPDATE = 'update'
-APPEND = 'append'
-INFO = 'info'
-IMPORT = 'import'  # & screen name
-EXPORT = 'export'  # & screen name
-# Screen Names
-ENTER = 'Enter'
-LIST = 'List'
-EDIT = 'Edit'
-CHANGES = 'changes'
-# Constants:
-ITERATIONS = 100000  # key generation from seed
-# App
-ICON = 'skip.png'
-
-# =============================================================================
-# Kivy config
-# =============================================================================
 
 
 def hh_mm_ss(seconds):
@@ -151,22 +98,8 @@ def hh_mm_ss(seconds):
 2) updated from the Edit screen
 3) accessed everywere is is needed
 """
-new_item = model.new_item
-test_items = []
-test_items.extend([
-    new_item(name='item 1', tag='Free'),
-    new_item(name='item 2', tag='Free'),
-    new_item(name='item 3', tag='Web'),
-    new_item(name='item 4', tag='Free'),
-    new_item(name='item 5', tag='Web'),
-    new_item(name='item 6', tag='Free'),
-    new_item(name='item 7', tag='Gov'),
-    new_item(name='item 8', tag='Gov')]
-)
-"""Column mask"""
-# item_mask = ('name', 'login', 'url')
+model.new_item
 item_mask = {'name': dp(200), 'login': dp(200), 'url': ''}
-# item_mask = None
 
 
 class SecurityException(Exception):
@@ -224,7 +157,7 @@ class ImportFile(OpenFilePopup):
                 selection = selection[0]
             app.root.get_screen(IMPORT).file = selection
             app.root.transition.direction = 'left'
-            app.root.current = IMPORT
+            app.root.current = conf.IMPORT
             self.dismiss()
         return False
 
@@ -243,7 +176,7 @@ class SaveFile(SaveFilePopup):
     def __init__(self, *args, **kwargs):
         super(SaveFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
-        self.mode = SAVE  # or NEW
+        self.mode = conf.SAVE
 
     def cmd_save(self, path, selection):
         """
@@ -251,7 +184,6 @@ class SaveFile(SaveFilePopup):
         """
         if selection:
             if not os.path.dirname(selection):
-                # s\\%s' % (path, selection)
                 selection = os.path.join(path, selection)
             if not os.path.exists(selection):
                 self.do_save(selection)
@@ -355,7 +287,7 @@ class LoginPopup(Popup):
             s = bytes(self.pr_seed_wid.pr_seed.text, encoding='utf-8')
             if app.open(file=self.file, passwd=p, seed=s):
                 app.root.transition.direction = 'left'
-                app.root.current = LIST
+                app.root.current = conf.LIST
                 self.reset()
                 self.dismiss()
             else:
@@ -393,7 +325,7 @@ class CipherPopup(Popup):
         super(CipherPopup, self).__init__(**kwargs)
         # Current file
         self.file = None
-        self.mode = SAVE  # or COPY
+        self.mode = conf.SAVE  # or COPY
 
     def cmd_enter(self, app):
         """Set the security and enter the list screen."""
@@ -413,15 +345,15 @@ class CipherPopup(Popup):
                 message(_('Security setup'), _(
                     'Please selectan algorithm'), 'w')
                 return False
-            if self.mode is SAVE and app.secure(cryptod=cd, passwd=p, seed=s) and app.save(file=self.file, force=True):
+            if self.mode is conf.SAVE and app.secure(cryptod=cd, passwd=p, seed=s) and app.save(file=self.file, force=True):
                 app.file = self.file
                 self.dismiss()
                 app.root.transition.direction = 'left'
-                app.root.current = LIST
-            elif self.mode is COPY and app.copy(file=self.file, cryptod=cd, passwd=p, seed=s):
+                app.root.current = conf.LIST
+            elif self.mode is conf.COPY and app.copy(file=self.file, cryptod=cd, passwd=p, seed=s):
                 self.dismiss()
                 app.root.transition.direction = 'left'
-                app.root.current = LIST
+                app.root.current = conf.LIST
             self.reset()
         else:
             message(_('Login warning'), _('Fill password and seed'), 'w')
@@ -502,14 +434,14 @@ class EditTagPopup(Popup):
     def cmd_save(self, app):
         """Save and apply change to items."""
         tag = self.pr_tag.text
-        if tag == _(TAGS):
+        if tag == _(conf.TAGS):
             message(tag, _('Action failed because: %s is already used.') %
                     (tag), 'w')
             return False
 
-        if self.mode == DELETE and self.old:
+        if self.mode == conf.DELETE and self.old:
             tag = ''
-        elif self.mode == ADD and self.old == '':
+        elif self.mode == conf.ADD and self.old == '':
             # tag = tag
             if model.in_items(items=app.items, value=tag, key='tag', casefold=True):
                 message(
@@ -517,7 +449,7 @@ class EditTagPopup(Popup):
                 return False
             else:
                 app.root.get_screen(EDIT).pr_tag.text = tag
-        elif self.mode == RENAME and self.old:
+        elif self.mode == conf.RENAME and self.old:
             tag = tag
         else:
             return False
@@ -525,7 +457,7 @@ class EditTagPopup(Popup):
         for item in model.item_iterator(items=app.items, key='tag', value=self.old):
             item_old = item.copy()
             item['tag'] = tag
-            app.add_memento(new=item, old=item_old, action=UPDATE)
+            app.add_memento(new=item, old=item_old, action=conf.UPDATE)
         self.mode = self.old = None
         self.dismiss()
         return True
@@ -621,7 +553,7 @@ class ListScreen(Screen):
             self.pr_search.disabled = False
         tags = self.build_tags()
         self.pr_tag.values = tags
-        self.app.root.get_screen(EDIT).pr_tag.values = tags
+        self.app.root.get_screen(conf.EDIT).pr_tag.values = tags
 
         if not self.pr_tag.text:
             self.pr_tag.text = self.pr_tag.values[0]
@@ -637,7 +569,7 @@ class ListScreen(Screen):
         self.counter()
 
     def on_enter_expiring(self, after=False):
-        """Call back 'on_enter'. Prepare data to display the list. 
+        """Call back 'on_enter'. Prepare data to display the list.
         Expiring accounts view."""
         if after:
             if not self.pr_tag.disabled:
@@ -678,12 +610,12 @@ class ListScreen(Screen):
         ordered from the item list."""
         t = list(set(i['tag'] for i in self.app.items))
         t.sort(key=str.lower)
-        tags = [TAGS, ] + t
+        tags = [conf.TAGS, ] + t
         return tags
 
     def _fill_items(self):
         """
-        Internal. Fill the item list. 
+        Internal. Fill the item list.
 
         Every item is an account.
         """
@@ -694,47 +626,52 @@ class ListScreen(Screen):
 
     def cmd_option(self, action, app):
         """Screen menu command."""
-        if action == INFO:
+        if action == conf.INFO:
             if not self.infopopup:
                 self.infopopup = InfoPopup()
                 self.infopopup.title = _('Info')
             self.infopopup.set_fields(app.cryptod, file=app.file)
             self.infopopup.open()
-        elif action == COPY:
+        elif action == conf.COPY:
             popup = SaveFile()
             popup.filechooser.rootpath = app.file
             popup.title = _('Copy to')
-            popup.mode = COPY
+            popup.mode = conf.COPY
             popup.open()
-        elif action == IMPORT:
+        elif action == conf.IMPORT:
             popup = ImportFile()
             popup.title = _('Import from:')
             popup.open()
-        elif action == EXPORT:
+        elif action == conf.EXPORT:
             popup = ExportFile()
             popup.title = _('Export to:')
             popup.open()
-        elif action == CHANGES:
+        elif action == conf.CHANGES:
             app.root.transition.direction = 'left'
-            app.root.current = CHANGES
+            app.root.current = conf.CHANGES
         else:
             pass
         return True
 
-    def cmd_tag_selected(self):
+    def cmd_tag_selected(self, after=False):
         """Filter list everytime a tag is selected."""
-        self.pr_search.text = ''
-        if self.pr_tag.text == TAGS:
-            self._fill_items()
+        if self.pr_search.text:
+            self.pr_search.text = ''
+        
+        if after:
+            if self.pr_tag.text == conf.TAGS:
+                self._fill_items()
+            else:
+                sublst = model.filter_items(
+                    items=self.app.items, value=self.pr_tag.text, key='tag')
+                sublst.sort(key=lambda x: str.lower(x['name']))
+                self.pr_item_list_wid.clear()
+                for i in sublst:
+                    self.pr_item_list_wid.add(ItemComposite, **i)
+            self.counter()
+            return True
         else:
-            sublst = model.filter_items(
-                items=self.app.items, value=self.pr_tag.text, key='tag')
-            sublst.sort(key=lambda x: str.lower(x['name']))
-            self.pr_item_list_wid.clear()
-            for i in sublst:
-                self.pr_item_list_wid.add(ItemComposite, **i)
-        self.counter()
-        return True
+            Clock.schedule_once(lambda dt: self.cmd_tag_selected(after=True), 0.1)
 
     def clear_search(self):
         """Clear the search text field."""
@@ -770,34 +707,21 @@ class ListScreen(Screen):
             self.counter()
         else:
             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
-        # if len(self.pr_search.text) < at_least:
-        #     self._fill_items()
-        #     return False
-        # items = self.app.items
-        # self.pr_item_list_wid.clear()
-        # if after:
-        #     sublst = model.search_items(items=items, text=self.pr_search.text)
-        #     sublst.sort(key=lambda x: str.lower(x['name']))
-        #     for i in sublst:
-        #         self.pr_item_list_wid.add(ItemComposite, **i)
-        #     self.counter()
-        # else:
-        #     Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
         return True
 
     def cmd_add(self, args):
         """Add a new item account. Call 'EditScreen'."""
         # Apply configuration
         config = self.app.config
-        item = new_item()
+        item = model.new_item()
         item['length'] = str(config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10))
         item['auto'] = str(config.getdefault(
             SkipKeyApp.PWDAUTO, SkipKeyApp.PWDLEN, True))
 
-        self.manager.get_screen(EDIT).set_item(item)
+        self.manager.get_screen(conf.EDIT).set_item(item)
         self.manager.transition.direction = 'left'
-        self.manager.current = EDIT
+        self.manager.current = conf.EDIT
         return True
 
     def cmd_back(self, app, after=False):
@@ -809,7 +733,7 @@ class ListScreen(Screen):
             self.pr_tag.text = ''
             app.initialize()
             self.manager.transition.direction = 'right'
-            self.manager.current = ENTER
+            self.manager.current = conf.ENTER
             return True
         else:
             if app.file:
@@ -882,20 +806,20 @@ class EditScreen(Screen):
     def cmd_back(self, app):
         """Discard all changes, return to list screen."""
         self.manager.transition.direction = 'right'
-        self.manager.current = LIST
+        self.manager.current = conf.LIST
         return True
 
     def cmd_delete(self, app):
         """Delete this account, return to list screen."""
         if app.delete_item(self.item):
             self.manager.transition.direction = 'right'
-            self.manager.current = LIST
+            self.manager.current = conf.LIST
         return True
 
     def cmd_save(self, app):
         """Save this account, return to list screen."""
         tag = self.pr_tag.text
-        if tag == TAGS:
+        if tag == conf.TAGS:
             tag = ''
         auto = self.item['auto'] == 'True'
         if self.pr_tabbedb_wid.current_tab is self.pr_tabbedb_wid.tab_list[1] \
@@ -916,7 +840,7 @@ class EditScreen(Screen):
             # No pasword changed
             pass
 
-        item = new_item(
+        item = model.new_item(
             name=self.pr_name.text,
             login=self.pr_login.text,
             url=self.pr_url.text,
@@ -944,24 +868,24 @@ class EditScreen(Screen):
             return True
         if app.save_item(item):
             self.manager.transition.direction = 'right'
-            self.manager.current = LIST
+            self.manager.current = conf.LIST
         return True
 
     def _call_tag_popup(self, instance, spinner, mode):
         """Edit tag: call edit tag popup."""
         popup = EditTagPopup()
-        if mode == DELETE:
+        if mode == conf.DELETE:
             popup.title = ': '.join((instance.text, spinner.text))
             popup.pr_tag.text = spinner.text
             popup.old = spinner.text
-            popup.mode = DELETE
-        elif mode == ADD:
+            popup.mode = conf.DELETE
+        elif mode == conf.ADD:
             popup.title = ': '.join((instance.text, ))
-            popup.mode = ADD
+            popup.mode = conf.ADD
             popup.old = ''
-        elif mode == RENAME:
+        elif mode == conf.RENAME:
             popup.title = ': '.join((instance.text, spinner.text))
-            popup.mode = RENAME
+            popup.mode = conf.RENAME
             popup.old = spinner.text
         popup.open()
 
@@ -991,15 +915,15 @@ class EditScreen(Screen):
     def cmd_renametag(self, instance, spinner):
         """Rename the current tag and updates all items accordingly
         to the renamed tag. """
-        return self._call_tag_popup(instance, spinner, RENAME)
+        return self._call_tag_popup(instance, spinner, conf.RENAME)
 
     def cmd_deletetag(self, instance, spinner):
         """Delete the current tag and deletes the items tag accordingly."""
-        return self._call_tag_popup(instance, spinner, DELETE)
+        return self._call_tag_popup(instance, spinner, conf.DELETE)
 
     def cmd_addtag(self, instance, spinner):
         """Delete the current tag from the items."""
-        return self._call_tag_popup(instance, spinner, ADD)
+        return self._call_tag_popup(instance, spinner, conf.ADD)
 
 
 class ImportScreen(Screen):
@@ -1022,7 +946,7 @@ class ImportScreen(Screen):
     def cmd_back(self, app):
         """Go back to the list screen without doing anything."""
         app.root.transition.direction = 'right'
-        app.root.current = LIST
+        app.root.current = conf.LIST
 
     def cmd_import(self, app, mapping):
         """Import the '.csv' into current file. Once the mapping is applied,
@@ -1050,9 +974,9 @@ class ImportScreen(Screen):
         if len(items_) > 0:
             for item in items_:
                 app.items.append(item)
-                app.add_memento(new=None, old=item, action=IMPORT)
+                app.add_memento(new=None, old=item, action=conf.IMPORT)
             app.root.transition.direction = 'right'
-            app.root.current = LIST
+            app.root.current = conf.LIST
         return True
 
     def mapping_help(self):
@@ -1114,7 +1038,7 @@ class ChangesScreen(Screen):
     def cmd_back(self, app):
         """Return to list, discard all changes."""
         self.manager.transition.direction = 'right'
-        self.manager.current = LIST
+        self.manager.current = conf.LIST
         return True
 
     def cmd_undo(self, *args):
@@ -1420,10 +1344,10 @@ class ItemActionBubble(Bubble):
         """
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwargs['name'], key='name')]
-        app.root.get_screen(EDIT).set_item(item)
+        app.root.get_screen(conf.EDIT).set_item(item)
         # app.root.get_screen(EDIT).set_item(self.item.kwargs)
         app.root.transition.direction = 'left'
-        app.root.current = EDIT
+        app.root.current = conf.EDIT
         self.reset()
         return True
 
@@ -1510,7 +1434,7 @@ class SkipKeyApp(App):
     def build(self):
         self.title = 'SkipKey %s' % (__version__)
         # path = os.path.dirname(os.path.realpath(__file__))
-        self.icon = '%s\\%s' % (icons_dir, ICON)
+        self.icon = '%s\\%s' % (conf.icons_dir, conf.ICON)
         # ----------------> App configuration
         self.user_data_dir
         # Create the screen manager
@@ -1519,11 +1443,11 @@ class SkipKeyApp(App):
         sm = ScreenManager()
         self.root = sm
 
-        sm.add_widget(EnterScreen(name=ENTER))
-        sm.add_widget(ListScreen(name=LIST))
-        sm.add_widget(EditScreen(name=EDIT))
-        sm.add_widget(ImportScreen(name=IMPORT))
-        sm.add_widget(ChangesScreen(name=CHANGES))
+        sm.add_widget(EnterScreen(name=conf.ENTER))
+        sm.add_widget(ListScreen(name=conf.LIST))
+        sm.add_widget(EditScreen(name=conf.EDIT))
+        sm.add_widget(ImportScreen(name=conf.IMPORT))
+        sm.add_widget(ChangesScreen(name=conf.CHANGES))
 
         return sm
 
@@ -1654,7 +1578,7 @@ class SkipKeyApp(App):
             index = model.index_of(self.items, item['name'], 'name')
             if index != None:  # Delete
                 self.add_memento(
-                    new=None, old=self.items.pop(index), action=DELETE)
+                    new=None, old=self.items.pop(index), action=conf.DELETE)
             else:
                 return False
             self.items.sort(key=lambda k: str(k['name']).lower())
@@ -1675,7 +1599,7 @@ class SkipKeyApp(App):
             if index != None:  # Update
                 if history:
                     self.add_memento(
-                        new=item, old=self.items[index], action=UPDATE)
+                        new=item, old=self.items[index], action=conf.UPDATE)
                 self.items[index] = item
                 self.items[index]['changed'] = datetime.now(
                 ).isoformat(sep=' ', timespec='seconds')
@@ -1684,7 +1608,7 @@ class SkipKeyApp(App):
                 ).isoformat(sep=' ', timespec='seconds')
                 self.items.append(item)
                 if history:
-                    self.add_memento(new=None, old=item, action=APPEND)
+                    self.add_memento(new=None, old=item, action=conf.APPEND)
             self.items.sort(key=lambda k: str(k['name']).lower())
         else:
             Clock.schedule_once(lambda dt: self.save_item(
@@ -1776,7 +1700,7 @@ class SkipKeyApp(App):
         ------
         Exception
         """
-        edit_screen = self.root.get_screen(EDIT)
+        edit_screen = self.root.get_screen(conf.EDIT)
         if letters:
             letters = 1
         else:
@@ -1789,7 +1713,8 @@ class SkipKeyApp(App):
                 length=length
             )
             seed = self.seedwrapper.secret(self.session_seed)
-            pwd, salt = self.cipher_fachade.secret(seed, ITERATIONS, pattern)
+            pwd, salt = self.cipher_fachade.secret(
+                seed, conf.ITERATIONS, pattern)
             edit_screen.pr_auto_wid.pr_password.text = pwd
             edit_screen.pr_auto_wid.set_strength(pwd)
             # Put in the ciphered
@@ -1834,7 +1759,8 @@ class SkipKeyApp(App):
             )
             seed = self.seedwrapper.secret(self.session_seed)
             salt = base64.b64decode(item['password'])
-            p = self.cipher_fachade.password(seed, salt, ITERATIONS, pattern)
+            p = self.cipher_fachade.password(
+                seed, salt, conf.ITERATIONS, pattern)
             return p
         except ValueError as e:
             message(_('Password'), e, 'e')
@@ -1883,7 +1809,7 @@ class SkipKeyApp(App):
                 self.save(self.file)
                 self.initialize()
                 self.root.transition.direction = 'right'
-                self.root.current = ENTER
+                self.root.current = conf.ENTER
                 self.evt_timeout.cancel()
         else:
             if self.evt_timeout:
@@ -1921,14 +1847,14 @@ class SkipKeyApp(App):
         The file is always encrypted.
         Parameters
         ----------
-        - file : 
+        - file :
         the file path.
-        - force : 
+        - force :
         force the saving.
 
         Returns
         -------
-        True : 
+        True :
         if the file was saved, otherwise returns False.
         """
         if file and self.session_key and (len(self.history) > 0 or force):

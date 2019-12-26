@@ -163,7 +163,6 @@
             id: _swi_numbers
             size_hint: None, None
             height: button_size_y
-            active: len(_inp_numbers.text) > 0 and len(_inp_length.text) > 0
 			on_active: 
                 if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
 				else: _inp_numbers.text = ''
@@ -172,12 +171,11 @@
             text: _('At least')
         InputField:
             id: _inp_numbers
-            hint_text: _('at least')
+            hint_text: _('a number')
 			disabled: not _swi_numbers.active
 			size: field_size_small
 			on_text:
 				if not self.text.isdigit(): self.text = self.text[:-1]
-				_swi_numbers.active = len(self.text) > 0
         # Symbols
         FieldLabel:
             id: _lab_symbols
@@ -186,7 +184,6 @@
             id: _swi_symbols
             size_hint: None, None
             height: button_size_y
-            active: len(_inp_symbols.text) > 0 and len(_inp_length.text) > 0
 			on_active:
                 if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
 				else: _inp_symbols.text = ''
@@ -195,12 +192,11 @@
             text: _('At least')
         InputField:
             id: _inp_symbols
-            hint_text: _('at least')
+            hint_text: _('a number')
 			disabled: not _swi_symbols.active
 			size: field_size_small
 			on_text:
 				if not self.text.isdigit(): self.text = self.text[:-1]
-				_swi_symbols.active = len(self.text) > 0
 # -------------------- TAG SPINNER
 <TagSpinner>:
     size_hint: None, 1
