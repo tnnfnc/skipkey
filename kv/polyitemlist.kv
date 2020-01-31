@@ -62,20 +62,21 @@
 #---------------------------------------------------------		
 <ProgressItem>:
 	orientation: 'horizontal'
-	size_hint_y: None
-	height: dp(25)
-	Label:
-		id: _lab_label
-		text: 'label'
+	size_hint: None, None
+	height: dp(30)
+	# size_hint_x: None
+	width: dp(160)
+
 	Label:
 		id: _lab_number
+		size_hint_x: None
+		width: dp(40)
 		text: '%s' % (0)
 		
 	ProgressBar:
 		id: _prb_before
-		# size_hint_x: None
-		# width: dp(150)
-		# value: 100
+		size_hint_x: 0.8
+		# width: dp(80)
 		canvas:
 			BorderImage:
                 border: dp(3), dp(3), dp(3), dp(0)
@@ -84,11 +85,11 @@
                 source: 'data/green.png'
 			Line:
 				points: self.x + self.width, self.y, self.x + self.width, self.y + self.height
-				width: dp(1.1)
+				width: dp(1.10)
 	ProgressBar:
 		id: _prb_after
-		# size_hint_x: None
-		# width: dp(150)
+		size_hint_x: 0.8
+		# width: _prb_before.width
 		# value: 100
 		canvas:
 			BorderImage:
@@ -98,4 +99,4 @@
                 source: 'data/red.png'
 			Line:
 				points: self.x, self.y, self.x, self.y + self.height
-				width: dp(1.1)
+				width: dp(1.10)

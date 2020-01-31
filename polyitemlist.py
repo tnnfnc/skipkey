@@ -7,7 +7,7 @@ The :class: `Item` is the basic item widget for the list: at present
 there are these subclasses of `Item`:
 
     -:class: `ItemComposite` that provides an in-line `SubItem` structure,
-    -:class: `Comparison` that provides a comparison between an 'old' vs  a 'new' 
+    -:class: `Comparison` that provides a comparison between an 'old' vs  a 'new'
         object, emphasizing changes of the tho contents,
     -:class: `ProgressItem` that provides a way to represent the
         last changed date with respect to a deadline date.
@@ -70,10 +70,10 @@ class ItemList(FloatLayout):
 
     Parameters:
     -----------
-    - mask: 
+    - mask:
         a dictionary of field-name that must be displayed in the 'ItemComposite',
         default is None.
-    - sel_mode: 
+    - sel_mode:
         is selection mode: possible values are 'SINGLE' (one line at a time),
         or 'MULTI' (one or more lines at a time).
     """
@@ -128,40 +128,41 @@ class ItemList(FloatLayout):
         ----------
         item_class: the 'Item' subclass to be instantiated.
 
-        kwargs: named parameters to instantiate the 'item_class'.
-        Returns:
+        kwparams: named parameters to instantiate the 'item_class'.
+        Returns: the the item_class's instance
         -------
         Boolean: True when added.
         """
-        item = item_class(header=self, kwargs=kwargs)
+        item = item_class(header=self, kwparams=kwargs)
         self._add(item)
-        return True
+        return item
 
     def _add(self, item_widget):
         '''Internal: add an item widget to the widget list.'''
         self.container.add_widget(item_widget)
         self.container.height += item_widget.height
         self.height = self.container.height
-        return True
+        return None
 
     def remove(self, item):
         '''Remove the item from the 'ItemList'.'''
         for i in self.items():
             if i.item == item:
                 self._remove(i)
-        return True
+                return i
+        return None
 
     def _remove(self, item_widget):
         '''Internal: remove the item widget from the widget list.'''
         self.container.remove_widget(item_widget)
-        return True
+        return None
 
     def clear(self):
         '''Remove all 'Items' from the 'ItemList'. '''
         self.container.clear_widgets()
         self.container.height = 0
         self.height = self.container.height
-        return True
+        return None
 
     def _select(self, item):
         '''Internal: select the item according to the selection mode.'''
@@ -172,7 +173,7 @@ class ItemList(FloatLayout):
             for _item in [i for i in self.items if not i is item]:
                 _item.selected = False
                 selection(_item, _item.selected)
-        # print(item.kwargs)
+        # print(item.kwparams)
         # Call the bubble on the last selected item!
         if self.bubble:
             self.show_bubble(item)
@@ -197,15 +198,18 @@ class ItemList(FloatLayout):
 
 class Item(GridLayout):
     """Item is the base class implementing an item for the 'ItemList'.
-    kwargs parameters:
+    kwparams parameters:
     ------------------------
+    - 'sid':
+        item reference in the CompositeItem
     - 'header':
         named parameter is the 'ItemList' reference.
-    - 'kwargs':
+    - 'kwparams':
         named parameter is the 'Item' initialization parameters dict.
     """
+    sid = StringProperty('')
     header = ObjectProperty(None)
-    kwargs = ObjectProperty(None)
+    kwparams = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(Item, self).__init__(**kwargs)
@@ -251,53 +255,85 @@ class ItemComposite(Item):
         return self._cells
 
     def _fill(self):
-        """Internal: fill the composite with the 'kwargs' parameters."""
-        for k, v in self.kwargs.items():
-            cell = SubItem(item=self, sid=k)
+        """Internal: fill the composite with the 'kwparams' parameters."""
+        for key, v in self.kwparams.items():
+            cell = SubItem(sid=key)
+            # cell = SubItem(item=self, sid=k)
+            # cell = SubItem(item=self, kwparams={'sid': k})
             cell.text = v
-            self._add(cell)
-            self._cells[k] = cell
+            self.add(cell)
+            # self._cells[k] = cell
 
     def _fill_mask(self):
-        """Internal: fill the composite with the 'kwargs' parameters."""
+        """Internal: fill the composite with the 'kwparams' parameters."""
         for key in self.header.mask:
-            cell = SubItem(item=self, sid=key)
-            if key in self.kwargs:
-                cell.text = self.kwargs[key]
-                self._add(cell)
-                self._cells[key] = cell
+            cell = SubItem(sid=key)
+            # cell = SubItem(item=self, sid=key)
+            # cell = SubItem(header=self, kwparams={'sid': key})
+            if key in self.kwparams:
+                cell.text = self.kwparams[key]
+                self.add(cell)
+                # self._cells[key] = cell
             else:
                 pass
 
-    def _add(self, item_cell):
-        """Internal: add a subitem to the composite."""
+    def add(self, item_cell):
+        """Add a subitem to the composite."""
         self.add_widget(item_cell)
         self.width += item_cell.width
-        if self.header.mask:
-            item_cell.bind(texture_size=self._set_width)
+        self._cells[item_cell.sid] = item_cell
+
+        sid = item_cell.sid if hasattr(
+            item_cell, 'sid') and item_cell.sid else None
+        # if self.header.mask and sid and self.header.mask[sid]:
+        if sid and self.header.mask:
+            try:
+                if isinstance(item_cell, Label):
+                    item_cell.bind(texture_size=self._set_width)
+                else:
+                    if sid in self.header.mask and self.header.mask[sid]:
+                        item_cell.width = float(self.header.mask[sid])
+            except Error as err:
+                pass
 
     def _set_width(self, *args):
-        """Internal: set the width according to the defined mask."""
-        # Set the width according to the defined dictionary
+        """Internal: set the width according to the defined mask or
+        adapt the width to the texture_size"""
         subitem = args[0]
-        if subitem.sid in self.header.mask and self.header.mask[subitem.sid]:
-            w = float(self.header.mask[subitem.sid])
+        sid = subitem.sid
+        # Set the width according to the defined dictionary
+        if sid in self.header.mask and self.header.mask[sid]:
+            w = float(self.header.mask[sid])
+        # Adapt the width to the texture size
         else:
             w = subitem.texture_size[0]
         subitem.width = w
 
+    def _old_set_width(self, *args):
+        """Internal: set the width according to the defined mask."""
+        # Set the width according to the defined dictionary
+        subitem = args[0]
+        if hasattr(subitem, 'sid'):
+            sid = subitem.sid
+            if sid in self.header.mask and self.header.mask[sid]:
+                w = float(self.header.mask[sid])
+            else:
+                w = subitem.texture_size[0]
+            subitem.width = w
 
+
+# class SubItem(Label):
 class SubItem(Label):
     """
     Implements a part of a 'ItemComposite' object.
-    kwargs named parameters:
+    kwparams named parameters:
     ------------------------
     - 'item':
         named parameter is the 'ItemComposite' reference.
     - 'sid':
         named parameter is the field key.
     """
-    item = ObjectProperty(None)
+    # item = ObjectProperty(None)
     sid = StringProperty('')
 
     def __init__(self, *args, **kwargs):
@@ -324,9 +360,9 @@ class SubItem(Label):
 
 class Comparison(Item):
     """
-    Provides a comparison between an 'old' vs  a 'new' object, 
+    Provides a comparison between an 'old' vs  a 'new' object,
     emphasizing changes of its content.
-    kwargs parameters:
+    kwparams parameters:
     -------------------
     - 'name':
         named parameter is the label displayed in the item.
@@ -345,12 +381,12 @@ class Comparison(Item):
 
     def compare(self, *args):
         name = last = former = ''
-        if 'name' in self.kwargs:
-            name = self.kwargs['name']
-        if 'last' in self.kwargs:
-            last = self.kwargs['last']
-        if 'former' in self.kwargs:
-            former = self.kwargs['former']
+        if 'name' in self.kwparams:
+            name = self.kwparams['name']
+        if 'last' in self.kwparams:
+            last = self.kwparams['last']
+        if 'former' in self.kwparams:
+            former = self.kwparams['former']
 
         name = name if name else ' - '
         last = last if last else ' - '
@@ -372,14 +408,13 @@ class Comparison(Item):
 class ProgressItem(Item):
     """
     Provides a way to graphically represent the last changed date
-    with respect to 'today' date. 
+    with respect to 'today' date.
     It renders the passed date wuth a progress bar in a [-max, +max] range
     centered on today.
     Parameters:
     -----------
-    kwargs named parameters: 
+    kwparams named parameters:
         'max' named parameters is the half date range in days.
-        'name' named parameters is label displayed in the item.
         'date' named parameters is the date .
 
     """
@@ -387,51 +422,43 @@ class ProgressItem(Item):
     def __init__(self, max=100, **kwargs):
         super(ProgressItem, self).__init__(**kwargs)
         self.max = max
-        if 'max' in self.kwargs:
-            self.max = int(self.kwargs.pop('max'))
+        if 'max' in self.kwparams:
+            self.max = int(self.kwparams.pop('max'))
         self._build()
 
     def _build(self, *args):
         """Internal."""
-        if 'date' in self.kwargs:
-            self.date = self.kwargs['date']
-        if 'name' in self.kwargs:
-            self.name = self.kwargs['name']
+        if 'date' in self.kwparams:
+            self.date = self.kwparams['date']
 
         if isinstance(self.date, datetime):
-            d = self.date
+            expire_date = self.date
         else:
-            d = datetime.fromisoformat(self.date)
+            expire_date = datetime.fromisoformat(self.date)
 
-        value = (datetime.now() - d - timedelta(days=self.max)).days
-        value = int(value)
-        if value < -self.max:
-            value = - self.max
-            number = '<%s' % (value)
-        elif value > self.max:
-            value = self.max
-            number = '>%s' % (value)
-        else:
-            value = value
-            number = '%s' % (value)
-
+        # value = (datetime.now() - d - timedelta(days=self.max)).days
+        left = (expire_date - datetime.now()).days
+        left = int(left)
+        self.ids['_lab_number'].text = str(left)
         self.ids['_prb_before'].max = self.max
         self.ids['_prb_after'].max = self.max
-        self.ids['_lab_number'].text = number
-        self.ids['_lab_label'].text = self.name
-        if value < 0:
-            self.ids['_prb_before'].value = self.ids['_prb_before'].max + \
-                value
-            self.ids['_prb_after'].value = 0
-            pass
-        if value > 0:
-            self.ids['_prb_before'].value = self.ids['_prb_before'].max
-            self.ids['_prb_after'].value = value
-            pass
-        else:
-            self.ids['_prb_before'] = self.ids['_prb_before'].max
-            self.ids['_prb_after'] = 0
-            pass
+
+        if left >= 0 and left <= self.max:
+            green_value = self.max - left
+            red_value = 0
+        if left >= 0 and left >= self.max:
+            green_value = self.max
+            red_value = 0
+        # Expired
+        if left < 0 and left >= -self.max:
+            green_value = self.max
+            red_value = -left
+        if left < 0 and left <= -self.max:
+            green_value = self.max
+            red_value = self.max
+
+        self.ids['_prb_before'].value = green_value
+        self.ids['_prb_after'].value = red_value
 
 
 if __name__ == '__main__':
@@ -481,13 +508,15 @@ if __name__ == '__main__':
                   'son': '',
                   }
     to_progress = [{'name': 'pippo', 'date': '2019-05-02 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-08-02 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-03-02 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-09-01 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-08-31 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-08-22 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-05-15 14:06:24'},
-                   {'name': 'pippo', 'date': '2019-05-02 14:06:24'}]
+                   {'name': 'next empty', 'date': '2019-08-02 14:06:24'},
+                   {'name': '', 'date': '2019-03-02 14:06:24'},
+                   {'name': 'label', 'date': '2019-09-01 14:06:24'},
+                   {'name': '', 'date': '2019-08-31 14:06:24'},
+                   {'name': '', 'date': '2019-08-22 14:06:24'},
+                   {'name': '', 'date': '2019-05-15 14:06:24'},
+                   {'name': '', 'date': '2019-05-02 14:06:24'}]
+
+    pi = ProgressItem(header=None, kwparams=to_progress[0])
 
     class TestingApp(App):
 
@@ -497,22 +526,25 @@ if __name__ == '__main__':
 
         def build(self):
             # Items
-            for item in items:
-                self.widget.add(item_class=ItemComposite, **item)
-                self.widget.add(item_class=Item, **item)
-            # Comparator
+            for item, progress in zip(items, to_progress):
+                w_item = self.widget.add(item_class=ItemComposite, **item)
+                # header=self, kwargs=kwargs
+                w_item.add(ProgressItem(
+                    sid='date', header=self.widget, kwparams=progress))
+                print(type(w_item))
+                # Comparator
             for k, v in to_compare.items():
                 self.widget.add(item_class=Comparison, key=k, name=k,
                                 last=v*8, former='old_%s' % (v)*18)
             # To progress
             for k in to_progress:
-                self.widget.add(item_class=ProgressItem, max='44',
+                self.widget.add(item_class=ProgressItem, max='10',
                                 name=k['name'], date=k['date'])
 
             return self.widget
 
     cell_widths = {'name': 100, 'url': 200,
-                   'login': 150, 'email': None, 'description': ''}
+                   'login': 150, 'email': 100, 'date': 400}
 
     widget = ItemList(sel_mode=SINGLE, mask=cell_widths)
     # widget = ItemList(sel_mode=MULTI, mask=cell_widths)

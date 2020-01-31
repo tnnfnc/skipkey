@@ -30,7 +30,7 @@
 					app_icon: 'data/icons/skip.png'
 					previous_icon: 'data/icons/left_arrow.png'
 					on_release:
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(app, 'timeout'): getattr(app, 'timeout')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/left_arrow.png'

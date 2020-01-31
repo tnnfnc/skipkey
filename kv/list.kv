@@ -22,7 +22,7 @@
 					app_icon: 'data/icons/skip.png'
 					previous_icon: 'data/icons/exit.png'
 					on_release:
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(app, 'timeout'): getattr(app, 'timeout')()
 				# TimerLabel:
 				ActionButton:
 					important: True
@@ -30,6 +30,12 @@
 					icon: 'data/icons/exit.png'
 					on_release: 
 						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+				ActionButton:
+					important: True
+					icon: 'data/icons/save.png'
+					text: _('Save')
+					on_release: 
+						if hasattr(app, 'save'): getattr(app, 'save')(file=app.file)
 				ActionButton:
 					important: True
 					icon: 'data/icons/plus.png'

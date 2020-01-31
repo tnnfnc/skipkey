@@ -51,7 +51,7 @@ from kivy.core.window import Window
 from kivy.app import App
 from datetime import datetime, timedelta
 from daemon import LoginDaemon
-from polyitemlist import ItemList, ItemComposite, Comparison, ProgressItem
+from polyitemlist import ItemList, ItemComposite, Comparison, ProgressItem, SubItem
 from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
@@ -69,14 +69,16 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 6
+MICRO = 7
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 _ = conf.translate(['it'])
 
+
 def dp(pix):
     return metrix.dp(pix)
+
 
 Builder.load_file('kv/commons.kv')
 
@@ -91,6 +93,40 @@ def hh_mm_ss(seconds):
     ss = int((seconds % 3600) % 60)
     out = 'Timeout: {hh:02}:{mm:02}:{ss:02}'.format(hh=hh, mm=mm, ss=ss)
     return out
+
+
+def expiration(item, keys, lifetime):
+    today = datetime.now()
+    try:
+        changed = None
+        for key in keys:
+            if item[key]:
+                changed = datetime.fromisoformat(item[key])
+                break
+        if changed:
+            expire_date = changed + timedelta(days=30*lifetime)
+            # left = expire_date - today
+            return expire_date
+    except Exception:
+        pass
+    return today
+
+
+def lasting(item, keys):
+    today = datetime.now()
+    try:
+        changed = None
+        for key in keys:
+            if item[key]:
+                changed = datetime.fromisoformat(item[key])
+                break
+        if changed:
+            days = (today - changed).days
+            # left = expire_date - today
+            return days
+    except Exception:
+        pass
+    return 0
 
 
 """Items:
@@ -581,19 +617,19 @@ class ListScreen(Screen):
                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
             today = datetime.now()
             self.pr_item_list_wid.clear()
+            date_keys = ['changed', 'created']  # Where to search for dates
             for i in self.app.items:
                 try:
-                    if i['changed']:
-                        changed = datetime.fromisoformat(i['changed'])
-                    elif i['created']:
-                        changed = datetime.fromisoformat(i['created'])
-                    else:
-                        continue
-                    expire_date = changed + timedelta(days=30*pwd_lifetime)
+                    expire_date = expiration(i, date_keys, pwd_lifetime)
                     left = expire_date - today
                     if left.days <= pwd_warn:
-                        self.pr_item_list_wid.add(
-                            item_class=ProgressItem, max=pwd_warn, name=i['name'], date=expire_date)
+                        w_item = self.pr_item_list_wid.add(
+                            item_class=ItemComposite, name=i['name'])
+                        text = _('Set %s days ago') % (str(lasting(i, date_keys)))
+                        w_item.add(SubItem(sid='lasting', text=text))
+                        w_item.add(ProgressItem(sid='progress',
+                                                header=self.pr_item_list_wid,
+                                                kwparams={'max': pwd_warn, 'date': expire_date}))
                 except Exception:
                     continue
             self.counter()
@@ -619,10 +655,24 @@ class ListScreen(Screen):
 
         Every item is an account.
         """
+        pwd_warn = float(self.app.config.getdefault(
+            SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
+        pwd_lifetime = float(self.app.config.getdefault(
+            SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
+        today = datetime.now()
         self.pr_item_list_wid.clear()
+        date_keys = ['changed', 'created']  # Where to search for dates
         for i in self.app.items:
-            self.pr_item_list_wid.add(ItemComposite, **i)
+            w_item = self.pr_item_list_wid.add(ItemComposite, **i)
+            expire_date = expiration(i, date_keys, pwd_lifetime)
+            if (expire_date - today).days <= pwd_warn:
+                text = _('Set %s days ago') % (str(lasting(i, date_keys)))
+                w_item.add(SubItem(sid='lasting', text=text))
         self.counter()
+
+    def counter(self):
+        """Return the number of displayed item accounts over the total item."""
+        self.ids['_lab_counter'].text = f'{self.pr_item_list_wid.count} / {len(self.app.items)}'
 
     def cmd_option(self, action, app):
         """Screen menu command."""
@@ -657,7 +707,7 @@ class ListScreen(Screen):
         """Filter list everytime a tag is selected."""
         if self.pr_search.text:
             self.pr_search.text = ''
-        
+
         if after:
             if self.pr_tag.text == conf.TAGS:
                 self._fill_items()
@@ -671,7 +721,8 @@ class ListScreen(Screen):
             self.counter()
             return True
         else:
-            Clock.schedule_once(lambda dt: self.cmd_tag_selected(after=True), 0.1)
+            Clock.schedule_once(
+                lambda dt: self.cmd_tag_selected(after=True), 0.1)
 
     def clear_search(self):
         """Clear the search text field."""
@@ -742,10 +793,6 @@ class ListScreen(Screen):
             else:
                 self.cmd_back(app=app, after=True)
         return False
-
-    def counter(self):
-        """Return the number of displayed item accounts over the total item."""
-        self.ids['_lab_counter'].text = f'{self.pr_item_list_wid.count} / {len(self.app.items)}'
 
     def cmd_expiring(self, widget, state, after=False):
         """Toggle the view between the standard account list
@@ -1230,7 +1277,7 @@ class AccountItemList(ItemList):
     """
 
     def __init__(self, *args, **kwargs):
-        cell_widths = {'name': dp(200), 'login': dp(200)}
+        cell_widths = {'name': dp(200), 'login': dp(200), 'progress': dp(160)}
         super(AccountItemList, self).__init__(mask=item_mask, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
 
@@ -1269,7 +1316,7 @@ class ItemActionBubble(Bubble):
     def cmd_url(self, app):
         # TODO System call to browser
         item = app.items[model.index_of(
-            items=app.items, value=self.item.kwargs['name'], key='name')]
+            items=app.items, value=self.item.kwparams['name'], key='name')]
         url = item['url']
         self._publish(app, url)
         return True
@@ -1279,7 +1326,7 @@ class ItemActionBubble(Bubble):
         Publish user.
         """
         item = app.items[model.index_of(
-            items=app.items, value=self.item.kwargs['name'], key='name')]
+            items=app.items, value=self.item.kwparams['name'], key='name')]
         user = item['login']
         self._publish(app, user)
         return True
@@ -1297,7 +1344,7 @@ class ItemActionBubble(Bubble):
         Publish 'user TAB password' and dismiss bubble.
         """
         item = app.items[model.index_of(
-            items=app.items, value=self.item.kwargs['name'], key='name')]
+            items=app.items, value=self.item.kwparams['name'], key='name')]
         p = self._password(app)
         login = f'{item["login"]}\t{p}'
         self._publish(app, login)
@@ -1306,7 +1353,7 @@ class ItemActionBubble(Bubble):
 
     def _password(self, app):
         item = app.items[model.index_of(
-            items=app.items, value=self.item.kwargs['name'], key='name')]
+            items=app.items, value=self.item.kwparams['name'], key='name')]
         if item['auto'] == 'False':
             p = app.decrypt(item['password'])
         # Clipboard.copy(self.item.item['login'])
@@ -1317,12 +1364,12 @@ class ItemActionBubble(Bubble):
     def _publish(self, app, text):
         autocompletion = app.config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.AUTOCOMP, True) == '1'
-        timeout = int(app.config.getdefault(
+        pwd_timeout = int(app.config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDTIME, '15'))
         if text == False:
             return False
         if autocompletion:
-            daemon = LoginDaemon(text=text, timeout=timeout)
+            daemon = LoginDaemon(text=text, timeout=pwd_timeout)
             daemon.start()
         else:
             Clipboard.copy(text)
@@ -1330,7 +1377,7 @@ class ItemActionBubble(Bubble):
             if app.evt_clipboard:
                 app.evt_clipboard.cancel()
             app.evt_clipboard = Clock.schedule_once(
-                lambda dt: Clipboard.copy(' '), timeout)
+                lambda dt: Clipboard.copy(' '), pwd_timeout)
             # app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
         return True
 
@@ -1343,9 +1390,9 @@ class ItemActionBubble(Bubble):
         Leave the screen and enter 'EditScreen'.
         """
         item = app.items[model.index_of(
-            items=app.items, value=self.item.kwargs['name'], key='name')]
+            items=app.items, value=self.item.kwparams['name'], key='name')]
         app.root.get_screen(conf.EDIT).set_item(item)
-        # app.root.get_screen(EDIT).set_item(self.item.kwargs)
+        # app.root.get_screen(EDIT).set_item(self.item.kwparams)
         app.root.transition.direction = 'left'
         app.root.current = conf.EDIT
         self.reset()
@@ -1592,17 +1639,22 @@ class SkipKeyApp(App):
         Save a new item and to the item list.
 
         The item identifier is its name, so it is not possible to have
-        more than une item with the same name.
+        more than one item with the same name. 
+        The changed date is updated only if password was changed.
         """
         if after:
             index = model.index_of(self.items, item['name'], 'name')
-            if index != None:  # Update
+            # Update
+            if index != None:
                 if history:
+                    old = self.items[index]
                     self.add_memento(
-                        new=item, old=self.items[index], action=conf.UPDATE)
+                        new=item, old=old, action=conf.UPDATE)
                 self.items[index] = item
-                self.items[index]['changed'] = datetime.now(
-                ).isoformat(sep=' ', timespec='seconds')
+                # Update the changed only if password was changed
+                if old['password'] != item['password']:
+                    self.items[index]['changed'] = datetime.now(
+                    ).isoformat(sep=' ', timespec='seconds')
             else:  # Append
                 item['created'] = item['changed'] = datetime.now(
                 ).isoformat(sep=' ', timespec='seconds')
@@ -1767,7 +1819,7 @@ class SkipKeyApp(App):
         return False
 
     def secure(self, cryptod, passwd, seed):
-        """Set up the security only one time!"""
+        """Turn on the security (call once)"""
         try:
             self.cipher_fachade = cryptofachade.CipherFachade()
             self.keywrapper = cryptofachade.KeyWrapper()
@@ -1791,7 +1843,7 @@ class SkipKeyApp(App):
         return True
 
     def unsecure(self):
-        """Set up the security"""
+        """Turn off the security"""
         self.cipher_fachade = None
         self.session_key = None
         self.session_seed = None
