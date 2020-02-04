@@ -173,7 +173,6 @@ class ItemList(FloatLayout):
             for _item in [i for i in self.items if not i is item]:
                 _item.selected = False
                 selection(_item, _item.selected)
-        # print(item.kwparams)
         # Call the bubble on the last selected item!
         if self.bubble:
             self.show_bubble(item)
@@ -258,52 +257,49 @@ class ItemComposite(Item):
         """Internal: fill the composite with the 'kwparams' parameters."""
         for key, v in self.kwparams.items():
             cell = SubItem(sid=key)
-            # cell = SubItem(item=self, sid=k)
-            # cell = SubItem(item=self, kwparams={'sid': k})
             cell.text = v
             self.add(cell)
-            # self._cells[k] = cell
 
     def _fill_mask(self):
         """Internal: fill the composite with the 'kwparams' parameters."""
         for key in self.header.mask:
             cell = SubItem(sid=key)
-            # cell = SubItem(item=self, sid=key)
-            # cell = SubItem(header=self, kwparams={'sid': key})
             if key in self.kwparams:
                 cell.text = self.kwparams[key]
                 self.add(cell)
-                # self._cells[key] = cell
             else:
                 pass
 
     def add(self, item_cell):
         """Add a subitem to the composite."""
-        self.add_widget(item_cell)
-        self.width += item_cell.width
-        self._cells[item_cell.sid] = item_cell
-
         sid = item_cell.sid if hasattr(
             item_cell, 'sid') and item_cell.sid else None
-        # if self.header.mask and sid and self.header.mask[sid]:
+        # Set the width according to the mask
+        if sid in self.header.mask and self.header.mask[sid]:
+            item_cell.width = float(self.header.mask[sid])
+        # Adapt text to the available width
         if sid and self.header.mask:
             try:
                 if isinstance(item_cell, Label):
                     item_cell.bind(texture_size=self._set_width)
-                else:
-                    if sid in self.header.mask and self.header.mask[sid]:
-                        item_cell.width = float(self.header.mask[sid])
             except Error as err:
                 pass
+        self.add_widget(item_cell)
+        self.width += item_cell.width
+        self._cells[item_cell.sid] = item_cell
 
     def _set_width(self, *args):
         """Internal: set the width according to the defined mask or
         adapt the width to the texture_size"""
         subitem = args[0]
         sid = subitem.sid
+        texture_size = subitem.texture_size
         # Set the width according to the defined dictionary
         if sid in self.header.mask and self.header.mask[sid]:
-            w = float(self.header.mask[sid])
+            length = float(self.header.mask[sid])
+            if texture_size[0] > length:
+                subitem.text_size = length, subitem.height
+            w = length
         # Adapt the width to the texture size
         else:
             w = subitem.texture_size[0]
@@ -461,6 +457,46 @@ class ProgressItem(Item):
         self.ids['_prb_after'].value = red_value
 
 
+class WarningItem(Item):
+    """
+    Provides a way to graphically represent the last changed date
+    with respect to 'today' date.
+    It renders the passed date wuth a progress bar in a [-max, +max] range
+    centered on today.
+    Parameters:
+    -----------
+    kwparams named parameters:
+        'max' named parameters is the time duration.
+        'elapsed' named parameters is the elapsed days.
+        'label' named parameters is an optional label.
+
+    """
+
+    def __init__(self, max=100, **kwargs):
+        super(WarningItem, self).__init__(**kwargs)
+        self.max = max
+        if 'max' in self.kwparams:
+            self.max = int(self.kwparams['max'])
+        if 'label' in self.kwparams:
+            self.label = str(self.kwparams['label'])
+        else:
+            self.label = ''
+        self._build()
+
+    def _build(self, *args):
+        """Internal."""
+        progressbar = self.ids['_prb_bar']
+        if 'elapsed' in self.kwparams:
+            self.elapsed = self.kwparams['elapsed']
+        progressbar.max = self.max
+        progressbar.value = self.elapsed if self.elapsed < self.max else self.max - \
+            self.max/self.elapsed
+        self.ids['_lab_number'].text = '{hh:.1%}'.format(
+            hh=progressbar.value/progressbar.max)
+
+        # self.ids['_prb_bar'].max = self.max
+
+
 if __name__ == '__main__':
     import model
     # import skipkey
@@ -482,13 +518,30 @@ if __name__ == '__main__':
     # 'history': ''  # Record history - not yet managed
     items = []
     items.extend([
+        model.new_item(name='item 7', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
+        model.new_item(name='item 2', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
+        model.new_item(name='item 3', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account ', tag='Web'),
+        model.new_item(name='item 5', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
+        model.new_item(name='item 4', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is  account description', tag='Web'),
+        model.new_item(name='item 6', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
+        model.new_item(name='item 1', url='', login='',
+                       email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov'),
+        model.new_item(name='item 8', url='', login='', email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov')]
+    )
+    items.extend([
         model.new_item(name='item 7', url='www.googlex.coop', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 2', url='www.googlex.coop', login='tnnfnc_user_',
+        model.new_item(name='item 2', url='www.googlex.coop.COOP.NETkfjrwoifjrowifjrwofjwoifj kkk', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
         model.new_item(name='item 3', url='www.googlex.coop', login='tnnfnc__',
                        email='tnnfnc@gmaiail.coop', description='This is the account ', tag='Web'),
-        model.new_item(name='item 5', url='www.googlex.coop', login='tnnfnc_user_',
+        model.new_item(name='item 5', url='www.googlex.coop', login='tnnfnc_user_PIPPOLOlog',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
         model.new_item(name='item 4', url='www.googlex.coop', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is  account description', tag='Web'),
@@ -516,6 +569,17 @@ if __name__ == '__main__':
                    {'name': '', 'date': '2019-05-15 14:06:24'},
                    {'name': '', 'date': '2019-05-02 14:06:24'}]
 
+    to_elapsed = [
+        {'max': 90, 'elapsed': 190},
+        {'max': 70, 'elapsed': 100},
+        {'label': '', 'elapsed': 365},
+        {'label': '', 'elapsed': 1000},
+        {'max': 50, 'elapsed': 180},
+        {'label': '', 'elapsed': 1},
+        {'label': '', 'elapsed': 0},
+        {'elapsed': 80}
+    ]
+
     pi = ProgressItem(header=None, kwparams=to_progress[0])
 
     class TestingApp(App):
@@ -532,6 +596,9 @@ if __name__ == '__main__':
                 w_item.add(ProgressItem(
                     sid='date', header=self.widget, kwparams=progress))
                 print(type(w_item))
+
+            for item in items:
+                w_item = self.widget.add(item_class=ItemComposite, **item)
                 # Comparator
             for k, v in to_compare.items():
                 self.widget.add(item_class=Comparison, key=k, name=k,
@@ -540,11 +607,23 @@ if __name__ == '__main__':
             for k in to_progress:
                 self.widget.add(item_class=ProgressItem, max='10',
                                 name=k['name'], date=k['date'])
+            # To progress
+            for k, w in zip(items, to_elapsed):
+                w_item = self.widget.add(item_class=ItemComposite, **k)
+                # header=self, kwargs=kwargs
+                w_item.add(WarningItem(
+                    sid='warning', header=self.widget, kwparams=w))
+                # i = self.widget.add(item_class=WarningItem, **k)
 
             return self.widget
 
-    cell_widths = {'name': 100, 'url': 200,
-                   'login': 150, 'email': 100, 'date': 400}
+    cell_widths = {'name': 100,
+                   'url': 200,
+                   'login': 150,
+                   'elapsed': 100,
+                   'warning': 260,
+                   'email': 150,
+                   'date': 400}
 
     widget = ItemList(sel_mode=SINGLE, mask=cell_widths)
     # widget = ItemList(sel_mode=MULTI, mask=cell_widths)

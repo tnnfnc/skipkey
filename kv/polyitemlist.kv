@@ -58,7 +58,7 @@
 		size: self.texture_size
 
 #---------------------------------------------------------
-# Fielda widget
+# ProgressItem widget
 #---------------------------------------------------------		
 <ProgressItem>:
 	orientation: 'horizontal'
@@ -81,7 +81,8 @@
 			BorderImage:
                 border: dp(3), dp(3), dp(3), dp(0)
                 pos: self.x, self.center_y - dp(1.5)
-                size: self.value*self.width/self.max, dp(4)
+                size: self.width, dp(4)
+                # size: self.value*self.width/self.max, dp(4)
                 source: 'data/green.png'
 			Line:
 				points: self.x + self.width, self.y, self.x + self.width, self.y + self.height
@@ -95,8 +96,37 @@
 			BorderImage:
                 border: dp(3), dp(0), dp(3), dp(0)
                 pos: self.x, self.center_y - dp(1.5)
-                size: self.value*self.width/self.max, dp(4)
+                size: self.width, dp(4)
+                # size: self.value*self.width/self.max, dp(4)
                 source: 'data/red.png'
 			Line:
 				points: self.x, self.y, self.x, self.y + self.height
+				width: dp(1.10)
+#---------------------------------------------------------
+# WarningItem widget
+#---------------------------------------------------------		
+<WarningItem>:
+	orientation: 'horizontal'
+	size_hint: None, None
+	height: dp(30)
+	width: dp(160)
+
+	Label:
+		id: _lab_number
+		size_hint_x: None
+		width: dp(45)
+		text: '%s' % (0)
+		
+	ProgressBar:
+		id: _prb_bar
+		size_hint_x: 1
+		# width: dp(80)
+		canvas:
+			BorderImage:
+                border: dp(3), dp(3), dp(3), dp(0)
+                pos: self.x, self.center_y - dp(1.5)
+                size: self.width, dp(4)
+                source: 'data/full.png'
+			Line:
+				points: self.x + self.value/self.max * self.width, self.y, self.x + self.value/self.max * self.width, self.y + self.height
 				width: dp(1.10)

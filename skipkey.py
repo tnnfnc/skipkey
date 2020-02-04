@@ -51,7 +51,8 @@ from kivy.core.window import Window
 from kivy.app import App
 from datetime import datetime, timedelta
 from daemon import LoginDaemon
-from polyitemlist import ItemList, ItemComposite, Comparison, ProgressItem, SubItem
+from polyitemlist import (ItemList, ItemComposite,
+                          Comparison, ProgressItem, SubItem, WarningItem)
 from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
@@ -69,7 +70,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 0
-MICRO = 7
+MICRO = 8
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -95,7 +96,7 @@ def hh_mm_ss(seconds):
     return out
 
 
-def expiration(item, keys, lifetime):
+def expire_on(item, keys, lifetime):
     today = datetime.now()
     try:
         changed = None
@@ -104,7 +105,7 @@ def expiration(item, keys, lifetime):
                 changed = datetime.fromisoformat(item[key])
                 break
         if changed:
-            expire_date = changed + timedelta(days=30*lifetime)
+            expire_date = changed + timedelta(days=lifetime)
             # left = expire_date - today
             return expire_date
     except Exception:
@@ -112,7 +113,8 @@ def expiration(item, keys, lifetime):
     return today
 
 
-def lasting(item, keys):
+def elapsed_days(item, keys):
+    """Return elapsed days since password was set."""
     today = datetime.now()
     try:
         changed = None
@@ -135,7 +137,13 @@ def lasting(item, keys):
 3) accessed everywere is is needed
 """
 model.new_item
-item_mask = {'name': dp(200), 'login': dp(200), 'url': ''}
+item_mask = {'name': dp(200),
+             'login': dp(180),
+             'url': dp(200),
+             'elapsed': dp(180),
+             #  'progress': dp(160),
+             'warning': dp(180)
+             }
 
 
 class SecurityException(Exception):
@@ -600,7 +608,7 @@ class ListScreen(Screen):
             self.find = ListScreen.Find()
             self.cmd_search()
         else:
-            self._fill_items()
+            self._fill_items(self.app.items)
             pass
         self.counter()
 
@@ -614,22 +622,21 @@ class ListScreen(Screen):
             pwd_warn = float(self.app.config.getdefault(
                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
             pwd_lifetime = float(self.app.config.getdefault(
-                SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
+                SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
             today = datetime.now()
             self.pr_item_list_wid.clear()
             date_keys = ['changed', 'created']  # Where to search for dates
             for i in self.app.items:
                 try:
-                    expire_date = expiration(i, date_keys, pwd_lifetime)
-                    left = expire_date - today
-                    if left.days <= pwd_warn:
+                    elapse = elapsed_days(i, date_keys)
+                    if (expire_on(i, date_keys, pwd_lifetime) - today).days <= pwd_warn:
                         w_item = self.pr_item_list_wid.add(
                             item_class=ItemComposite, name=i['name'])
-                        text = _('Set %s days ago') % (str(lasting(i, date_keys)))
-                        w_item.add(SubItem(sid='lasting', text=text))
-                        w_item.add(ProgressItem(sid='progress',
-                                                header=self.pr_item_list_wid,
-                                                kwparams={'max': pwd_warn, 'date': expire_date}))
+                        text = _('Set %s days ago') % (str(elapse))
+                        w_item.add(SubItem(sid='elapsed', text=text))
+                        w_item.add(WarningItem(sid='warning',
+                                               header=self.pr_item_list_wid,
+                                               kwparams={'max': pwd_lifetime, 'elapsed': elapse}))
                 except Exception:
                     continue
             self.counter()
@@ -649,25 +656,26 @@ class ListScreen(Screen):
         tags = [conf.TAGS, ] + t
         return tags
 
-    def _fill_items(self):
+    def _fill_items(self, items):
         """
         Internal. Fill the item list.
 
         Every item is an account.
         """
-        pwd_warn = float(self.app.config.getdefault(
-            SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
+        # pwd_warn = float(self.app.config.getdefault(
+        #     SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
         pwd_lifetime = float(self.app.config.getdefault(
-            SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6))
-        today = datetime.now()
+            SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
         self.pr_item_list_wid.clear()
         date_keys = ['changed', 'created']  # Where to search for dates
-        for i in self.app.items:
+        for i in items:
             w_item = self.pr_item_list_wid.add(ItemComposite, **i)
-            expire_date = expiration(i, date_keys, pwd_lifetime)
-            if (expire_date - today).days <= pwd_warn:
-                text = _('Set %s days ago') % (str(lasting(i, date_keys)))
-                w_item.add(SubItem(sid='lasting', text=text))
+            # text = _('Set %s days ago') % (str(elapsed_days(i, date_keys)))
+            # w_item.add(SubItem(sid='elapsed', text=text))
+            elapse = elapsed_days(i, date_keys)
+            w_item.add(WarningItem(sid='warning',
+                                   header=self.pr_item_list_wid,
+                                   kwparams={'max': pwd_lifetime, 'elapsed': elapse}))
         self.counter()
 
     def counter(self):
@@ -710,14 +718,13 @@ class ListScreen(Screen):
 
         if after:
             if self.pr_tag.text == conf.TAGS:
-                self._fill_items()
+                self._fill_items(self.app.items)
             else:
                 sublst = model.filter_items(
                     items=self.app.items, value=self.pr_tag.text, key='tag')
                 sublst.sort(key=lambda x: str.lower(x['name']))
                 self.pr_item_list_wid.clear()
-                for i in sublst:
-                    self.pr_item_list_wid.add(ItemComposite, **i)
+                self._fill_items(sublst)
             self.counter()
             return True
         else:
@@ -728,7 +735,7 @@ class ListScreen(Screen):
         """Clear the search text field."""
         if len(self.pr_search.text) > 0:
             self.pr_search.text = ''
-        self._fill_items()
+        self._fill_items(self.app.items)
 
     def cmd_search(self, after=False, at_least=3):
         """
@@ -753,8 +760,7 @@ class ListScreen(Screen):
                 pass
 
             self.pr_item_list_wid.clear()
-            for i in sublist:
-                self.pr_item_list_wid.add(ItemComposite, **i)
+            self._fill_items(sublist)
             self.counter()
         else:
             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
@@ -956,7 +962,6 @@ class EditScreen(Screen):
 
     def cmd_selectiontag(self, spinner):
         """Nothing to do here."""
-        # print(f'select {spinner.text}')
         return True
 
     def cmd_renametag(self, instance, spinner):
@@ -1277,7 +1282,7 @@ class AccountItemList(ItemList):
     """
 
     def __init__(self, *args, **kwargs):
-        cell_widths = {'name': dp(200), 'login': dp(200), 'progress': dp(160)}
+
         super(AccountItemList, self).__init__(mask=item_mask, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
 
@@ -1525,21 +1530,17 @@ class SkipKeyApp(App):
     def on_start(self):
         """Event handler for the on_start event which is fired after initialization
         (after build() has been called) but before the application has started running."""
-        # print('app: on_start()')
         # Init screens:
-        # self.root.get_screen(ENTER).files.values = []
         return super().on_start()
 
     def on_pause(self):
         """Event handler called when Pause mode is requested. You should return
         True if your app can go into Pause mode, otherwise return False and your
         application will be stopped."""
-        # print('app: on_pause()')
         return super().on_pause()
 
     def on_resume(self):
         """Event handler called when your application is resuming from the Pause mode."""
-        # print('app: on_resume()')
         return super().on_resume()
 
     def on_stop(self):
@@ -1576,7 +1577,6 @@ class SkipKeyApp(App):
 
     def update_recent_files(self, file):
         """Update the list of recently opened files"""
-        # print(f'App.update_recent_files(file: {file})')
         # Total number of saved files: numf
         file = f'{file}'
         flist = dict()
@@ -1598,7 +1598,6 @@ class SkipKeyApp(App):
 
     def clear_recent_files(self):
         """Clear the list of recently opened files"""
-        # print(f'App.clear_recent_files()')
         for i in range(self.MAXF):
             self.config.set(SkipKeyApp.RECENT_FILES, f'_{i}', '')
         self.config.write()
