@@ -57,9 +57,11 @@ from filemanager import OpenFilePopup, SaveFilePopup, message, decision
 import cryptofachade
 import passwordmeter
 import model
+from layoutdelegate import GuiController
 import appconfig as conf
 import os
 import sys
+import webbrowser as browser
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
 
@@ -69,8 +71,8 @@ sys.path.append(dummy)
 kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
-MINOR = 0
-MICRO = 8
+MINOR = 1
+MICRO = 0
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -160,6 +162,7 @@ class OpenFile(OpenFilePopup):
     def __init__(self, *args, **kwargs):
         super(OpenFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
+        self.guic = GuiController(self)
 
     def cmd_load(self, path, selection):
         """
@@ -199,7 +202,7 @@ class ImportFile(OpenFilePopup):
         if app and selection:
             if isinstance(selection, list):
                 selection = selection[0]
-            app.root.get_screen(IMPORT).file = selection
+            app.root.get_screen(conf.IMPORT).file = selection
             app.root.transition.direction = 'left'
             app.root.current = conf.IMPORT
             self.dismiss()
@@ -438,6 +441,7 @@ class InfoPopup(Popup):
 
     def __init__(self, **kwargs):
         super(InfoPopup, self).__init__(**kwargs)
+        self.guic = GuiController(self)
         pass
 
     def set_fields(self, cryptod, **kwargs):
@@ -492,7 +496,7 @@ class EditTagPopup(Popup):
                     tag, _('Action failed because: %s is already used.') % (tag), 'w')
                 return False
             else:
-                app.root.get_screen(EDIT).pr_tag.text = tag
+                app.root.get_screen(conf.EDIT).pr_tag.text = tag
         elif self.mode == conf.RENAME and self.old:
             tag = tag
         else:
@@ -584,6 +588,7 @@ class ListScreen(Screen):
         self.infopopup = None
         self.on_enter_callback = self.on_enter_default
         self.find = ListScreen.Find()  # Working sublist of items
+        self.guic = GuiController(self)
 
     def on_enter(self):
         """Call when enter screen."""
@@ -832,6 +837,7 @@ class EditScreen(Screen):
         super(EditScreen, self).__init__(**kwargs)
         # Item currently edit
         self.item = None
+        self.guic = GuiController(self)
 
     def set_item(self, item):
         """Initialise screen fields from a dictionary."""
@@ -986,6 +992,7 @@ class ImportScreen(Screen):
     def __init__(self, **kwargs):
         super(ImportScreen, self).__init__(**kwargs)
         self.file = None
+        self.guic = GuiController(self)
 
     def on_enter(self, **kwargs):
         """Load a template for mapping the column headers of the input
@@ -1047,6 +1054,7 @@ class ChangesScreen(Screen):
     def __init__(self, **kwargs):
         super(ChangesScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.guic = GuiController(self)
 
     def _fill_fields(self, mementos):
         """
@@ -1130,6 +1138,7 @@ class LoginPanel(BoxLayout):
 
     def __init__(self, **kwargs):
         super(LoginPanel, self).__init__(**kwargs)
+        self.guic = GuiController(self)
 
     def cmd_text(self, text):
         """
@@ -1161,6 +1170,7 @@ class UserPanel(BoxLayout):
         super(UserPanel, self).__init__(**kwargs)
         self.size_hint_max_y = None
         self.bind(minimum_height=self.setter('height'))
+        self.guic = GuiController(self)
 
     def cmd_text(self, text):
         """
@@ -1196,6 +1206,7 @@ class SeedPanel(BoxLayout):
 
     def __init__(self, **kwargs):
         super(SeedPanel, self).__init__(**kwargs)
+        self.guic = GuiController(self)
 
     def cmd_text(self, text):
         """
@@ -1230,6 +1241,7 @@ class AutoPanel(BoxLayout):
         super(AutoPanel, self).__init__(**kwargs)
         self.size_hint_max_y = None
         self.bind(minimum_height=self.setter('height'))
+        self.guic = GuiController(self)
 
     def set_strength(self, text):
         self.pr_strenght.set_strength(text)
@@ -1323,7 +1335,11 @@ class ItemActionBubble(Bubble):
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
         url = item['url']
-        self._publish(app, url)
+        try:
+            browser.open(url, new=0, autoraise=True)
+        except Exception as e:
+            self._publish(app, url)
+
         return True
 
     def cmd_user(self, app):
@@ -1495,12 +1511,15 @@ class SkipKeyApp(App):
         sm = ScreenManager()
         self.root = sm
 
+        # kivy.core.window.Window.clearcolor = (1, 0, 0, 1)
+
         sm.add_widget(EnterScreen(name=conf.ENTER))
         sm.add_widget(ListScreen(name=conf.LIST))
         sm.add_widget(EditScreen(name=conf.EDIT))
         sm.add_widget(ImportScreen(name=conf.IMPORT))
         sm.add_widget(ChangesScreen(name=conf.CHANGES))
 
+        self.guic = GuiController(sm)
         return sm
 
     def build_settings(self, settings):

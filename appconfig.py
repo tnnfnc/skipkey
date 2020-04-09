@@ -8,18 +8,30 @@ data_dir = '%s\data' % (current_dir)
 locale_dir = '%s\locale' % (current_dir)
 
 # Translations
-
-
-def translate(languages=['it']):
+def translate(languages=['il']):
     def f(x): return x
     try:
-        it = gettext.translation(
+        lang = gettext.translation(
             'skipkey', localedir=locale_dir, languages=languages)
-        it.install()
-        f = it.gettext
+        lang.install()
     except FileNotFoundError as e:
-        print(f'No translation found: {e}')
+        # print(f'No translation found: {e}')
+        lang = gettext.NullTranslations(fp=None)
+        lang.install()
+    finally:
+        f = lang.gettext
     return f
+
+# def translate(languages=['it']):
+#     def f(x): return x
+#     try:
+#         it = gettext.translation(
+#             'skipkey', localedir=locale_dir, languages=languages)
+#         it.install()
+#         f = it.gettext
+#     except FileNotFoundError as e:
+#         print(f'No translation found: {e}')
+#     return f
 
 
 # Command specification
