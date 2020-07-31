@@ -156,7 +156,7 @@ class SecurityException(Exception):
 
 class OpenFile(OpenFilePopup):
     """
-    Open file pop up.
+    GUI element. Open file pop up. 
     """
 
     def __init__(self, *args, **kwargs):
@@ -188,7 +188,7 @@ class OpenFile(OpenFilePopup):
 
 class ImportFile(OpenFilePopup):
     """
-    Import a '.csv' file containing password.
+    GUI element. Import a '.csv' file containing password.
     """
 
     def __init__(self, *args, **kwargs):
@@ -217,7 +217,7 @@ class ImportFile(OpenFilePopup):
 
 class SaveFile(SaveFilePopup):
     """
-    Save file popup.
+    GUI element. Save file popup.
     """
 
     def __init__(self, *args, **kwargs):
@@ -264,7 +264,7 @@ class SaveFile(SaveFilePopup):
 
 class ExportFile(SaveFilePopup):
     """
-    Export file popup.
+    GUI element. Export file popup.
     """
 
     def __init__(self, *args, **kwargs):
@@ -308,7 +308,9 @@ class ExportFile(SaveFilePopup):
 
 
 class LoginPopup(Popup):
-    """"Login popup to decipher and set the random key."""
+    """"
+    GUI element. Login popup to decipher and set the random key.
+    """
     # Widget hooks
     pr_login_wid = ObjectProperty(None)
     pr_seed_wid = ObjectProperty(None)
@@ -358,9 +360,11 @@ class LoginPopup(Popup):
 
 
 class CipherPopup(Popup):
-    """Cipher file popup enable user to choose a password and a casual seed,
+    """
+    GUI element. Cipher file popup enable user to choose a password and a casual seed,
     and an algorithm for cripring the file and generating the casual secret key
-    from the seed."""
+    from the seed.
+    """
     # Widget hooks
     pr_login_wid = ObjectProperty(None)
     pr_seed_wid = ObjectProperty(None)
@@ -429,7 +433,8 @@ class CipherPopup(Popup):
 
 
 class InfoPopup(Popup):
-    """Popup to display information about current file and
+    """
+    GUI element. Popup to display information about current file and
     security settings."""
     # Properties: Login and seed
     pr_keyderive = ObjectProperty(None)
@@ -462,7 +467,8 @@ class InfoPopup(Popup):
 
 
 class EditTagPopup(Popup):
-    """Tag management popup. Tag can be added, deleted and renamed.
+    """
+    GUI element. Tag management popup. Tag can be added, deleted and renamed.
     When renamed: all item list entry tag is replaced with the renamed one.
     When deleted: all items with the deleted tag are cleared."""
     # Widget hooks
@@ -512,7 +518,7 @@ class EditTagPopup(Popup):
 
 
 class EnterScreen(Screen):
-    """App enter screen."""
+    """GUI element. App enter screen."""
     pr_recentfiles = ObjectProperty(None)
 
     def __init__(self, *args, **kwargs):
@@ -570,7 +576,7 @@ class EnterScreen(Screen):
 
 
 class ListScreen(Screen):
-    """Main screen with the list of user accounts."""
+    """GUI element. Main screen with the list of user accounts."""
     # Widget hooks
     pr_tag = ObjectProperty(None)
     pr_search = ObjectProperty(None)
@@ -816,7 +822,7 @@ class ListScreen(Screen):
 
 
 class EditScreen(Screen):
-    """Account editing screen."""
+    """GUI element. Account editing screen."""
     # Widget hooks
     pr_name = ObjectProperty(None)
     pr_tag = ObjectProperty(None)
@@ -985,7 +991,8 @@ class EditScreen(Screen):
 
 
 class ImportScreen(Screen):
-    """Screen enabling the import of a '.csv' password file
+    """
+    GUI element. Screen enabling the import of a '.csv' password file
     into the current one."""
     pr_mapping = ObjectProperty(None)
 
@@ -1043,7 +1050,8 @@ class ImportScreen(Screen):
 
 
 class ChangesScreen(Screen):
-    """Screen collecting all changes during a program session. 
+    """
+    GUI element. Screen collecting all changes during a program session. 
     It enables user to restore values unintentionally changed.
     The new account is replaced with the unchanged one. 
     At present, once the program is closed changes history is lost."""
@@ -1122,7 +1130,8 @@ class ChangesScreen(Screen):
 
 
 class TagSpinner(Spinner):
-    """Generic tag spinner."""
+    """
+    GUI element. Generic tag spinner."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1130,7 +1139,7 @@ class TagSpinner(Spinner):
 
 class LoginPanel(BoxLayout):
     """
-    Panel for user login.
+    GUI element. Panel for user login.
     """
     # Widget hooks
     pr_password = ObjectProperty(None)
@@ -1157,8 +1166,7 @@ class LoginPanel(BoxLayout):
 
 class UserPanel(BoxLayout):
     """
-    Panel for changing password.
-
+    GUI element. Panel for changing password.
     It is used by LoginPopup, CipherPopup. 
     """
     # Widget hooks
@@ -1196,7 +1204,7 @@ class UserPanel(BoxLayout):
 
 class SeedPanel(BoxLayout):
     """
-    Panel for random seed input.
+    GUI element. Panel for random seed input.
 
     It is used by LoginPopup, CipherPopup.
     """
@@ -1225,7 +1233,7 @@ class SeedPanel(BoxLayout):
 
 class AutoPanel(BoxLayout):
     """
-    Panel for generating the password.
+    GUI element. Panel for generating the password.
 
     It is used in EditScreen.
     """
@@ -1268,7 +1276,7 @@ class AutoPanel(BoxLayout):
 
 class PasswordStrenght(BoxLayout):
     """
-    Password strength gauge.
+    GUI element. Password strength gauge.
     """
     # Widget hooks
     pr_strenght = ObjectProperty(None)
@@ -1288,7 +1296,7 @@ class PasswordStrenght(BoxLayout):
 
 class AccountItemList(ItemList):
     """
-    Accounts list container.
+    GUI element. Accounts list container.
 
     The list is managed in EditScreen.
     """
@@ -1301,7 +1309,7 @@ class AccountItemList(ItemList):
 
 class ChangedItemList(ItemList):
     """
-    Container of changed account items.
+    GUI element. Container of changed account items.
 
     The list is managed in ChangesScreen.
     """
@@ -1312,7 +1320,7 @@ class ChangedItemList(ItemList):
 
 class ItemActionBubble(Bubble):
     """
-    Bubble context menu for a selected account item.
+    GUI element. Bubble context menu for a selected account item.
 
     Menu options:
     -------------
@@ -1434,6 +1442,9 @@ class ItemActionBubble(Bubble):
 
 
 class SkipKeyApp(App):
+    """
+    GUI element. Main App. 
+    """
     # Defaults constants
     SETTINGS = 'Settings'
     RECENT_FILES = 'Recent Files'
@@ -1518,7 +1529,7 @@ class SkipKeyApp(App):
         sm.add_widget(EditScreen(name=conf.EDIT))
         sm.add_widget(ImportScreen(name=conf.IMPORT))
         sm.add_widget(ChangesScreen(name=conf.CHANGES))
-
+        # look&feel manager
         self.guic = GuiController(sm)
         return sm
 
@@ -1532,12 +1543,12 @@ class SkipKeyApp(App):
         settings.add_json_panel(SkipKeyApp.SETTINGS, self.config, data=s)
 
     def build_config(self, config):
-        """The App class handles ‘ini’ files automatically add sections and
+        """The App class handles '.ini' files automatically add sections and
         default parameters values. """
         config.adddefaultsection(SkipKeyApp.SETTINGS)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.TIMEOUT, 5)  # min
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.AUTOCOMP, True)
-        # Parte user+tab+password
+        # Part user+tab+password
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDTIME, 15)  # sec.
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDAUTO, True)
@@ -1547,29 +1558,34 @@ class SkipKeyApp(App):
         config.adddefaultsection(SkipKeyApp.RECENT_FILES)
 
     def on_start(self):
-        """Event handler for the on_start event which is fired after initialization
+        """
+        Event handler for the on_start event which is fired after initialization
         (after build() has been called) but before the application has started running."""
         # Init screens:
         return super().on_start()
 
     def on_pause(self):
-        """Event handler called when Pause mode is requested. You should return
+        """
+        Event handler called when Pause mode is requested. You should return
         True if your app can go into Pause mode, otherwise return False and your
         application will be stopped."""
         return super().on_pause()
 
     def on_resume(self):
-        """Event handler called when your application is resuming from the Pause mode."""
+        """
+        Event handler called when your application is resuming from the Pause mode."""
         return super().on_resume()
 
     def on_stop(self):
-        """Event handler for the on_stop event which is fired when the application
+        """
+        Event handler for the on_stop event which is fired when the application
         has finished running (i.e. the window is about to be closed)."""
         self.save(file=self.file)
         return super().on_stop()
 
     def open(self, file, passwd, seed):
-        """Open the file and prepare the records"""
+        """
+        Open the file and prepare the records"""
         try:
             with open(file, mode='r') as f:
                 cryptod = json.load(f)
@@ -1595,7 +1611,8 @@ class SkipKeyApp(App):
         return False
 
     def update_recent_files(self, file):
-        """Update the list of recently opened files"""
+        """
+        Update the list of recently opened files"""
         # Total number of saved files: numf
         file = f'{file}'
         flist = dict()
@@ -1616,14 +1633,16 @@ class SkipKeyApp(App):
         return True
 
     def clear_recent_files(self):
-        """Clear the list of recently opened files"""
+        """
+        Clear the list of recently opened files"""
         for i in range(self.MAXF):
             self.config.set(SkipKeyApp.RECENT_FILES, f'_{i}', '')
         self.config.write()
         return True
 
     def get_recent_files(self):
-        """Update the list of recently opened files, these can have the same name,
+        """
+        Get the list of recently opened files, these can have the same name,
         but different path: only available files are appended to the list."""
         # numf = self.config.getdefaultint(SkipKeyApp.RECENT_FILES, 'numf', 0)
         self.files = dict()
@@ -1686,7 +1705,8 @@ class SkipKeyApp(App):
         return True
 
     def add_memento(self, new, old, action=''):
-        """History Data model: for the present the history is a back up of
+        """
+        History Data model: for the present the history is a back up of
         the data model.
         {'name': item_name, 'changed': timestamp, 'item': item_json_dump}
         """
@@ -1695,7 +1715,6 @@ class SkipKeyApp(App):
 
     def encrypt(self, text):
         """
-        Encrypt a password.
         Encrypt a password using the security algorithm and seed.
             Parameters
         ----------
@@ -1724,7 +1743,6 @@ class SkipKeyApp(App):
 
     def decrypt(self, text):
         """
-        Decrypt the text.
         Decrypt a text using the security algorithm and seed.
             Parameters
         ----------
@@ -1797,19 +1815,14 @@ class SkipKeyApp(App):
 
     def show(self, item):
         """
-        Show a generated password.
-        Generate a password and update the strenght.
+        Show a generated password and its strenght.
             Parameters
         ----------
-        length : password length.
-
-        letters : letters are allowed: True/False.
-
-        numbers : a number, numbers allowed at least.
-
-        symbols : a number, symbols allowed at least.
+        item : the item.
 
             Returns
+        ----------
+        boolean
         -------
         type :
             Raises
@@ -1837,7 +1850,8 @@ class SkipKeyApp(App):
         return False
 
     def secure(self, cryptod, passwd, seed):
-        """Turn on the security (call once)"""
+        """
+        Turn the security on (call once)."""
         try:
             self.cipher_fachade = cryptofachade.CipherFachade()
             self.keywrapper = cryptofachade.KeyWrapper()
@@ -1861,7 +1875,7 @@ class SkipKeyApp(App):
         return True
 
     def unsecure(self):
-        """Turn off the security"""
+        """Turn the security off."""
         self.cipher_fachade = None
         self.session_key = None
         self.session_seed = None

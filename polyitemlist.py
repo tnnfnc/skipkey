@@ -65,9 +65,8 @@ def selection(widget, select=False):
 class ItemList(FloatLayout):
     """
     The widget works as a container for a list of items. Items can be added and removed.
-    It supports an optional bubble-menu that can be activate by touching the item and
-    displayed over it.
-
+    It supports an optional bubble-menu that can displayed over it by touching an item.
+    
     Parameters:
     -----------
     - mask:
@@ -304,18 +303,6 @@ class ItemComposite(Item):
         else:
             w = subitem.texture_size[0]
         subitem.width = w
-
-    def _old_set_width(self, *args):
-        """Internal: set the width according to the defined mask."""
-        # Set the width according to the defined dictionary
-        subitem = args[0]
-        if hasattr(subitem, 'sid'):
-            sid = subitem.sid
-            if sid in self.header.mask and self.header.mask[sid]:
-                w = float(self.header.mask[sid])
-            else:
-                w = subitem.texture_size[0]
-            subitem.width = w
 
 
 # class SubItem(Label):

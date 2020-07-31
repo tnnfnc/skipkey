@@ -65,7 +65,7 @@ _('Cancel')
 _('Back')
 _('Import')
 _('Fields mapping')
-_('Write couples separated by comma:\n(\'<source>\', \'<target>\')
+_('Write couples separated by comma:\n(\'<source>\', \'<target>\'')
 # list.kv 
 _('Back')
 _('Save')
