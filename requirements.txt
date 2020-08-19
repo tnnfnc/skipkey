@@ -1,24 +1,24 @@
-altgraph==0.16.1
-asn1crypto==1.3.0
+altgraph==0.17
+asn1crypto @ file:///tmp/build/80754af9/asn1crypto_1596577642040/work
 autopep8==1.5
-certifi==2019.11.28
-cffi==1.13.2
+certifi==2020.6.20
+cffi==1.14.0
 cryptography==2.8
 docutils==0.16
 future==0.18.2
-idna==2.8
+idna @ file:///tmp/build/80754af9/idna_1593446292537/work
 Kivy==1.11.1
-macholib==1.11
+macholib @ file:///tmp/build/80754af9/macholib_1597435072973/work
 olefile==0.46
 pefile==2019.4.18
-Pillow==7.0.0
+Pillow @ file:///C:/ci/pillow_1594298234712/work
 pycodestyle==2.5.0
-pycparser==2.19
+pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
 pycrypto==2.6.1
-Pygments==2.5.2
+Pygments==2.6.1
 PyInstaller==3.5
 pynput==1.6.6
 pywin32==227
-pywin32-ctypes==0.2.0
-six==1.14.0
+pywin32-ctypes @ file:///C:/ci/pywin32-ctypes_1594392691209/work
+six==1.15.0
 wincertstore==0.2

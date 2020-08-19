@@ -12,9 +12,9 @@ import time
 DOUBLE_CLICK = 0.35
 
 
-class LoginDaemon(Thread):
+class TypewriteThread(Thread):
     def __init__(self, text, timeout=30, *args, **kwargs):
-        super(LoginDaemon, self).__init__(*args, **kwargs)
+        super(TypewriteThread, self).__init__(*args, **kwargs)
         self.text = text
         self.control_key = None
         self.start_time = 0
@@ -48,6 +48,6 @@ if __name__ == '__main__':
     pass
 
     data = 'user\tpassword'
-    daemon = LoginDaemon(text=data, timeout=10)
+    daemon = TypewriteThread(text=data, timeout=10)
     daemon.start()
     daemon.join()

@@ -7,9 +7,85 @@ Created on Sat Jul 20 15:35:21 2019
 import csv
 import re
 from datetime import datetime
+from appconstants import item_template, index
 
 
-def new_item(strict=True, **args):
+class ItemModel():
+    def __init__(self, items, key, template, index):
+        self._items = items if items else {}
+        self._key = key
+        self._template = template
+        self._index = index
+
+    def new(self, strict=True, **kwargs):
+        """
+        Item builder.
+        Return a dictionary with the predefined keys and ''empty'' values.
+        If ''**args'' is passed the new keys are added to the predefined.
+            Parameters
+        ----------
+        strict : Default ''True'' only predefined keys are returned.
+
+        **args : Key-value pairs.
+
+            Return a dictionary with the predefined keys.       
+        """
+        if strict:
+            item = dict(self._template)
+            for key in kwargs:
+                if key in self._template:
+                    item[key] = str(kwargs[key])
+            return item
+        else:
+            item = {}
+            for key in kwargs:
+                if key == 'index':
+                    raise KeyError('index is a reserved name')
+                item[key] = str(kwargs[key])
+            if self._key in item:
+                return item
+        raise KeyError('missing key %s' % (self._key))
+
+    def update(self, items, item):
+        '''Add or update the item and sort the items'''
+        # Update the index
+        item['index'] = ' '.join([str(item[k]).lower() for k in self._index])
+        if item[self._key] in items:  # Update
+            items[item[self._key]] = item
+        else:  # Add
+            items[item[self._key]] = item
+
+        # Sort the table by its key
+        new_items = {}
+        for key in sorted([k for k in items]):
+            new_items[key] = items[key]
+
+        return new_items
+
+    @staticmethod
+    def search(items, token):
+        subitems = {}
+        token = token.lower()
+        for key in items:
+            if token in items[key]['index']:
+                subitems[key] = items[key]
+        return subitems
+
+    @staticmethod
+    def contains(items, key):
+        return key in items
+
+    @staticmethod
+    def filter_by(items, key, value):
+        subitems = {}
+        token = token.lower()
+        for k in items:
+            if value in items[k][key]:
+                subitems[k] = items[k]
+        return subitems
+
+
+def new_item(strict=True, template=item_template, **args):
     """
     Item builder.
     Return a dictionary with the predefined keys and ''empty'' values.
@@ -34,24 +110,6 @@ def new_item(strict=True, **args):
     >>>
 
     """
-    template = {
-        'name': '',  # new name
-        'url': '',  # Check valid url
-        'login': '',  # Any string
-        'email': '',  # @-mail
-        'description': '',  # Any string
-        'tag': '',  # Any string
-        'color': '',  # Basic colors as string
-        'created': '',  # Date
-        'changed': '',  # Date
-        'auto': '',  # True, False=user
-        'length': '',  # Integer
-        'letters': '',  # True / False
-        'numbers': '',  # At least [0 length]
-        'symbols': '',  # At least [0 length]
-        'password': '',  # User encrypted password or salt Base64 encoded
-        'history': ''  # Record history - not yet managed
-    }
     if strict:
         for key in args:
             if key in template:
@@ -318,65 +376,13 @@ def set_fields(widget, fields={}):
 
 
 if __name__ == '__main__':
-    items = []
-    items.extend([
-        new_item(name='item 7', tag='Free'),
-        new_item(name='item 2', tag='Free'),
-        new_item(name='item 3', tag='Web'),
-        new_item(name='item 5', tag='Free'),
-        new_item(name='item 4', tag='Web'),
-        new_item(name='item 6', tag='Free'),
-        new_item(name='item 1', tag='Gov'),
-        new_item(name='item 8', tag='Gov')]
-    )
 
-    print(f'\n --------> search items: \n {search_items(items, "ree")}')
+    model = ItemModel(None, key='name', template=item_template, index=index)
+    items = {}
+    for i in range(0, 10):
+        item = model.new(name='item %d' % (i), tag='Free of %d' % (i))
+        items = model.update(items, item)
 
-    print(f"\n --------> in items: \n {in_items(items, 'item 6', 'name')}")
+    print('-----> items', items)
 
-    print(
-        f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name', casefold=True)}")
-
-    print(
-        f"\n --------> in items casefold: \n {in_items(items, 'itEm 6', 'name')}")
-
-    print(
-        f"\n --------> index of items: \n {index_of(items, 'item 6', 'name')}")
-
-    print(f"\n --------> filter items: \n {filter_items(items, 'Gov', 'tag')}")
-
-    print(
-        f"\n --------> replace_items: \n {replace_items(items, 'tag', 'Gov', 'Replaced(Gov)')}")
-
-    for i in item_iterator(items, 'tag', 'Replaced(Gov)'):
-        i['tag'] = 'Replaced(Replaced(Gov))'
-
-    print(f"\n --------> item_iterator : \n {items}")
-
-    items.sort(key=lambda k: k['name'])
-    print(f"sorted items: \n {items}")
-    h = []
-    for i in items:
-        h[0:0] = [memento(i, father='Franco', mother='Maria',
-                          city='Mezzocorona')]
-
-    print(f"Amplified history: ")
-    for i in h:
-        print(i)
-
-    # print(f"Mementos by key: ")
-    # l = mementos_by_key(h)
-    # for i in l.keys():
-    #     print(f'{i}: {l[i]}')
-
-    # print(f"Parse memento: ")
-    # for i in l:
-    #     print(f'{parse_memento_by_key(l[i])}')
-
-    file = ''
-    path = ''
-    if file:
-        f = f'{path}{file}'
-        items = import_csv(f)
-        items = import_csv(f, mapping=mapping)
-        print(items)
+    print('-----> search', model.search(items, '8'))

@@ -50,15 +50,17 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.app import App
 from datetime import datetime, timedelta
-from daemon import LoginDaemon
-from polyitemlist import (ItemList, ItemComposite,
-                          Comparison, ProgressItem, SubItem, WarningItem)
-from filemanager import OpenFilePopup, SaveFilePopup, message, decision
+from writer import TypewriteThread
+from ui_list import (ItemList, ItemComposite,
+                     Comparison, ProgressItem, SubItem, WarningItem)
+from ui_filemanager import OpenFilePopup, SaveFilePopup
+from ui_popups import MessagePopup, DecisionPopup
 import cryptofachade
-import passwordmeter
+import password
 import model
-from layoutdelegate import GuiController
-import appconfig as conf
+from localize import translate
+from ui_controller import GuiController
+import appconstants as conf
 import os
 import sys
 import webbrowser as browser
@@ -76,14 +78,33 @@ MICRO = 0
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-_ = conf.translate(['it'])
+_ = translate(domain='skipkey', localedir=conf.locale_dir, languages=['it'])
 
 
 def dp(pix):
     return metrix.dp(pix)
 
 
+message, decision = MessagePopup().show, DecisionPopup().show
 Builder.load_file('kv/commons.kv')
+Builder.load_file('kv\enter.kv')
+Builder.load_file('kv\list.kv')
+Builder.load_file('kv\edit.kv')
+Builder.load_file('kv\import.kv')
+Builder.load_file('kv\widgets.kv')
+Builder.load_file('kv\dynamic.kv')
+Builder.load_file('kv\popup.kv')
+Builder.load_file('kv\changes.kv')
+# ==============================================================================
+#:include  force kv\enter.kv
+#:include  force kv\list.kv
+#:include  force kv\edit.kv
+#:include  force kv\import.kv
+#:include  force kv\widgets.kv
+#:include  force kv\dynamic.kv
+#:include  force kv\popup.kv
+#:include  force kv\changes.kv
+# ==============================================================================
 
 
 def hh_mm_ss(seconds):
@@ -1288,10 +1309,9 @@ class PasswordStrenght(BoxLayout):
         """
         Set the password strenght value.
 
-        It evaluates the password strength from the algorithm
-        in passwordmeter.py.
+        It evaluates the password strength.
         """
-        self.pr_strenght.value = passwordmeter.strength(text)
+        self.pr_strenght.value = password.strength(text)
 
 
 class AccountItemList(ItemList):
@@ -1398,7 +1418,7 @@ class ItemActionBubble(Bubble):
         if text == False:
             return False
         if autocompletion:
-            daemon = LoginDaemon(text=text, timeout=pwd_timeout)
+            daemon = TypewriteThread(text=text, timeout=pwd_timeout)
             daemon.start()
         else:
             Clipboard.copy(text)
