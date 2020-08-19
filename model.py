@@ -86,8 +86,7 @@ class ItemModel():
 
 
 def new_item(strict=True, template=item_template, **args):
-    """
-    Item builder.
+    """Item builder.
     Return a dictionary with the predefined keys and ''empty'' values.
     If ''**args'' is passed the new keys are added to the predefined.
         Parameters
@@ -97,31 +96,39 @@ def new_item(strict=True, template=item_template, **args):
     **args : Key-value pairs.
 
         Return a dictionary with the predefined keys.
-    -------
-    type :
-        Raises
-    ------
-    Exception
-    See Also
-    --------
-
-    Examples
-    --------
-    >>>
-
     """
+    item = dict(item_template)
     if strict:
         for key in args:
-            if key in template:
-                template[key] = str(args[key])
+            if key in item_template:
+                item[key] = str(args[key])
     else:
         for key in args:
-            template[key] = str(args[key])
+            if 'index' in item:
+                raise KeyError('index is a reserved name')
+            else:
+                item[key] = str(args[key])
+    item = update_item_index(item)
+    return item
 
-    return template
+
+def update_item_index(item, key_list=index):
+    '''Build the item search text index'''
+    item['index'] = ' '.join([str(item[k]).lower() for k in key_list])
+    return item
 
 
-def search_items(items, text, fields=('name', 'tag', 'description', 'login', 'url', 'email')):
+def delete_item_index(item):
+    '''Build the item search text index'''
+    try:
+        item = dict(item)
+        del item['index']
+    except KeyError:
+        pass
+    return item
+
+
+def search_items(items, text, fields=index):
     """
     Find a text in the items list.
     Find a text in the items list, the match is lower case.
@@ -133,26 +140,11 @@ def search_items(items, text, fields=('name', 'tag', 'description', 'login', 'ur
 
         Returns the list of items where the text was found.
     -------
-    type :
-        Raises
-    ------
-    Exception
-    See Also
-    --------
-
-    Examples
-    --------
-    >>>
-
     """
-    f_list = []
     if text == '' or None:
         return items
-    text = str(text).lower()
-    for i, x in enumerate(items):
-        if text in ' '.join(str(v) for k, v in x.items() if k in fields).lower():
-            f_list.append(i)
-    return [items[x] for x in f_list if f_list]
+    text = text.lower()
+    return [item for item in items if text in item['index']]
 
 
 def in_items(items, value, key, casefold=False):
@@ -208,9 +200,7 @@ def filter_items(items, value, key):
 
         Returns the list of items where the value was found in the given key.
     """
-    l = [i for i in items if str(i[key]).lower() == str(value).lower()]
-
-    return l
+    return [i for i in items if str(i[key]).lower() == str(value).lower()]
 
 
 def replace_items(items, key, old, new):
@@ -345,34 +335,34 @@ def normalize(item):
         item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
 
 
-def set_fields(widget, fields={}):
-    """Construct: widget.ids.id
-        if the label has id _lab_name the fileld name must be name.
-        """
-    for key, wid in widget.ids.items():
-        if key.startswith('_lab_'):  # label
-            #            wid.text = _(wid.text)
-            pass
-        elif key.startswith('_inp_'):  # inputfield
-            wid.text = fields[key[5:]]
-            pass
-        elif key.startswith('_out_'):  # outputfield
-            wid.text = fields[key[5:]]
-            pass
-        elif key.startswith('_btn_'):  # button
-            pass
-        elif key.startswith('_swi_'):  # switch
-            pass
-        elif key.startswith('_spi_'):  # spinner
-            pass
-        elif key.startswith('_wid_'):  # widget
-            pass
-        elif key.startswith('_scr_'):  # scroll
-            pass
-        elif key.startswith('_prb_'):  # progress bar
-            pass
-        else:
-            pass
+# def set_fields(widget, fields={}):
+#     """Construct: widget.ids.id
+#         if the label has id _lab_name the fileld name must be name.
+#         """
+#     for key, wid in widget.ids.items():
+#         if key.startswith('_lab_'):  # label
+#             #            wid.text = _(wid.text)
+#             pass
+#         elif key.startswith('_inp_'):  # inputfield
+#             wid.text = fields[key[5:]]
+#             pass
+#         elif key.startswith('_out_'):  # outputfield
+#             wid.text = fields[key[5:]]
+#             pass
+#         elif key.startswith('_btn_'):  # button
+#             pass
+#         elif key.startswith('_swi_'):  # switch
+#             pass
+#         elif key.startswith('_spi_'):  # spinner
+#             pass
+#         elif key.startswith('_wid_'):  # widget
+#             pass
+#         elif key.startswith('_scr_'):  # scroll
+#             pass
+#         elif key.startswith('_prb_'):  # progress bar
+#             pass
+#         else:
+#             pass
 
 
 if __name__ == '__main__':
@@ -386,3 +376,16 @@ if __name__ == '__main__':
     print('-----> items', items)
 
     print('-----> search', model.search(items, '8'))
+
+    print('-----> items', items)
+
+    l_items = []
+    for i in range(0, 10):
+        item = new_item(name='item %d' % (i), tag='Free of %d' % (i))
+        l_items.append(item)
+
+    print('-----> l items', items)
+
+    item = delete_item_index(l_items[9])
+
+    print('-----> l items', item)

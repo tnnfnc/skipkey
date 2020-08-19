@@ -1615,8 +1615,10 @@ class SkipKeyApp(App):
                     cryptod,
                     self.keywrapper.secret(self.session_key)
                 )
-                # self.build_tags()
                 self.items.sort(key=lambda x: str.lower(x['name']))
+                #
+                list(map(model.update_item_index, self.items))
+                #
                 self.update_recent_files(file)
                 return True
         except IOError as e:
@@ -1693,7 +1695,7 @@ class SkipKeyApp(App):
 
     def save_item(self, item, history=True, after=False):
         """
-        Save a new item and to the item list.
+        Add a new item or update an existing one.
 
         The item identifier is its name, so it is not possible to have
         more than one item with the same name. 
@@ -1707,19 +1709,20 @@ class SkipKeyApp(App):
                     old = self.items[index]
                     self.add_memento(
                         new=item, old=old, action=conf.UPDATE)
-                self.items[index] = item
                 # Update the changed only if password was changed
-                if old['password'] != item['password']:
-                    self.items[index]['changed'] = datetime.now(
-                    ).isoformat(sep=' ', timespec='seconds')
+                if self.items[index]['password'] != item['password']:
+                    item['changed'] = datetime.now().isoformat(
+                        sep=' ', timespec='seconds')
+                self.items[index] = item
             else:  # Append
-                item['created'] = item['changed'] = datetime.now(
-                ).isoformat(sep=' ', timespec='seconds')
+                item['created'] = item['changed'] = datetime.now().isoformat(
+                    sep=' ', timespec='seconds')
                 self.items.append(item)
                 if history:
                     self.add_memento(new=None, old=item, action=conf.APPEND)
             self.items.sort(key=lambda k: str(k['name']).lower())
         else:
+            model.update_item_index(item)
             Clock.schedule_once(lambda dt: self.save_item(
                 item=item, history=history, after=True), 0)
         return True
@@ -1963,8 +1966,9 @@ class SkipKeyApp(App):
         """
         if file and self.session_key and (len(self.history) > 0 or force):
             try:
+                items = list(map(model.delete_item_index, self.items))
                 data = self.cipher_fachade.encrypt(
-                    self.items,
+                    items,
                     cryptod=self.cryptod,
                     secret=self.keywrapper.secret(self.session_key)
                 )
@@ -2014,8 +2018,7 @@ class SkipKeyApp(App):
         # with the new key, and all generated ones must be
         # converted in user typed
         # Shoul be done in another thread
-        items_copy = self.items[0:]
-
+        items_copy = list(map(model.delete_item_index, self.items[0:]))
         try:
             # Get the seed:
             try:
