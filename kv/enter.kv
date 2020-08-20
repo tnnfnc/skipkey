@@ -1,3 +1,4 @@
+#:kivy 1.11
 #---------------------------------------------------------
 # Login screen
 #---------------------------------------------------------
@@ -8,7 +9,7 @@
     GridLayout:
         cols: 1
 		# orientation: 'vertical'
-		padding: screen_padding
+		padding: ui.screen_padding
 		#--------------------------------- Main buttons
 		ActionBar:
 		    # pos_hint: {'top':1}
@@ -52,7 +53,7 @@
 			id: _spi_recentfiles
 			text: _('Recent files')
 			size_hint: 1, None
-			size: spinner_size
+			size: (ui.spinner_x, ui.spinner_y) #spinner_size
 			on_text: 
 				if hasattr(root, 'cmd_recent'): getattr(root, 'cmd_recent')()
 		

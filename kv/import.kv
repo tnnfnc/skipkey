@@ -1,3 +1,4 @@
+#:kivy 1.11
 #---------------------------------------------------------
 # Import screen
 #---------------------------------------------------------
@@ -8,7 +9,7 @@
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint_x: None
-		width: page_width
+		width: ui.page_width
 		#--------------------------------- Main buttons
 		ActionBar:
 		    # pos_hint: {'top':1}
@@ -42,7 +43,7 @@
 			do_scroll_y: True
 			BoxLayout:
 				orientation: 'vertical'
-				padding: screen_padding
+				padding: ui.screen_padding
 				#---------------------------- Fields
 				GridLayout:
 					cols: 1

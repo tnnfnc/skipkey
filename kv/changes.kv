@@ -1,3 +1,4 @@
+#:kivy 1.11
 #---------------------------------------------------------
 # Changes screen
 #---------------------------------------------------------
@@ -10,7 +11,7 @@
     
     BoxLayout:
         orientation: 'vertical'
-        padding: screen_padding
+        padding: ui.screen_padding
 		#--------------------------------- Main buttons
 		ActionBar:
 		    # pos_hint: {'top':1}
@@ -44,7 +45,7 @@
 		Spinner:
 			id: _spi_actions
 			size_hint: 1, None
-			size: spinner_size
+			size: (ui.spinner_x, ui.spinner_y) #spinner_size
 			on_text:
 				if hasattr(root, 'cmd_actions'): getattr(root, 'cmd_actions')(self.text)
 				

@@ -11,12 +11,12 @@
 		size: root.size
 		pos: root.pos
 		orientation: "vertical"
-		padding: screen_padding
+		padding: ui.screen_padding
 		# List or icons
 		BoxLayout:
 			orientation: 'horizontal'
 			size_hint_y: None
-			height: button_size_y
+			height: ui.button_y
 			
 			ToggleButton:
 				text: _('List')
@@ -70,11 +70,11 @@
 		size: root.size
 		pos: root.pos
 		orientation: "vertical"
-		padding: screen_padding
+		padding: ui.screen_padding
 		BoxLayout:
 			orientation: 'horizontal'
 			size_hint_y: None
-			height: button_size_y
+			height: ui.button_y
 			
 			ToggleButton:
 				text: _('List')

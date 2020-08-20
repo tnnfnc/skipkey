@@ -10,7 +10,7 @@
 
 	auto_dismiss: False
 	size_hint: 0.9, 0.9
-	size_hint_max_x: 2*field_width_long
+	size_hint_max_x: 2 * ui.field_bigger_x #2*field_width_long
 	BoxLayout:
 		orientation: "vertical"
 		#--------------------------------- Password for data encryption
@@ -20,12 +20,12 @@
 		GridLayout:
 			cols: 3
 			size_hint_y: None
-			height: 3*field_height
+			height: 3 * ui.field_y #field_height
 			Widget:
 				size_hint_x: 0.2
 			LoginPanel:
 				id: _wid_login
-				size_hint_max_x: field_width_long
+				size_hint_max_x: ui.field_bigger_x #field_width_long
 			Widget:
 				size_hint_x: 0.2
 			#--------------------------------- Seed for password generation
@@ -35,12 +35,12 @@
 		GridLayout:
 			cols: 3
 			size_hint_y: None
-			height: 3*field_height
+			height: 3 * ui.field_y #field_height
 			Widget:
 				size_hint_x: 0.2
 			SeedPanel:
 				id: _wid_seed
-				size_hint_max_x: field_width_long
+				size_hint_max_x: ui.field_bigger_x #field_width_long
 			Widget:
 				size_hint_x: 0.2
 		#--------------------------------- Main buttons
@@ -70,13 +70,13 @@
 
 	auto_dismiss: False
 	size_hint: 0.9, 0.9
-	size_hint_max_x: 2*field_width_long
+	size_hint_max_x: 2 * ui.field_bigger_x #field_width_long
 	BoxLayout:
 		orientation: "vertical"
 		GridLayout:
 			cols: 2
 			size_hint_y: None
-			height: spinner_size[1] * 2
+			height: 2 * ui.spinner_y #spinner_size[1] * 2
 			#--------------------------------- Cipher
 			FieldLabel:
 				id: _lab_cipher
@@ -84,7 +84,7 @@
 			Spinner:
 				id: _spi_cipher
 				size_hint: None, 1
-				size: spinner_size
+				size: (ui.spinner_x, ui.spinner_y) #spinner_size
 				text: root.cipher_algorithms()[0]
 				values:
 					root.cipher_algorithms() 
@@ -97,7 +97,7 @@
 				Spinner:
 					id: _spi_kderive
 					size_hint: None, 1
-					size: spinner_size
+					size: (ui.spinner_x, ui.spinner_y) #spinner_size
 					text: root.key_derivators()[0]
 					values:
 						root.key_derivators() 
@@ -106,7 +106,7 @@
 					text: _('Iters.')
 				InputField:
 					id: _inp_iters
-					width: field_width_small
+					width: ui.field_x # field_width_small
 					text: '100000'
 		#--------------------------------- Password for data encryption
 		FrameTitle:
@@ -116,12 +116,12 @@
 		GridLayout:
 			cols: 3
 			size_hint_y: None
-			height: 5*field_height
+			height: 5 * ui.field_y #field_height
 			Widget:
 				size_hint_x: 0.2
 			UserPanel:
 				id: _wid_login
-				size_hint_max_x: field_width_long
+				size_hint_max_x: ui.field_bigger_x #field_width_long
 			Widget:
 				size_hint_x: 0.2
 		#--------------------------------- Seed
@@ -132,12 +132,12 @@
 		GridLayout:
 			cols: 3
 			size_hint_y: None
-			height: 3*field_height
+			height: 3 * ui.field_y #field_height
 			Widget:
 				size_hint_x: 0.2
 			SeedPanel:
 				id: _wid_seed
-				size_hint_max_x: field_width_long
+				size_hint_max_x: ui.field_bigger_x #field_width_long
 			Widget:
 				size_hint_x: 0.2
 		#--------------------------------- Main buttons
@@ -163,13 +163,13 @@
 	
     auto_dismiss: False
 	size_hint: 0.9, 0.5
-	size_hint_max_x: 1*field_width_long
+	size_hint_max_x: 1 * ui.field_bigger_x #field_width_long
     BoxLayout:
         orientation: 'vertical'
 		InputField:
 			id: _inp_tag
 			hint_text: _('Custom tag')
-			size: field_size_med
+			size:  (ui.field_big_x, ui.field_big_y) #field_size_med
 			on_text:
 				if len(self.text) > 20: self.text = self.text[:-1]
 			on_focus:

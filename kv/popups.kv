@@ -32,7 +32,7 @@
 			Label:
 				id: _lab_message
 				markup: True
-				font_size: 1.1*font_size
+				font_size: ui.font_big #1.1 * ui.font_norm #font_size
 				text: _('Message')
 				valign: 'center'
 				halign: 'left'
@@ -58,13 +58,13 @@
 
     # pos: root.pos
     orientation: "vertical"
-    padding: screen_padding
+    padding: ui.screen_padding
     BoxLayout:
         orientation: 'vertical'
 		Label:
             id: _lab_message
             markup: True
-            font_size: 1.1*font_size
+            font_size: ui.font_big #1.1*font_size
             text: _('Message')
 		BoxLayout:
         GridLayout:

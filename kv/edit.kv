@@ -1,3 +1,4 @@
+#:kivy 1.11
 #---------------------------------------------------------
 # EDIT screen
 #---------------------------------------------------------
@@ -60,7 +61,7 @@
 				orientation: 'vertical'
 				# padding: screen_padding
 				size_hint_y: None
-				height: page_height
+				height: ui.page_height
 				FrameTitle:
 					id: _lab_account
 					text: _('Account data')
@@ -109,7 +110,7 @@
 							id: _inp_description
 							hint_text: _('Free text')
 							multiline: True
-							size: field_size_long[0], field_height*3
+							size: (ui.field_bigger_x, 3 * ui.field_y)#field_size_long[0], field_height*3
 				# ------------------------------- Edit screen > Security
 						FieldLabel:
 							id: _lab_date
@@ -142,14 +143,14 @@
 						id: _spi_tag
 						pos_hint: {'center_y': 0.5}
 						size_hint: None, None
-						size: spinner_size
+						size: (ui.spinner_x, ui.spinner_y) #spinner_size
 						on_text:
 							if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
 					BoxLayout:
 						orientation: 'horizontal'
 						size_hint: None, 1
 						width: self.minimum_width
-						padding: box_padding
+						padding: ui.box_padding
 						SmallButton
 							id: _btn_rename
 							pos_hint: {'center_y': 0.5}
@@ -173,7 +174,7 @@
 				TagSpinner:
 					id: _spi_colors
 					size_hint: None, None
-					size: spinner_size
+					size: (ui.spinner_x, ui.spinner_y) #spinner_size
 					text: _('Colors')
 					values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
 					on_text:
@@ -195,12 +196,12 @@
 						GridLayout:
 							cols: 3
 							size_hint_y: None
-							height: 6*field_height
+							height: 6 * ui.field_y #field_height
 							Widget:
 								size_hint_x: 0.2
 							AutoPanel:
 								id: _wid_auto_tab
-								size_hint_max_x: 2*field_width_long
+								size_hint_max_x: 2 * ui.field_bigger_x #field_width_long
 							Widget:
 								size_hint_x: 0.2
 						
@@ -209,12 +210,12 @@
 						GridLayout:
 							cols: 3
 							size_hint_y: None
-							height: 6*field_height
+							height: 6 * ui.field_y #field_height
 							Widget:
 								size_hint_x: 0.2
 							UserPanel:
 								id: _wid_user_tab
-								size_hint_max_x: 2*field_width_long
+								size_hint_max_x: 2 * ui.field_bigger_x #field_width_long
 							Widget:
 								size_hint_x: 0.2
 						

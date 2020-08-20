@@ -1,3 +1,4 @@
+#:kivy 1.11
 # ---------------------------------------------------------------------
 # ----------------------- Panels ---------------------
 # ---------------------------------------------------------------------
@@ -137,7 +138,7 @@
         InputField:
             id: _inp_length
             hint_text: _('password length')
-			size: field_size_small
+			size: ui.field_x, ui.field_y # field_size_small
             on_text:
 				if not self.text.isdigit(): self.text = self.text[:-1]
 			on_parent:
@@ -151,7 +152,7 @@
         Switch:
             id: _swi_letters
             size_hint: None, None
-            height: button_size_y
+            height: ui.button_y #button_size_y
             active: len(_inp_length.text) > 0
 		Widget:
 		Widget:
@@ -162,7 +163,7 @@
         Switch:
             id: _swi_numbers
             size_hint: None, None
-            height: button_size_y
+            height: ui.button_y #button_size_y
 			on_active: 
                 if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
 				else: _inp_numbers.text = ''
@@ -173,7 +174,7 @@
             id: _inp_numbers
             hint_text: _('a number')
 			disabled: not _swi_numbers.active
-			size: field_size_small
+			size: (ui.field_x, ui.field_y) #field_size_small
 			on_text:
 				if not self.text.isdigit(): self.text = self.text[:-1]
         # Symbols
@@ -183,7 +184,7 @@
         Switch:
             id: _swi_symbols
             size_hint: None, None
-            height: button_size_y
+            height: ui.button_y #button_size_y
 			on_active:
                 if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
 				else: _inp_symbols.text = ''
@@ -194,13 +195,13 @@
             id: _inp_symbols
             hint_text: _('a number')
 			disabled: not _swi_symbols.active
-			size: field_size_small
+			size: (ui.field_x, ui.field_y) #field_size_small
 			on_text:
 				if not self.text.isdigit(): self.text = self.text[:-1]
 # -------------------- TAG SPINNER
 <TagSpinner>:
     size_hint: None, 1
-    size: spinner_size
+    size: (ui.spinner_x, ui.spinner_y) #spinner_size
 #-------------------- Bubble options: Login - Password - Edit/View
 <ItemActionBubble>:
 	size_hint: (None, None)
@@ -232,11 +233,11 @@
     
     orientation: 'horizontal'
     size_hint: None, None
-    height: 1.2*field_height
-	padding: box_padding
+    height: 1.2 * ui.field_y #field_height
+	padding: ui.box_padding
 	canvas:
 		Color:
-			rgb: table_color
+			rgb: ui.table_color
 		Line:
 			rectangle: self.x, self.y, self.width, self.height
 			width: 1.0
@@ -249,7 +250,7 @@
         id: _inp_strenght
         text: '0.0%'
         size_hint_x: None
-		width: 2.2*label_height
+		width: 2.2 * ui.field_y #label_height
     ProgressBar:
         id: _prb_strenght
         max: 100

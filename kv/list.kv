@@ -1,3 +1,4 @@
+#:kivy 1.11
 #---------------------------------------------------------
 # List screen
 #---------------------------------------------------------
@@ -10,7 +11,7 @@
     
     BoxLayout:
         orientation: 'vertical'
-        padding: screen_padding
+        padding: ui.screen_padding
 		#--------------------------------- Main buttons
 		ActionBar:
 		    # pos_hint: {'top':1}
@@ -83,7 +84,7 @@
 			Label:
 				id: _lab_counter
 				size_hint_x: None
-				width: field_width_small	
+				width: ui.field_x #field_width_small	
 			#--------------------------------- Tag
             TagSpinner:
                 id: _spi_tag
@@ -103,7 +104,7 @@
 			ToggleButton:
 				id: _btn_expiring
 				size_hint_x: None
-				size: small_button_size
+				size: (ui.button_x, ui.button_y) #small_button_size
 				text: _('Expiring')
 				on_state:
 					if hasattr(root, 'cmd_expiring'): getattr(root, 'cmd_expiring')(*args)

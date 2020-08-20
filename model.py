@@ -10,81 +10,6 @@ from datetime import datetime
 from appconstants import item_template, index
 
 
-class ItemModel():
-    def __init__(self, items, key, template, index):
-        self._items = items if items else {}
-        self._key = key
-        self._template = template
-        self._index = index
-
-    def new(self, strict=True, **kwargs):
-        """
-        Item builder.
-        Return a dictionary with the predefined keys and ''empty'' values.
-        If ''**args'' is passed the new keys are added to the predefined.
-            Parameters
-        ----------
-        strict : Default ''True'' only predefined keys are returned.
-
-        **args : Key-value pairs.
-
-            Return a dictionary with the predefined keys.       
-        """
-        if strict:
-            item = dict(self._template)
-            for key in kwargs:
-                if key in self._template:
-                    item[key] = str(kwargs[key])
-            return item
-        else:
-            item = {}
-            for key in kwargs:
-                if key == 'index':
-                    raise KeyError('index is a reserved name')
-                item[key] = str(kwargs[key])
-            if self._key in item:
-                return item
-        raise KeyError('missing key %s' % (self._key))
-
-    def update(self, items, item):
-        '''Add or update the item and sort the items'''
-        # Update the index
-        item['index'] = ' '.join([str(item[k]).lower() for k in self._index])
-        if item[self._key] in items:  # Update
-            items[item[self._key]] = item
-        else:  # Add
-            items[item[self._key]] = item
-
-        # Sort the table by its key
-        new_items = {}
-        for key in sorted([k for k in items]):
-            new_items[key] = items[key]
-
-        return new_items
-
-    @staticmethod
-    def search(items, token):
-        subitems = {}
-        token = token.lower()
-        for key in items:
-            if token in items[key]['index']:
-                subitems[key] = items[key]
-        return subitems
-
-    @staticmethod
-    def contains(items, key):
-        return key in items
-
-    @staticmethod
-    def filter_by(items, key, value):
-        subitems = {}
-        token = token.lower()
-        for k in items:
-            if value in items[k][key]:
-                subitems[k] = items[k]
-        return subitems
-
-
 def new_item(strict=True, template=item_template, **args):
     """Item builder.
     Return a dictionary with the predefined keys and ''empty'' values.
@@ -97,29 +22,29 @@ def new_item(strict=True, template=item_template, **args):
 
         Return a dictionary with the predefined keys.
     """
-    item = dict(item_template)
+    item = dict(template)
     if strict:
         for key in args:
-            if key in item_template:
+            if key in template:
                 item[key] = str(args[key])
     else:
         for key in args:
             if 'index' in item:
-                raise KeyError('index is a reserved name')
+                raise KeyError('index is a reserved name!')
             else:
                 item[key] = str(args[key])
-    item = update_item_index(item)
+    item = add_index(item)
     return item
 
 
-def update_item_index(item, key_list=index):
-    '''Build the item search text index'''
+def add_index(item, key_list=index):
+    '''Add a index text field to the item for the textual search.'''
     item['index'] = ' '.join([str(item[k]).lower() for k in key_list])
     return item
 
 
-def delete_item_index(item):
-    '''Build the item search text index'''
+def delete_index(item):
+    '''Delete from the item the index entry.'''
     try:
         item = dict(item)
         del item['index']
@@ -128,7 +53,7 @@ def delete_item_index(item):
     return item
 
 
-def search_items(items, text, fields=index):
+def search(items, text, fields=index):
     """
     Find a text in the items list.
     Find a text in the items list, the match is lower case.
@@ -147,7 +72,7 @@ def search_items(items, text, fields=index):
     return [item for item in items if text in item['index']]
 
 
-def in_items(items, value, key, casefold=False):
+def contains(items, value, key, casefold=False):
     """
     Return if a value is found in a key.
         Parameters
@@ -186,7 +111,7 @@ def index_of(items, value, key):
         return None
 
 
-def filter_items(items, value, key):
+def select(items, value, key):
     """
     Search the list for a value in the given key.
     FThe match is lower case.
@@ -203,28 +128,7 @@ def filter_items(items, value, key):
     return [i for i in items if str(i[key]).lower() == str(value).lower()]
 
 
-def replace_items(items, key, old, new):
-    """
-    Replace in the list of items the old value with a the new one.
-    The match is lower case.
-        Parameters
-    ----------
-    items : the list.
-
-    new : the new value.
-
-    old : the old value.
-
-    key : the key.
-
-    """
-    for i in items:
-        if str(i[key]).lower() == str(old).lower():
-            i[key] = new
-    return items
-
-
-def item_iterator(items, key, value):
+def iterator(items, key, value):
     """
     Return the item from the list where the value was found in the key.
     The match is lower case.
@@ -244,9 +148,12 @@ def item_iterator(items, key, value):
 # History
 
 
-def memento(item, key='name', action='', **kvargs):
-    '''Return a memento item: a dictionary: name, timestamp, action and a
-    body containing the object.'''
+def state(item, key='name', action='', **kvargs):
+    '''Return a memento item: a dictionary: 
+    - name: the item key
+    - timestamp: date and time 
+    - action: the user action
+    - body: the python object.'''
     try:
         h = {'name': item['name'],
              'timestamp': datetime.now(),
@@ -334,6 +241,25 @@ def normalize(item):
     except Exception:
         item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
 
+# def replace_items(items, key, old, new):
+#     """
+#     Replace in the list of items the old value with a the new one.
+#     The match is lower case.
+#         Parameters
+#     ----------
+#     items : the list.
+
+#     new : the new value.
+
+#     old : the old value.
+
+#     key : the key.
+
+#     """
+#     for i in items:
+#         if str(i[key]).lower() == str(old).lower():
+#             i[key] = new
+#     return items
 
 # def set_fields(widget, fields={}):
 #     """Construct: widget.ids.id
@@ -366,26 +292,4 @@ def normalize(item):
 
 
 if __name__ == '__main__':
-
-    model = ItemModel(None, key='name', template=item_template, index=index)
-    items = {}
-    for i in range(0, 10):
-        item = model.new(name='item %d' % (i), tag='Free of %d' % (i))
-        items = model.update(items, item)
-
-    print('-----> items', items)
-
-    print('-----> search', model.search(items, '8'))
-
-    print('-----> items', items)
-
-    l_items = []
-    for i in range(0, 10):
-        item = new_item(name='item %d' % (i), tag='Free of %d' % (i))
-        l_items.append(item)
-
-    print('-----> l items', items)
-
-    item = delete_item_index(l_items[9])
-
-    print('-----> l items', item)
+    pass

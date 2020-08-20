@@ -5,62 +5,14 @@
 #:import Rectangle kivy.graphics.Rectangle
 #:import Line kivy.graphics.Line
 #:import dp kivy.metrics.dp
+#:import ui kvgraphics
 
-
-## PAGE
-#:set page_height dp(800)
-#:set page_width dp(428)
-
-## SCREEN
-#:set screen_padding (dp(2), dp(2), dp(2), dp(2))
-#:set box_padding (dp(2), dp(2), dp(2), dp(2))
-
-## FONT
-#:set font_size dp(15)
-#:set title_font_size 1.2*font_size
-
-## LABELS
-#:set label_height 2*font_size
-#:set field_height label_height
-
-## FIELD WIDTH
-#:set field_width_small dp(100)
-#:set field_width_med dp(200)
-#:set field_width_long dp(300)
-
-## FIELD SIZE
-#:set field_size_small field_width_small, field_height
-#:set field_size_med field_width_med, field_height
-#:set field_size_long field_width_long, field_height
-
-## BUTTONS
-#:set button_size_y label_height
-#:set button_size_x dp(100)
-#:set button_size (button_size_x, button_size_y)
-
-#:set nav_button_size_x button_size_x
-#:set nav_button_size_y 1.5*button_size_y
-#:set nav_button_size (nav_button_size_x, nav_button_size_y)
-
-## SMALL BUTTON fits label height
-#:set small_button_size_x button_size_x
-#:set small_button_size_y field_height
-#:set small_button_size (small_button_size_x, small_button_size_y)
-
-## SPINNER
-#:set spinner_size field_size_med
-
-## COLORS
-#:set frame_color 68/255.0, 164/255.0, 201/255.0
-#:set table_color 190/255.0, 190/255.0, 190/255.0
-
-
-##>
-##> BE CAREFUL!
-##> - The screen is the current root for the screen
-##> - A widget declared out of a screen has got itself as the root:
-##>	  so the screen manager is not available to it.
-##>
+# ##>
+# ##> BE CAREFUL!
+# ##> - The screen is the current root for the screen
+# ##> - A widget declared out of a screen has got itself as the root:
+# ##>	  so the screen manager is not available to it.
+# ##>
 
 
 

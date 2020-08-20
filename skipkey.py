@@ -51,15 +51,15 @@ from kivy.core.window import Window
 from kivy.app import App
 from datetime import datetime, timedelta
 from writer import TypewriteThread
-from ui_list import (ItemList, ItemComposite,
+from uilist import (ItemList, ItemComposite,
                      Comparison, ProgressItem, SubItem, WarningItem)
-from ui_filemanager import OpenFilePopup, SaveFilePopup
-from ui_popups import MessagePopup, DecisionPopup
+from uifilemanager import OpenFilePopup, SaveFilePopup
+from uipopups import MessagePopup, DecisionPopup
 import cryptofachade
 import password
 import model
 from localize import translate
-from ui_controller import GuiController
+from uicontroller import GuiController
 import appconstants as conf
 import os
 import sys
@@ -87,24 +87,9 @@ def dp(pix):
 
 message, decision = MessagePopup().show, DecisionPopup().show
 Builder.load_file('kv/commons.kv')
-Builder.load_file('kv\enter.kv')
-Builder.load_file('kv\list.kv')
-Builder.load_file('kv\edit.kv')
-Builder.load_file('kv\import.kv')
-Builder.load_file('kv\widgets.kv')
-Builder.load_file('kv\dynamic.kv')
-Builder.load_file('kv\popup.kv')
-Builder.load_file('kv\changes.kv')
-# ==============================================================================
-#:include  force kv\enter.kv
-#:include  force kv\list.kv
-#:include  force kv\edit.kv
-#:include  force kv\import.kv
-#:include  force kv\widgets.kv
-#:include  force kv\dynamic.kv
-#:include  force kv\popup.kv
-#:include  force kv\changes.kv
-# ==============================================================================
+Builder.load_file('kv/dynamic.kv')
+Builder.load_file('kv/popup.kv')
+Builder.load_file('kv/widgets.kv')
 
 
 def hh_mm_ss(seconds):
@@ -518,7 +503,7 @@ class EditTagPopup(Popup):
             tag = ''
         elif self.mode == conf.ADD and self.old == '':
             # tag = tag
-            if model.in_items(items=app.items, value=tag, key='tag', casefold=True):
+            if model.contains(items=app.items, value=tag, key='tag', casefold=True):
                 message(
                     tag, _('Action failed because: %s is already used.') % (tag), 'w')
                 return False
@@ -529,13 +514,16 @@ class EditTagPopup(Popup):
         else:
             return False
 
-        for item in model.item_iterator(items=app.items, key='tag', value=self.old):
+        for item in model.iterator(items=app.items, key='tag', value=self.old):
             item_old = item.copy()
             item['tag'] = tag
-            app.add_memento(new=item, old=item_old, action=conf.UPDATE)
+            app.add_history(new=item, old=item_old, action=conf.UPDATE)
         self.mode = self.old = None
         self.dismiss()
         return True
+
+
+Builder.load_file('kv/enter.kv')
 
 
 class EnterScreen(Screen):
@@ -594,6 +582,9 @@ class EnterScreen(Screen):
         self.app.stop()
         # sys.exit()
         return True
+
+
+Builder.load_file('kv/list.kv')
 
 
 class ListScreen(Screen):
@@ -752,9 +743,9 @@ class ListScreen(Screen):
             if self.pr_tag.text == conf.TAGS:
                 self._fill_items(self.app.items)
             else:
-                sublst = model.filter_items(
+                sublst = model.select(
                     items=self.app.items, value=self.pr_tag.text, key='tag')
-                sublst.sort(key=lambda x: str.lower(x['name']))
+                #sublst.sort(key=lambda x: str.lower(x['name']))
                 self.pr_item_list_wid.clear()
                 self._fill_items(sublst)
             self.counter()
@@ -778,16 +769,16 @@ class ListScreen(Screen):
         if after:
             # Search text: add characters -> search on sublist
             if self.find.pattern and str(self.pr_search.text).casefold().startswith(str(self.find.pattern).casefold()):
-                sublist = model.search_items(
+                sublist = model.search(
                     items=self.find.sublist, text=self.pr_search.text)
-                sublist.sort(key=lambda x: str.lower(x['name']))
+                #sublist.sort(key=lambda x: str.lower(x['name']))
                 self.find = ListScreen.Find(self.pr_search.text, sublist)
             # Search text: less characters - search on full list
             # Search text: changed characters - search on full list
             else:
-                sublist = model.search_items(
+                sublist = model.search(
                     items=self.app.items, text=self.pr_search.text)
-                sublist.sort(key=lambda x: str.lower(x['name']))
+                # sublist.sort(key=lambda x: str.lower(x['name']))
                 self.find = ListScreen.Find(self.pr_search.text, sublist)
                 pass
 
@@ -840,6 +831,9 @@ class ListScreen(Screen):
         else:
             self.on_enter_callback = self.on_enter_default
         self.on_enter()
+
+
+Builder.load_file('kv/edit.kv')
 
 
 class EditScreen(Screen):
@@ -1011,6 +1005,9 @@ class EditScreen(Screen):
         return self._call_tag_popup(instance, spinner, conf.ADD)
 
 
+Builder.load_file('kv/import.kv')
+
+
 class ImportScreen(Screen):
     """
     GUI element. Screen enabling the import of a '.csv' password file
@@ -1061,13 +1058,16 @@ class ImportScreen(Screen):
         if len(items_) > 0:
             for item in items_:
                 app.items.append(item)
-                app.add_memento(new=None, old=item, action=conf.IMPORT)
+                app.add_history(new=None, old=item, action=conf.IMPORT)
             app.root.transition.direction = 'right'
             app.root.current = conf.LIST
         return True
 
     def mapping_help(self):
         return _('Write couples separated by comma:\n(\'<source>\', \'<target>\').')
+
+
+Builder.load_file('kv/changes.kv')
 
 
 class ChangesScreen(Screen):
@@ -1085,19 +1085,17 @@ class ChangesScreen(Screen):
         self.app = App.get_running_app()
         self.guic = GuiController(self)
 
-    def _fill_fields(self, mementos):
+    def _fill_fields(self, history):
         """
         Fetch changes from the app history.
-
-        Parameters:
+        ### Parameters
         -----------
-        - mementos:
-        list of memento objects. 
+        - history: list of changes. 
         """
         self.pr_changed_item_list_wid.clear()
         try:
             # Doesn't work with deleted records
-            former = mementos[self.pr_actions.values.index(
+            former = history[self.pr_actions.values.index(
                 self.pr_actions.text)]['body']
             try:  # No records found
                 current = self.app.items[model.index_of(
@@ -1359,7 +1357,7 @@ class ItemActionBubble(Bubble):
         self.evt_clipboard = None
 
     def cmd_url(self, app):
-        # TODO System call to browser
+        # System call to browser
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
         url = item['url']
@@ -1617,7 +1615,7 @@ class SkipKeyApp(App):
                 )
                 self.items.sort(key=lambda x: str.lower(x['name']))
                 #
-                list(map(model.update_item_index, self.items))
+                list(map(model.add_index, self.items))
                 #
                 self.update_recent_files(file)
                 return True
@@ -1683,7 +1681,7 @@ class SkipKeyApp(App):
         if after:
             index = model.index_of(self.items, item['name'], 'name')
             if index != None:  # Delete
-                self.add_memento(
+                self.add_history(
                     new=None, old=self.items.pop(index), action=conf.DELETE)
             else:
                 return False
@@ -1707,7 +1705,7 @@ class SkipKeyApp(App):
             if index != None:
                 if history:
                     old = self.items[index]
-                    self.add_memento(
+                    self.add_history(
                         new=item, old=old, action=conf.UPDATE)
                 # Update the changed only if password was changed
                 if self.items[index]['password'] != item['password']:
@@ -1719,22 +1717,23 @@ class SkipKeyApp(App):
                     sep=' ', timespec='seconds')
                 self.items.append(item)
                 if history:
-                    self.add_memento(new=None, old=item, action=conf.APPEND)
+                    self.add_history(new=None, old=item, action=conf.APPEND)
             self.items.sort(key=lambda k: str(k['name']).lower())
         else:
-            model.update_item_index(item)
+            model.add_index(item)
             Clock.schedule_once(lambda dt: self.save_item(
                 item=item, history=history, after=True), 0)
         return True
 
-    def add_memento(self, new, old, action=''):
+    def add_history(self, new, old, action=''):
         """
         History Data model: for the present the history is a back up of
         the data model.
         {'name': item_name, 'changed': timestamp, 'item': item_json_dump}
         """
         if new != old:
-            self.history[0:0] = [model.memento(item=old, action=action)]
+            self.history.append(model.state(item=old, action=action))
+            # self.history[0:0] = [model.state(item=old, action=action)]
 
     def encrypt(self, text):
         """
@@ -1966,7 +1965,7 @@ class SkipKeyApp(App):
         """
         if file and self.session_key and (len(self.history) > 0 or force):
             try:
-                items = list(map(model.delete_item_index, self.items))
+                items = list(map(model.delete_index, self.items))
                 data = self.cipher_fachade.encrypt(
                     items,
                     cryptod=self.cryptod,
@@ -2018,7 +2017,7 @@ class SkipKeyApp(App):
         # with the new key, and all generated ones must be
         # converted in user typed
         # Shoul be done in another thread
-        items_copy = list(map(model.delete_item_index, self.items[0:]))
+        items_copy = list(map(model.delete_index, self.items[0:]))
         try:
             # Get the seed:
             try:
