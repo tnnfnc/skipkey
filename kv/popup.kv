@@ -51,12 +51,12 @@
 				id: _btn_exit
 				text: _('Cancel')
 				on_release:
-					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
+					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
 			NavButton:
 				id: _btn_file
 				text: _('Enter')
 				on_release: 
-					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')(app)
+					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()
 #---------------------------------------------------------
 # CipherPopup Popup
 #---------------------------------------------------------
@@ -148,12 +148,12 @@
 				id: _btn_exit
 				text: _('Cancel')
 				on_release:
-					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')(app)
+					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
 			NavButton:
 				id: _btn_file
 				text: _('OK')
 				on_release: 
-					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')(app)
+					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()
 #---------------------------------------------------------
 #-------------------- EDIT TAG POPUP
 #---------------------------------------------------------
@@ -189,7 +189,7 @@
                 id: _btn_save
                 text: _('OK')
                 on_release:
-                    if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')(app)
+                    if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')()
 #---------------------------------------------------------
 #-------------------- INFO POPUP
 #---------------------------------------------------------
@@ -259,5 +259,5 @@
 			pos_hint: {'x': 0}
 			text: _('Cancel')
 			on_release:
-				if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')(app)
+				if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')()
 				root.dismiss()

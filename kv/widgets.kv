@@ -118,7 +118,7 @@
 			pos_hint: {'center_y': 0.5}
             text: _('Generate')
             on_release:
-                if hasattr(app, 'generate'): getattr(app, 'generate')(length=_inp_length.text, \
+                if hasattr(root, 'generate'): getattr(root, 'generate')(length=_inp_length.text, \
 				letters=_swi_letters.active, numbers=_inp_numbers.text, symbols=_inp_symbols.text)
         OutputField:
             id: _inp_password
@@ -209,23 +209,23 @@
 	BubbleButton:
 		text: _('url')
 		on_release:
-			if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')(app)	
+			if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')()	
 	BubbleButton:
 		text: _('User')
 		on_release:
-			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')(app)
+			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')()
 	BubbleButton:
 		text: _('Password')
 		on_release:
-			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(app)
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')()
 	BubbleButton:
 		text: _('Login')
 		on_release:
-			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')(app)
+			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')()
 	BubbleButton:
 		text: _('Edit')
 		on_release: 
-			if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')(app)
+			if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')()
 #-------------------- PASSWORD STRENGHT               
 <PasswordStrenght>:
     ## Properties

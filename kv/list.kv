@@ -30,13 +30,14 @@
 					text: _('Back')
 					icon: 'data/icons/exit.png'
 					on_release: 
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/save.png'
 					text: _('Save')
 					on_release: 
-						if hasattr(app, 'save'): getattr(app, 'save')(file=app.file)
+						if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')()
+						#if hasattr(app, 'save'): getattr(app, 'save')(file=app.file)
 				ActionButton:
 					important: True
 					icon: 'data/icons/plus.png'
@@ -50,27 +51,27 @@
 						important: False
 						text: _('Copy to...')
 						on_release:
-							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='copy', app=app)
+							if hasattr(root, 'cmd_copy'): getattr(root, 'cmd_copy')()
 					ActionButton:
 						important: False
 						text: _('Import from...')
 						on_release:
-							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='import', app=app)
+							if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')()
 					ActionButton:
 						important: False
 						text: _('Export as...')
 						on_release:
-							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='export', app=app)
+							if hasattr(root, 'cmd_export'): getattr(root, 'cmd_export')()
 					ActionButton:
 						important: False
 						text: _('Info')
 						on_release:
-							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='info', app=app)					
+							if hasattr(root, 'cmd_info'): getattr(root, 'cmd_info')()					
 					ActionButton:
 						important: False
 						text: _('Changes')
 						on_release:
-							if hasattr(root, 'cmd_option'): getattr(root, 'cmd_option')(action='changes', app=app)
+							if hasattr(root, 'cmd_changes'): getattr(root, 'cmd_changes')()
 
         #--------------------------------- Search and Tag
         FrameTitle:
@@ -108,33 +109,6 @@
 				text: _('Expiring')
 				on_state:
 					if hasattr(root, 'cmd_expiring'): getattr(root, 'cmd_expiring')(*args)
-
-			# SmallButton
-				# id: _btn_go
-				# pos_hint: {'center_y': 0.5}
-				# text: _('Clear')
-				# height: _inp_search.height
-				# on_release:
-					# if hasattr(root, 'clear_search'): getattr(root, 'clear_search')()
-			# BoxFrame:
-                # orientation: 'horizontal'
-				# pos_hint: {'center_y': 0.5}
-                # height: _inp_search.height + self.padding[1] + self.padding[3]
-                # InputField:
-                    # id: _inp_search
-					# pos_hint: {'center_y': 0.5}
-                    # hint_text: _('find')
-                    # on_text: 
-                        # if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')()
-					# on_focus:
-						# _spi_tag.text = _spi_tag.values[0]
-                # SmallButton
-                    # id: _btn_go
-					# pos_hint: {'center_y': 0.5}
-                    # text: _('Clear')
-                    # height: _inp_search.height
-                    # on_release:
-						# if hasattr(root, 'clear_search'): getattr(root, 'clear_search')()
         #--------------------------------- List of items
 		BBoxLayout:
 			orientation: 'horizontal'

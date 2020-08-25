@@ -1,8 +1,6 @@
 """SkipKey: a help to password management.
     Conventions:
-
         - Define kv field as _<prefix>_<name>, prefixes:
-
             _inp_ : input text widget
             _lab_ : label widgets
             _spi_ : spinner widget
@@ -14,22 +12,24 @@
             _prb_ : progress bar widget
 
         - Define kivy properties prefixes:
-
             pr_<name> :
             pr_<name>_wid : container widget property
-
         - Field convention:
-
             Fields are dictionary key - value, the input field in a .kv screen
             is _inp_key, the kivy property is pr_key.
-
-    """
-#import kivy_environment
+"""
+# import kivy_environment
 import threading
 import kivy
 import base64
 import json
 import re
+import os
+import sys
+from datetime import datetime, timedelta
+#
+import webbrowser as browser
+#
 from kivy.core.clipboard import Clipboard
 import kivy.metrics as metrix
 from kivy.metrics import dp
@@ -46,24 +46,22 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import Screen
 from kivy.uix.screenmanager import ScreenManager
+from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.app import App
-from datetime import datetime, timedelta
+from kivy import utils
+#
 from writer import TypewriteThread
-from uilist import (ItemList, ItemComposite,
-                     Comparison, ProgressItem, SubItem, WarningItem)
+from uilist import (ItemList, Item, ItemComposite,
+                    Comparison, ProgressItem, SubItem, WarningItem)
 from uifilemanager import OpenFilePopup, SaveFilePopup
-from uipopups import MessagePopup, DecisionPopup
 import cryptofachade
 import password
 import model
 from localize import translate
 from uicontroller import GuiController
-import appconstants as conf
-import os
-import sys
-import webbrowser as browser
+#
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
 
@@ -74,28 +72,37 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 1
-MICRO = 0
+MICRO = 1
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-_ = translate(domain='skipkey', localedir=conf.locale_dir, languages=['it'])
+current_dir = os.path.dirname(os.path.realpath(__file__))
+icons_dir = '%s\data\icons' % (current_dir)
+locale_dir = '%s\locale' % (current_dir)
+
+
+# Screen Names
+ENTER = 'Enter'
+LIST = 'List'
+EDIT = 'Edit'
+CHANGES = 'changes'
+IMPORT = 'import'
+
+# App
+ICON = 'skip.png'
+TAGS = ('...')  # Default for all tags
+
+
+_ = translate(domain='skipkey', localedir=locale_dir, languages=['it'])
 
 
 def dp(pix):
     return metrix.dp(pix)
 
 
-message, decision = MessagePopup().show, DecisionPopup().show
-Builder.load_file('kv/commons.kv')
-Builder.load_file('kv/dynamic.kv')
-Builder.load_file('kv/popup.kv')
-Builder.load_file('kv/widgets.kv')
-
-
 def hh_mm_ss(seconds):
     """
     Converts seconds into hh:mm:ss padded with zeros.
-
     """
     hh = int(seconds/3600)
     mm = int((seconds % 3600)/60)
@@ -139,30 +146,94 @@ def elapsed_days(item, keys):
     return 0
 
 
-"""Items:
-1) initialized at new file or at opening from the items
-2) updated from the Edit screen
-3) accessed everywere is is needed
-"""
-model.new_item
-item_mask = {'name': dp(200),
-             'login': dp(180),
-             'url': dp(200),
-             'elapsed': dp(180),
-             #  'progress': dp(160),
-             'warning': dp(180)
-             }
+Builder.load_file('kv/commons.kv')
+Builder.load_file('kv/dynamic.kv')
+Builder.load_file('kv/popup.kv')
+Builder.load_file('kv/widgets.kv')
+Builder.load_file('kv/popups.kv')
+Builder.load_file('kv/enter.kv')
+Builder.load_file('kv/list.kv')
+Builder.load_file('kv/edit.kv')
+Builder.load_file('kv/import.kv')
+Builder.load_file('kv/changes.kv')
 
 
-class SecurityException(Exception):
+class MessagePopup(Popup):
+    # Widget hooks
+    pr_message = ObjectProperty(None)
+    pr_image = ObjectProperty(None)
 
     def __init__(self, *args, **kwargs):
-        super(SecurityException, self).__init__(*args, **kwargs)
+        super(MessagePopup, self).__init__(**kwargs)
+
+    def show(self, title='', text='', type='i'):
+        text = utils.escape_markup(f'{text}')
+        if type == 'e':
+            text = ''.join(('[b][color=ff0000]', text, '[/color][/b]'))
+            self.pr_image.source = 'data/icons/bug.png'
+        elif type == 'w':
+            text = ''.join(('[b][color=ffff00]', text, '[/color][/b]'))
+            self.pr_image.source = 'data/icons/pen.png'
+        elif type == 'i':
+            text = ''.join(('[b][color=00ff00]', text, '[/color][/b]'))
+            self.pr_image.source = 'data/icons/ok.png'
+        else:
+            pass
+
+        self.title = title
+        self.pr_message.text = text
+        self.open()
+
+
+class DecisionPopup(Popup):
+    # Widget hooks
+    pr_message = ObjectProperty(None)
+    fn_ok = ObjectProperty(None)
+    fn_canc = ObjectProperty(None)
+    ok_kwargs = ObjectProperty(None)
+    canc_kwargs = ObjectProperty(None)
+
+    def __init__(self, title='', text='', *args, **kwargs):
+        super(DecisionPopup, self).__init__(**kwargs)
+        self.pr_message.text = text
+        self.title = title
+
+    def show(self, title, text, fn_ok=None, fn_canc=None, ok_kwargs={}, canc_kwargs={}, **kwargs):
+        self.title = title
+        self.pr_message.text = ''.join(
+            ('[b]', utils.escape_markup(text), '[/b]'))
+        self.fn_ok = fn_ok
+        self.fn_canc = fn_canc
+        self.canc_kwargs = canc_kwargs
+        self.ok_kwargs = ok_kwargs
+
+        self.open()
+
+    def cmd_ok(self):
+        if self.fn_ok:
+            try:
+                self.fn_ok(**self.ok_kwargs)
+                return True
+            except Exception:
+                return False
+        return True
+
+    def cmd_cancel(self):
+        if self.fn_canc:
+            try:
+                self.fn_canc(**self.canc_kwargs)
+                return False
+            except Exception:
+                return False
+        return False
+
+
+message, decision = MessagePopup().show, DecisionPopup().show
 
 
 class OpenFile(OpenFilePopup):
     """
-    GUI element. Open file pop up. 
+    GUI element. Open file pop up.
     """
 
     def __init__(self, *args, **kwargs):
@@ -208,9 +279,9 @@ class ImportFile(OpenFilePopup):
         if app and selection:
             if isinstance(selection, list):
                 selection = selection[0]
-            app.root.get_screen(conf.IMPORT).file = selection
+            app.root.get_screen(IMPORT).file = selection
             app.root.transition.direction = 'left'
-            app.root.current = conf.IMPORT
+            app.root.current = IMPORT
             self.dismiss()
         return False
 
@@ -229,7 +300,11 @@ class SaveFile(SaveFilePopup):
     def __init__(self, *args, **kwargs):
         super(SaveFile, self).__init__(**kwargs)
         self.filechooser.dirselect = False
-        self.mode = conf.SAVE
+        self.action = self.save
+
+    def openCopy(self):
+        self.open()
+        self.action = self.copy
 
     def cmd_save(self, path, selection):
         """
@@ -239,27 +314,32 @@ class SaveFile(SaveFilePopup):
             if not os.path.dirname(selection):
                 selection = os.path.join(path, selection)
             if not os.path.exists(selection):
-                self.do_save(selection)
+                self.action(selection)
             else:
                 decision(
                     self.title,
                     _('%s exists:\noverwrite?') % (
                         os.path.basename(selection)),
-                    fn_ok=self.do_save,
+                    fn_ok=self.action,
                     ok_kwargs={'file': selection, })
+            self.dismiss()
         return False
 
-    def do_save(self, file):
+    def save(self, file):
         """
         Save and exit the popup.
         """
-        f = file
         popup = CipherPopup()
-        popup.title = f'{self.title} to: {f}'
-        popup.file = f
-        popup.mode = self.mode
-        popup.open()
-        self.dismiss()
+        popup.title = f'{self.title} {file}'
+        popup.openSave(file)
+
+    def copy(self, file):
+        """
+        Save and exit the popup.
+        """
+        popup = CipherPopup()
+        popup.title = f'{self.title} {file}'
+        popup.openCopy(file)
 
     def cmd_cancel(self):
         """
@@ -308,7 +388,7 @@ class ExportFile(SaveFilePopup):
             self.dismiss()
             return True
         except Exception as e:
-            message(_('Export failed: %s') % (e.args),
+            message(_('Export failed: %s') % (str(*e.args)),
                     f'{os.path.basename(file)}', 'e')
         return False
 
@@ -327,9 +407,10 @@ class LoginPopup(Popup):
         self.file = None
         self.title = title
 
-    def cmd_enter(self, app):
-        """Button callback: enter the 'ListScreen'. 
+    def cmd_enter(self):
+        """Button callback: enter the 'ListScreen'.
         Preconditions: enter decipher password and casual seed."""
+        app = App.get_running_app()
         if self.pr_login_wid.pr_password.text and self.pr_seed_wid.pr_seed.text:
             # Check login was successful (file opened) and check the key was set
             if isinstance(self.file, list):
@@ -340,19 +421,36 @@ class LoginPopup(Popup):
                 return False
             p = bytes(self.pr_login_wid.pr_password.text, encoding='utf-8')
             s = bytes(self.pr_seed_wid.pr_seed.text, encoding='utf-8')
-            if app.open(file=self.file, passwd=p, seed=s):
+
+            # if app.open(file=self.file, passwd=p, seed=s):
+            #     app.root.transition.direction = 'left'
+            #     app.root.current = LIST
+            #     self.reset()
+            #     self.dismiss()
+            # else:
+            #     app.unsecure()
+
+            try:
+                app.open(file=self.file, passwd=p, seed=s)
                 app.root.transition.direction = 'left'
-                app.root.current = conf.LIST
+                app.root.current = LIST
                 self.reset()
                 self.dismiss()
-            else:
+            except IOError as e:
+                message(_('Open File: %s') %
+                        (os.path.basename(self.file)), e, 'e')
                 app.unsecure()
+            except Exception as e:
+                message(_('Open File: %s') %
+                        (os.path.basename(self.file)), e, 'e')
+                app.unsecure()
+            #
         else:
             message(_('Login warning'), _('Fill password and seed'), 'w')
             return False
         return True
 
-    def cmd_exit(self, app):
+    def cmd_exit(self):
         """Exit login screen doing nothing."""
         self.reset()
         self.dismiss()
@@ -368,7 +466,7 @@ class LoginPopup(Popup):
 class CipherPopup(Popup):
     """
     GUI element. Cipher file popup enable user to choose a password and a casual seed,
-    and an algorithm for cripring the file and generating the casual secret key
+    and an algorithm for encrypring the file and generating the casual secret key
     from the seed.
     """
     # Widget hooks
@@ -382,9 +480,51 @@ class CipherPopup(Popup):
         super(CipherPopup, self).__init__(**kwargs)
         # Current file
         self.file = None
-        self.mode = conf.SAVE  # or COPY
+        self.action = self._save
 
-    def cmd_enter(self, app):
+    def openSave(self, file):
+        self.file = file
+        self.action = self._save
+        self.open()
+        pass
+
+    def openCopy(self, file):
+        self.file = file
+        self.action = self._copy
+        self.open()
+        pass
+
+    def _save(self, cryptod, passwd, seed):
+        app = App.get_running_app()
+        try:
+            app.secure(cryptod, passwd, seed)
+            app.save(file=self.file, force=True)
+            app.file = self.file
+            self.dismiss()
+            app.root.transition.direction = 'left'
+            app.root.current = LIST
+        except Exception as e:
+            app.unsecure()
+            message(title=_('Save File: %s') % (os.path.basename(self.file)),
+                    text=_('Exception:\n%s') % (e.args[0]), type='e')
+        else:
+            message(title=_('Save File: %s') % (os.path.basename(self.file)),
+                    text=_('File saved'), type='i')
+
+    def _copy(self, cryptod, passwd, seed):
+        try:
+            app = App.get_running_app()
+            app.copy(file=self.file, cryptod=cryptod, passwd=passwd, seed=seed)
+            self.dismiss()
+            app.root.transition.direction = 'left'
+            app.root.current = LIST
+        except Exception as e:
+            message(_('File Copy Error'), e, 'e')
+        else:
+            message(title=_('Copy file: %s') % (os.path.basename(self.file)),
+                    text=_('File copy successful'), type='i')
+
+    def cmd_enter(self):
         """Set the security and enter the list screen."""
         if self.pr_login_wid.pr_password.text and self.pr_seed_wid.pr_seed.text:
             # Check login was successful (file opened) and check the key was set
@@ -392,36 +532,28 @@ class CipherPopup(Popup):
                 self.file = self.file[0]
             # Build security:
             if self.pr_kderive.text and self.pr_cipher.text and self.pr_iters.text:
-                cd = cryptofachade.cryptodict(**cryptofachade.default_cryptod)
-                cd['algorithm'] = self.pr_cipher.text
-                cd['pbkdf'] = self.pr_kderive.text
-                cd['iterations'] = int(self.pr_iters.text)
+                cryptod = cryptofachade.cryptodict(
+                    **cryptofachade.default_cryptod)
+                cryptod['algorithm'] = self.pr_cipher.text
+                cryptod['pbkdf'] = self.pr_kderive.text
+                cryptod['iterations'] = int(self.pr_iters.text)
                 p = bytes(self.pr_login_wid.pr_password.text, encoding='utf-8')
                 s = bytes(self.pr_seed_wid.pr_seed.text, encoding='utf-8')
+                self.action(cryptod=cryptod, passwd=p, seed=s)
             else:
                 message(_('Security setup'), _(
-                    'Please selectan algorithm'), 'w')
+                    'Please choose an algorithm'), 'w')
                 return False
-            if self.mode is conf.SAVE and app.secure(cryptod=cd, passwd=p, seed=s) and app.save(file=self.file, force=True):
-                app.file = self.file
-                self.dismiss()
-                app.root.transition.direction = 'left'
-                app.root.current = conf.LIST
-            elif self.mode is conf.COPY and app.copy(file=self.file, cryptod=cd, passwd=p, seed=s):
-                self.dismiss()
-                app.root.transition.direction = 'left'
-                app.root.current = conf.LIST
             self.reset()
         else:
             message(_('Login warning'), _('Fill password and seed'), 'w')
             return False
         return True
 
-    def cmd_exit(self, app):
+    def cmd_exit(self):
         """Exit the popup doing nothing"""
         self.reset()
         self.dismiss()
-        return True
 
     def cipher_algorithms(self):
         """Returns the list of available ciphers algorithms."""
@@ -483,47 +615,67 @@ class EditTagPopup(Popup):
     def __init__(self, *args, **kwargs):
         super(EditTagPopup, self).__init__(**kwargs)
         self.mode = None
-        self.old = None
+        self.value = None
+
+    def openAdd(self, value):
+        self.value = value
+        self.mode = 1
+        self.open()
+        pass
+
+    def openDelete(self, value):
+        self.value = value
+        self.mode = -1
+        self.pr_tag.text = value
+        self.open()
+        pass
+
+    def openRename(self, value):
+        self.value = value
+        self.mode = 0
+        self.open()
+        pass
 
     def cmd_cancel(self, args):
         """Cancel without change anything. """
-        self.mode = self.old = None
+        self.mode = self.value = None
         self.dismiss()
         return True
 
-    def cmd_save(self, app):
+    def cmd_save(self):
         """Save and apply change to items."""
+        app = App.get_running_app()
         tag = self.pr_tag.text
-        if tag == _(conf.TAGS):
+
+        if tag == _(TAGS):
             message(tag, _('Action failed because: %s is already used.') %
                     (tag), 'w')
             return False
-
-        if self.mode == conf.DELETE and self.old:
+        # Delete = tag is ''
+        if self.mode == -1 and self.value:
             tag = ''
-        elif self.mode == conf.ADD and self.old == '':
-            # tag = tag
+        # Add a new tag
+        elif self.mode == 1 and self.value == '':
             if model.contains(items=app.items, value=tag, key='tag', casefold=True):
                 message(
                     tag, _('Action failed because: %s is already used.') % (tag), 'w')
                 return False
-            else:
-                app.root.get_screen(conf.EDIT).pr_tag.text = tag
-        elif self.mode == conf.RENAME and self.old:
-            tag = tag
+            # else:
+            #     app.root.get_screen(EDIT).pr_tag.text = tag
+        # Rename a tag
+        elif self.mode == 0:  # and self.value:
+            pass
+            # app.root.get_screen(EDIT).pr_tag.text = tag
         else:
             return False
 
-        for item in model.iterator(items=app.items, key='tag', value=self.old):
+        app.root.get_screen(EDIT).pr_tag.text = tag
+        #
+        for item in model.iterator(items=app.items, key='tag', value=self.value):
             item_old = item.copy()
             item['tag'] = tag
-            app.add_history(new=item, old=item_old, action=conf.UPDATE)
-        self.mode = self.old = None
-        self.dismiss()
-        return True
-
-
-Builder.load_file('kv/enter.kv')
+            app.add_history(new=item, old=item_old, action='update')
+        return self.cmd_cancel(None)
 
 
 class EnterScreen(Screen):
@@ -584,9 +736,6 @@ class EnterScreen(Screen):
         return True
 
 
-Builder.load_file('kv/list.kv')
-
-
 class ListScreen(Screen):
     """GUI element. Main screen with the list of user accounts."""
     # Widget hooks
@@ -620,7 +769,7 @@ class ListScreen(Screen):
             self.pr_search.disabled = False
         tags = self.build_tags()
         self.pr_tag.values = tags
-        self.app.root.get_screen(conf.EDIT).pr_tag.values = tags
+        self.app.root.get_screen(EDIT).pr_tag.values = tags
 
         if not self.pr_tag.text:
             self.pr_tag.text = self.pr_tag.values[0]
@@ -632,7 +781,6 @@ class ListScreen(Screen):
             self.cmd_search()
         else:
             self._fill_items(self.app.items)
-            pass
         self.counter()
 
     def on_enter_expiring(self, after=False):
@@ -676,7 +824,7 @@ class ListScreen(Screen):
         ordered from the item list."""
         t = list(set(i['tag'] for i in self.app.items))
         t.sort(key=str.lower)
-        tags = [conf.TAGS, ] + t
+        tags = [TAGS, ] + t
         return tags
 
     def _fill_items(self, items):
@@ -693,8 +841,6 @@ class ListScreen(Screen):
         date_keys = ['changed', 'created']  # Where to search for dates
         for i in items:
             w_item = self.pr_item_list_wid.add(ItemComposite, **i)
-            # text = _('Set %s days ago') % (str(elapsed_days(i, date_keys)))
-            # w_item.add(SubItem(sid='elapsed', text=text))
             elapse = elapsed_days(i, date_keys)
             w_item.add(WarningItem(sid='warning',
                                    header=self.pr_item_list_wid,
@@ -705,34 +851,42 @@ class ListScreen(Screen):
         """Return the number of displayed item accounts over the total item."""
         self.ids['_lab_counter'].text = f'{self.pr_item_list_wid.count} / {len(self.app.items)}'
 
-    def cmd_option(self, action, app):
+    def cmd_info(self):
         """Screen menu command."""
-        if action == conf.INFO:
-            if not self.infopopup:
-                self.infopopup = InfoPopup()
-                self.infopopup.title = _('Info')
-            self.infopopup.set_fields(app.cryptod, file=app.file)
-            self.infopopup.open()
-        elif action == conf.COPY:
-            popup = SaveFile()
-            popup.filechooser.rootpath = app.file
-            popup.title = _('Copy to')
-            popup.mode = conf.COPY
-            popup.open()
-        elif action == conf.IMPORT:
-            popup = ImportFile()
-            popup.title = _('Import from:')
-            popup.open()
-        elif action == conf.EXPORT:
-            popup = ExportFile()
-            popup.title = _('Export to:')
-            popup.open()
-        elif action == conf.CHANGES:
-            app.root.transition.direction = 'left'
-            app.root.current = conf.CHANGES
-        else:
-            pass
-        return True
+        app = App.get_running_app()
+        if not self.infopopup:
+            self.infopopup = InfoPopup()
+            self.infopopup.title = _('Info')
+        self.infopopup.set_fields(app.cryptod, file=app.file)
+        self.infopopup.open()
+
+    def cmd_copy(self):
+        """Screen menu command."""
+        app = App.get_running_app()
+        popup = SaveFile()
+        popup.filechooser.rootpath = os.path.dirname(app.file)
+        popup.title = _('Copy %s to:') % (os.path.basename(app.file))
+        popup.openCopy()
+
+    def cmd_import(self):
+        """Screen menu command."""
+        app = App.get_running_app()
+        popup = ImportFile()
+        popup.title = _('Import from a CSV file:')
+        popup.open()
+
+    def cmd_export(self):
+        """Screen menu command."""
+        app = App.get_running_app()
+        popup = ExportFile()
+        popup.title = _('Export %s to CSV:') % (os.path.basename(app.file))
+        popup.open()
+
+    def cmd_changes(self):
+        """Screen menu command."""
+        app = App.get_running_app()
+        app.root.transition.direction = 'left'
+        app.root.current = CHANGES
 
     def cmd_tag_selected(self, after=False):
         """Filter list everytime a tag is selected."""
@@ -740,13 +894,12 @@ class ListScreen(Screen):
             self.pr_search.text = ''
 
         if after:
-            if self.pr_tag.text == conf.TAGS:
+            if self.pr_tag.text == TAGS:
                 self._fill_items(self.app.items)
             else:
                 sublst = model.select(
                     items=self.app.items, value=self.pr_tag.text, key='tag')
-                #sublst.sort(key=lambda x: str.lower(x['name']))
-                self.pr_item_list_wid.clear()
+                # sublst.sort(key=lambda x: str.lower(x['name']))
                 self._fill_items(sublst)
             self.counter()
             return True
@@ -767,61 +920,77 @@ class ListScreen(Screen):
         For performance reasons it's better search for sublist.
         """
         if after:
-            # Search text: add characters -> search on sublist
-            if self.find.pattern and str(self.pr_search.text).casefold().startswith(str(self.find.pattern).casefold()):
-                sublist = model.search(
-                    items=self.find.sublist, text=self.pr_search.text)
-                #sublist.sort(key=lambda x: str.lower(x['name']))
-                self.find = ListScreen.Find(self.pr_search.text, sublist)
-            # Search text: less characters - search on full list
-            # Search text: changed characters - search on full list
-            else:
-                sublist = model.search(
-                    items=self.app.items, text=self.pr_search.text)
-                # sublist.sort(key=lambda x: str.lower(x['name']))
-                self.find = ListScreen.Find(self.pr_search.text, sublist)
-                pass
-
-            self.pr_item_list_wid.clear()
-            self._fill_items(sublist)
-            self.counter()
+            if len(self.find.sublist) != self.pr_item_list_wid.count:
+                self._fill_items(self.find.sublist)
+                self.counter()
         else:
+            # Start search from at least two characters
+            if len(self.pr_search.text) > 1:
+                # Search text: add characters -> search on sublist
+                if self.find.pattern and str(self.pr_search.text).casefold().startswith(str(self.find.pattern).casefold()):
+                    sublist = model.search(
+                        items=self.find.sublist, text=self.pr_search.text)
+                    # sublist.sort(key=lambda x: str.lower(x['name']))
+                    self.find = ListScreen.Find(self.pr_search.text, sublist)
+                else:
+                    sublist = model.search(
+                        items=self.app.items, text=self.pr_search.text)
+                    self.find = ListScreen.Find(self.pr_search.text, sublist)
+            else:
+                self.find = ListScreen.Find(
+                    self.pr_search.text, self.app.items)
+
             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
         return True
 
     def cmd_add(self, args):
         """Add a new item account. Call 'EditScreen'."""
         # Apply configuration
+        app = App.get_running_app()
         config = self.app.config
-        item = model.new_item()
+        item = model.new_item(template=app.item_template)
         item['length'] = str(config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10))
         item['auto'] = str(config.getdefault(
             SkipKeyApp.PWDAUTO, SkipKeyApp.PWDLEN, True))
 
-        self.manager.get_screen(conf.EDIT).set_item(item)
+        self.manager.get_screen(EDIT).set_item(item=item, is_new=True)
         self.manager.transition.direction = 'left'
-        self.manager.current = conf.EDIT
+        self.manager.current = EDIT
         return True
 
-    def cmd_back(self, app, after=False):
+    def cmd_back(self, after=False):
         """Return to login: stop the running mode and return
         to login screen. Warns the user that everything is cleared and
         data are going to be lost."""
+        app = App.get_running_app()
         if after:
             self.pr_item_list_wid.clear()
             self.pr_tag.text = ''
             app.initialize()
             self.manager.transition.direction = 'right'
-            self.manager.current = conf.ENTER
+            self.manager.current = ENTER
             return True
         else:
             if app.file:
                 decision(_('Leave'), _('Exit %s without saving?') % (os.path.basename(app.file)),
-                         fn_ok=self.cmd_back, ok_kwargs={'app': app, 'after': True})
+                         fn_ok=self.cmd_back, ok_kwargs={'after': True})
             else:
                 self.cmd_back(app=app, after=True)
         return False
+
+    def cmd_save(self):
+        """Save the current file"""
+        try:
+            app = App.get_running_app()
+            if app.file:
+                app.save(app.file)
+            else:
+                raise Exception(_('No file is opened'))
+        except Exception as e:
+            message(_('Error'), _('Save file error:\n%s') % (e), 'e')
+            return False
+        return True
 
     def cmd_expiring(self, widget, state, after=False):
         """Toggle the view between the standard account list
@@ -831,9 +1000,6 @@ class ListScreen(Screen):
         else:
             self.on_enter_callback = self.on_enter_default
         self.on_enter()
-
-
-Builder.load_file('kv/edit.kv')
 
 
 class EditScreen(Screen):
@@ -852,17 +1018,19 @@ class EditScreen(Screen):
     # Classes hooks
     pr_auto_wid = ObjectProperty(None)
     pr_user_wid = ObjectProperty(None)
-    pr_tabbedb_wid = ObjectProperty(None)  # Feed auto = True/False
+    pr_tabbedb_wid = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(EditScreen, self).__init__(**kwargs)
         # Item currently edit
         self.item = None
         self.guic = GuiController(self)
+        self.is_new = False
 
-    def set_item(self, item):
+    def set_item(self, item, is_new):
         """Initialise screen fields from a dictionary."""
         self.item = item
+        self.is_new = is_new
         self.pr_name.text = item['name']
         self.pr_login.text = item['login']
         self.pr_url.text = item['url']
@@ -883,30 +1051,38 @@ class EditScreen(Screen):
         self.pr_tabbedb_wid.switch_to(tab, do_scroll=False)
         pass
 
-    def cmd_back(self, app):
+    def cmd_back(self):
         """Discard all changes, return to list screen."""
         self.manager.transition.direction = 'right'
-        self.manager.current = conf.LIST
+        self.manager.current = LIST
         return True
 
-    def cmd_delete(self, app):
+    def cmd_delete(self, schedule=False):
         """Delete this account, return to list screen."""
-        if app.delete_item(self.item):
-            self.manager.transition.direction = 'right'
-            self.manager.current = conf.LIST
-        return True
+        if schedule:
+            try:
+                App.get_running_app().delete_item(self.item)
+                self.manager.transition.direction = 'right'
+                self.manager.current = LIST
+            except Exception as e:
+                message(title=_('Delete Item Error'), text=e, type='e')
+        else:
+            Clock.schedule_once(lambda dt: self.cmd_delete(schedule=True), 0)
 
-    def cmd_save(self, app):
+    def cmd_save(self):
         """Save this account, return to list screen."""
+        app = App.get_running_app()
         tag = self.pr_tag.text
-        if tag == conf.TAGS:
+        if tag == TAGS:
             tag = ''
         auto = self.item['auto'] == 'True'
+        # Password generation mode
         if self.pr_tabbedb_wid.current_tab is self.pr_tabbedb_wid.tab_list[1] \
                 and self.pr_auto_wid.changed():
             auto = True
             self.pr_user_wid.pr_password.text = ''
             self.pr_user_wid.pr_confirm.text = ''
+        # User mode
         if self.pr_tabbedb_wid.current_tab is self.pr_tabbedb_wid.tab_list[0] \
                 and self.pr_user_wid.changed():
             auto = False
@@ -914,60 +1090,56 @@ class EditScreen(Screen):
             self.pr_auto_wid.pr_symbols.text = ''
             self.pr_auto_wid.pr_numbers.text = ''
             self.pr_auto_wid.pr_letters.active = False
-            self.pr_cipherpwd.text = app.encrypt(
-                self.pr_user_wid.pr_password.text)
+            try:
+                self.pr_cipherpwd.text = app.encrypt(
+                    self.pr_user_wid.pr_password.text)
+            except Exception as e:
+                message(title=_('Password Error'), text=e.args[0], type='e')
+                return False
         else:
             # No pasword changed
             pass
 
-        item = model.new_item(
-            name=self.pr_name.text,
-            login=self.pr_login.text,
-            url=self.pr_url.text,
-            email=self.pr_email.text,
-            description=self.pr_description.text,
-            tag=tag,
-            length=self.pr_auto_wid.pr_length.text,
-            symbols=self.pr_auto_wid.pr_symbols.text,
-            numbers=self.pr_auto_wid.pr_numbers.text,
-            letters=self.pr_auto_wid.pr_letters.active,
-            password=self.pr_cipherpwd.text,
-            color=self.pr_color.text,
-            auto=auto,
-            created=self.pr_created.text,
-            changed=self.pr_changed.text,
-            history=self.item['history']
-        )
-
+        item = model.new_item(template=app.item_template,
+                              name=self.pr_name.text,
+                              login=self.pr_login.text,
+                              url=self.pr_url.text,
+                              email=self.pr_email.text,
+                              description=self.pr_description.text,
+                              tag=tag,
+                              length=self.pr_auto_wid.pr_length.text,
+                              symbols=self.pr_auto_wid.pr_symbols.text,
+                              numbers=self.pr_auto_wid.pr_numbers.text,
+                              letters=self.pr_auto_wid.pr_letters.active,
+                              password=self.pr_cipherpwd.text,
+                              color=self.pr_color.text,
+                              auto=auto,
+                              created=self.pr_created.text,
+                              changed=self.pr_changed.text,
+                              history=self.item['history'])
         if not self.item_check(item):
-
             return False
-
         if self.item == item:
             message(_('Info'), _('No changes.'), 'i')
             return True
-        if app.save_item(item):
-            self.manager.transition.direction = 'right'
-            self.manager.current = conf.LIST
-        return True
+        # If the item is a new one from the add check name is not in items
+        if self.is_new and model.contains(items=app.items, value=item['name'], key='name'):
+            message(title=_('Duplicate key'), text=_(
+                '"%s" exists. Choose another name' % (item['name'])), type='e')
+            return False
 
-    def _call_tag_popup(self, instance, spinner, mode):
-        """Edit tag: call edit tag popup."""
-        popup = EditTagPopup()
-        if mode == conf.DELETE:
-            popup.title = ': '.join((instance.text, spinner.text))
-            popup.pr_tag.text = spinner.text
-            popup.old = spinner.text
-            popup.mode = conf.DELETE
-        elif mode == conf.ADD:
-            popup.title = ': '.join((instance.text, ))
-            popup.mode = conf.ADD
-            popup.old = ''
-        elif mode == conf.RENAME:
-            popup.title = ': '.join((instance.text, spinner.text))
-            popup.mode = conf.RENAME
-            popup.old = spinner.text
-        popup.open()
+        # if app.save_item(item):
+        #     self.manager.transition.direction = 'right'
+        #     self.manager.current = LIST
+#
+        try:
+            Clock.schedule_once(lambda dt: app.save_item(item=item), 0)
+            self.manager.transition.direction = 'right'
+            self.manager.current = LIST
+        except Exception as e:
+            message(_('Save item'), _('Exception: %s') % (str(*e.args)), 'e')
+#
+        return True
 
     def item_check(self, item):
         """Check mandatory fields before saving the account item."""
@@ -987,87 +1159,130 @@ class EditScreen(Screen):
             return False
         return True
 
-    def cmd_selectiontag(self, spinner):
-        """Nothing to do here."""
-        return True
+    # def cmd_selectiontag(self, spinner):
+    #     """Nothing to do here."""
+    #     return True
 
     def cmd_renametag(self, instance, spinner):
         """Rename the current tag and updates all items accordingly
         to the renamed tag. """
-        return self._call_tag_popup(instance, spinner, conf.RENAME)
+        popup = EditTagPopup()
+        popup.title = ': '.join((instance.text, spinner.text))
+        popup.openRename(value=spinner.text)
 
     def cmd_deletetag(self, instance, spinner):
         """Delete the current tag and deletes the items tag accordingly."""
-        return self._call_tag_popup(instance, spinner, conf.DELETE)
+        popup = EditTagPopup()
+        popup.title = ': '.join((instance.text, spinner.text))
+        popup.openDelete(value=spinner.text)
 
     def cmd_addtag(self, instance, spinner):
-        """Delete the current tag from the items."""
-        return self._call_tag_popup(instance, spinner, conf.ADD)
-
-
-Builder.load_file('kv/import.kv')
+        """Add a tag."""
+        popup = EditTagPopup()
+        popup.title = ': '.join((instance.text, ))
+        popup.openAdd(value='')
 
 
 class ImportScreen(Screen):
     """
     GUI element. Screen enabling the import of a '.csv' password file
     into the current one."""
-    pr_mapping = ObjectProperty(None)
+    # pr_mapping = ObjectProperty(None)
+
+    class MappingList(ItemList):
+        def __init__(self, *args, **kwargs):
+            super(ImportScreen.MappingList, self).__init__(**kwargs)
 
     def __init__(self, **kwargs):
         super(ImportScreen, self).__init__(**kwargs)
         self.file = None
+        self.initialized = False
         self.guic = GuiController(self)
+        self.mapping = {
+            'name': 'name',
+            'url': 'url',
+            'login': 'login',
+            'email': 'email',
+            'password': 'password',
+            'tag': '',
+            'description': '',
+            'created': '',
+            'changed': '',
+        }
+        #  'color': '',
+    #     'history': ''
+    # }
+
+        self.mapping_list = ImportScreen.MappingList()
+        container = self.ids['_grid_container']
+        container.add_widget(self.mapping_list)
 
     def on_enter(self, **kwargs):
         """Load a template for mapping the column headers of the input
         file to the headers of the current file."""
-        text = ',\n'.join(
-            [f"('{i}', '{j}')" for i, j in model.mapping.items()])
-        self.pr_mapping.text = text
         super(ImportScreen, self).on_enter(**kwargs)
+        text = ',\n'.join(
+            [f"('{i}', '{j}')" for i, j in self.mapping.items()])
+        if not self.initialized:
+            for k, v in self.mapping.items():
+                item = self.mapping_list.add(
+                    item_class=ItemComposite, target=k)
+                source = TextInput()
+                source.text = v
+                item.add(source)
+            self.initialized = True
 
-    def cmd_back(self, app):
+    def cmd_back(self):
         """Go back to the list screen without doing anything."""
+        app = App.get_running_app()
         app.root.transition.direction = 'right'
-        app.root.current = conf.LIST
+        app.root.current = LIST
 
-    def cmd_import(self, app, mapping):
+    def cmd_import(self):
         """Import the '.csv' into current file. Once the mapping is applied,
         new accounts are formed and appended to the current list.
         New records are normalized by adding calculated values in place of missing
         information. Nevertheless errors may occurs."""
+        app = App.get_running_app()
         try:
-            match = re.findall(
-                r"(\(\'[^,^\']+?\',.\'[^,^\']+?\'\),?)", mapping)
-            mapping = dict(eval(''.join(match)))
+            mapping = {i.cells[list(i.cells)[0]].text: i.cells[list(
+                i.cells)[1]].text for i in self.mapping_list.items}
+
             items = model.import_csv(
                 file=self.file, delimiter='\t', mapping=mapping)
             # Add default keys
             items_ = []
             for item in items:
-                item = model.new_item(**item)
+                item = model.new_item(template=app.item_template, **item)
                 item['password'] = app.encrypt(item['password'])
                 item['auto'] = 'False'
                 model.normalize(item)
                 items_.append(item)
         except Exception as e:
             message(_('Error'), _(
-                'Check the syntax:\n%s') % (e.args[0]), 'w')
+                'Check the syntax:\n%s') % (str(*e.args)), 'w')
             return False
         if len(items_) > 0:
+            # Check and manage double input!
+            duplicated = imported = 0
             for item in items_:
-                app.items.append(item)
-                app.add_history(new=None, old=item, action=conf.IMPORT)
+                if model.contains(app.items, item['name'], 'name'):
+                    item['tag'] = _('Import error')
+                    item['name'] = '_'.join([item['name'], str(id(item))])
+                    duplicated += 1
+                else:
+                    imported += 1
+                app.save_item(item, history=True)
             app.root.transition.direction = 'right'
-            app.root.current = conf.LIST
+            app.root.current = LIST
+            message(title=_('Import report'),
+                    text=_('Imported items: %d \n -New items: %d \n -Duplicated items: %d') % (
+                        imported + duplicated, imported, duplicated),
+                    type='i' if duplicated == 0 else 'w')
         return True
 
     def mapping_help(self):
         return _('Write couples separated by comma:\n(\'<source>\', \'<target>\').')
-
-
-Builder.load_file('kv/changes.kv')
 
 
 class ChangesScreen(Screen):
@@ -1088,7 +1303,7 @@ class ChangesScreen(Screen):
     def _fill_fields(self, history):
         """
         Fetch changes from the app history.
-        ### Parameters
+        # Parameters
         -----------
         - history: list of changes. 
         """
@@ -1122,10 +1337,10 @@ class ChangesScreen(Screen):
             self.pr_actions.values = [_('No changes'), ]
             self.pr_actions.text = self.pr_actions.values[0]
 
-    def cmd_back(self, app):
+    def cmd_back(self):
         """Return to list, discard all changes."""
         self.manager.transition.direction = 'right'
-        self.manager.current = conf.LIST
+        self.manager.current = LIST
         return True
 
     def cmd_undo(self, *args):
@@ -1134,7 +1349,7 @@ class ChangesScreen(Screen):
         try:
             pos = self.pr_actions.values.index(self.pr_actions.text)
             item = self.app.history[pos]['body']
-            #del self.app.history[pos]
+            # del self.app.history[pos]
             self.app.history.pop(pos)
             self.app.save_item(item, history=False)  # no history
             self.on_enter()
@@ -1292,6 +1507,21 @@ class AutoPanel(BoxLayout):
             return self.pr_password.text != ''
         return False
 
+    def generate(self, **kwargs):
+        # app, length, letters, numbers, symbols
+        app = App.get_running_app()
+        try:
+            pwd, salt = app.generate(**kwargs)
+            # Update strenght
+            edit_screen = app.root.get_screen(EDIT)
+            self.pr_password.text = pwd
+            self.pr_strenght.set_strength(pwd)
+            # Put in the ciphered
+            edit_screen.pr_cipherpwd.text = str(
+                base64.b64encode(salt), encoding='utf-8')
+        except ValueError as e:
+            message(_('Password'), *e.args, 'e')
+
 
 class PasswordStrenght(BoxLayout):
     """
@@ -1315,20 +1545,23 @@ class PasswordStrenght(BoxLayout):
 class AccountItemList(ItemList):
     """
     GUI element. Accounts list container.
-
     The list is managed in EditScreen.
     """
+    columns = {'name': dp(200),
+               'login': dp(180),
+               'url': dp(200),
+               'elapsed': dp(180),
+               'warning': dp(180)}
 
     def __init__(self, *args, **kwargs):
-
-        super(AccountItemList, self).__init__(mask=item_mask, **kwargs)
+        super(AccountItemList, self).__init__(
+            cols=AccountItemList.columns, **kwargs)
         self.add_bubble(Factory.ItemActionBubble())
 
 
 class ChangedItemList(ItemList):
     """
     GUI element. Container of changed account items.
-
     The list is managed in ChangesScreen.
     """
 
@@ -1339,8 +1572,7 @@ class ChangedItemList(ItemList):
 class ItemActionBubble(Bubble):
     """
     GUI element. Bubble context menu for a selected account item.
-
-    Menu options:
+    # Menu options:
     -------------
     - Get the account url. 
     - Get the account user. 
@@ -1356,8 +1588,9 @@ class ItemActionBubble(Bubble):
         # Clear clipboard scheduled event
         self.evt_clipboard = None
 
-    def cmd_url(self, app):
+    def cmd_url(self):
         # System call to browser
+        app = App.get_running_app()
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
         url = item['url']
@@ -1368,28 +1601,31 @@ class ItemActionBubble(Bubble):
 
         return True
 
-    def cmd_user(self, app):
+    def cmd_user(self):
         """
         Publish user.
         """
+        app = App.get_running_app()
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
         user = item['login']
         self._publish(app, user)
         return True
 
-    def cmd_password(self, app):
+    def cmd_password(self):
         """
         Publish password.
         """
+        app = App.get_running_app()
         p = self._password(app)
         self._publish(app, p)
         return True
 
-    def cmd_login(self, app):
+    def cmd_login(self):
         """
         Publish 'user TAB password' and dismiss bubble.
         """
+        app = App.get_running_app()
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
         p = self._password(app)
@@ -1399,14 +1635,17 @@ class ItemActionBubble(Bubble):
         return True
 
     def _password(self, app):
-        item = app.items[model.index_of(
-            items=app.items, value=self.item.kwparams['name'], key='name')]
-        if item['auto'] == 'False':
-            p = app.decrypt(item['password'])
-        # Clipboard.copy(self.item.item['login'])
-        else:
-            p = app.show(item)
-        return p
+        try:
+            item = app.items[model.index_of(
+                items=app.items, value=self.item.kwparams['name'], key='name')]
+            if item['auto'] == 'False':
+                p = app.decrypt(item['password'])
+            # Clipboard.copy(self.item.item['login'])
+            else:
+                p = app.show(item)
+            return p
+        except Exception as e:
+            message(title=_('Password Error'), text=e.args[0], type='e')
 
     def _publish(self, app, text):
         autocompletion = app.config.getdefault(
@@ -1430,18 +1669,17 @@ class ItemActionBubble(Bubble):
 
     # def cb_clean(self, dt):
     #     Clipboard.copy(' ')
-    def cmd_edit(self, app):
+    def cmd_edit(self):
         """
         Edit the account item. 
-
         Leave the screen and enter 'EditScreen'.
         """
+        app = App.get_running_app()
         item = app.items[model.index_of(
             items=app.items, value=self.item.kwparams['name'], key='name')]
-        app.root.get_screen(conf.EDIT).set_item(item)
-        # app.root.get_screen(EDIT).set_item(self.item.kwparams)
+        app.root.get_screen(EDIT).set_item(item=item, is_new=False)
         app.root.transition.direction = 'left'
-        app.root.current = conf.EDIT
+        app.root.current = EDIT
         self.reset()
         return True
 
@@ -1459,7 +1697,7 @@ class ItemActionBubble(Bubble):
         return super(ItemActionBubble, self).on_touch_down(touch)
 
 
-class SkipKeyApp(App):
+class SkipKeyApp(App, model.SkipKey):
     """
     GUI element. Main App. 
     """
@@ -1498,59 +1736,41 @@ class SkipKeyApp(App):
     pr_timer = StringProperty('')
     use_kivy_settings = True
 
-    def __init__(self, **kwargs):
-        super(SkipKeyApp, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        App.__init__(self, *args, **kwargs)
+        model.SkipKey.__init__(self, *args, **kwargs)
+
+        # App timeout
         self.MAXF = 10
-        # Data model
-        self.items = []
-        # Mementos Data model
-        self.history = []
-        # Current file
-        self.file = None
-        # Recent files
         self.files = dict()
-        # Secret key wrapper
-        self.keywrapper = None
-        # Session key
-        self.session_key = None
-        # Sectret seed wrapper
-        self.seedwrapper = None
-        # Session seed
-        self.session_seed = None
-        # Cipher / Decipher
-        self.cipher_fachade = None
-        # Crypto parameters
-        self.cryptod = None
-        # App timeout Clock-event
+        # App timeout Clock-event - interface or App?
         self.evt_timeout = None
-        # Clipboard timeout Clock-event
+        # Clipboard timeout Clock-event - App
         self.evt_clipboard = None
-        #
+        # - inteface or App?
         self.count_down = 0
 
+    # App
     def build(self):
         self.title = 'SkipKey %s' % (__version__)
         # path = os.path.dirname(os.path.realpath(__file__))
-        self.icon = '%s\\%s' % (conf.icons_dir, conf.ICON)
+        self.icon = '%s\\%s' % (icons_dir, ICON)
         # ----------------> App configuration
-        self.user_data_dir
-        # Create the screen manager
-        # Builder.load_file('commons.kv')
-        # Builder.load_file('screens_test.kv')
         sm = ScreenManager()
         self.root = sm
 
         # kivy.core.window.Window.clearcolor = (1, 0, 0, 1)
 
-        sm.add_widget(EnterScreen(name=conf.ENTER))
-        sm.add_widget(ListScreen(name=conf.LIST))
-        sm.add_widget(EditScreen(name=conf.EDIT))
-        sm.add_widget(ImportScreen(name=conf.IMPORT))
-        sm.add_widget(ChangesScreen(name=conf.CHANGES))
+        sm.add_widget(EnterScreen(name=ENTER))
+        sm.add_widget(ListScreen(name=LIST))
+        sm.add_widget(EditScreen(name=EDIT))
+        sm.add_widget(ImportScreen(name=IMPORT))
+        sm.add_widget(ChangesScreen(name=CHANGES))
         # look&feel manager
         self.guic = GuiController(sm)
         return sm
 
+    # App & interface
     def build_settings(self, settings):
         """Build settings from a JSON file / data first.
         """
@@ -1560,6 +1780,7 @@ class SkipKeyApp(App):
             s = json.dumps(eval(f.read()))
         settings.add_json_panel(SkipKeyApp.SETTINGS, self.config, data=s)
 
+    # App
     def build_config(self, config):
         """The App class handles '.ini' files automatically add sections and
         default parameters values. """
@@ -1575,6 +1796,7 @@ class SkipKeyApp(App):
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.LOG, 0)
         config.adddefaultsection(SkipKeyApp.RECENT_FILES)
 
+    # App
     def on_start(self):
         """
         Event handler for the on_start event which is fired after initialization
@@ -1582,6 +1804,7 @@ class SkipKeyApp(App):
         # Init screens:
         return super().on_start()
 
+    # App
     def on_pause(self):
         """
         Event handler called when Pause mode is requested. You should return
@@ -1589,11 +1812,13 @@ class SkipKeyApp(App):
         application will be stopped."""
         return super().on_pause()
 
+    # App
     def on_resume(self):
         """
         Event handler called when your application is resuming from the Pause mode."""
         return super().on_resume()
 
+    # App
     def on_stop(self):
         """
         Event handler for the on_stop event which is fired when the application
@@ -1601,35 +1826,7 @@ class SkipKeyApp(App):
         self.save(file=self.file)
         return super().on_stop()
 
-    def open(self, file, passwd, seed):
-        """
-        Open the file and prepare the records"""
-        try:
-            with open(file, mode='r') as f:
-                cryptod = json.load(f)
-            if self.secure(cryptod=cryptod, passwd=passwd, seed=seed):
-                self.file = file
-                self.items = self.cipher_fachade.decrypt(
-                    cryptod,
-                    self.keywrapper.secret(self.session_key)
-                )
-                self.items.sort(key=lambda x: str.lower(x['name']))
-                #
-                list(map(model.add_index, self.items))
-                #
-                self.update_recent_files(file)
-                return True
-        except IOError as e:
-            message(
-                _('Open'), _('Invalid file: "%s":\n%s') % (os.path.basename(file), e), 'e')
-            self.file = None
-            return False
-        except ValueError as e:
-            message(_('Open'), f'"{os.path.basename(file)}":\n{e}', 'e')
-            return False
-
-        return False
-
+    # App
     def update_recent_files(self, file):
         """
         Update the list of recently opened files"""
@@ -1652,6 +1849,7 @@ class SkipKeyApp(App):
         self.config.write()
         return True
 
+    # App
     def clear_recent_files(self):
         """
         Clear the list of recently opened files"""
@@ -1660,6 +1858,7 @@ class SkipKeyApp(App):
         self.config.write()
         return True
 
+    # App
     def get_recent_files(self):
         """
         Get the list of recently opened files, these can have the same name,
@@ -1674,238 +1873,7 @@ class SkipKeyApp(App):
                 self.files[f'{j} - {os.path.basename(f)}'] = f
         return self.files.keys()
 
-    def delete_item(self, item, after=False):
-        """
-        Delete an item from the item list.
-        """
-        if after:
-            index = model.index_of(self.items, item['name'], 'name')
-            if index != None:  # Delete
-                self.add_history(
-                    new=None, old=self.items.pop(index), action=conf.DELETE)
-            else:
-                return False
-            self.items.sort(key=lambda k: str(k['name']).lower())
-        else:
-            Clock.schedule_once(lambda dt: self.delete_item(
-                item=item, after=True), 0)
-        return True
-
-    def save_item(self, item, history=True, after=False):
-        """
-        Add a new item or update an existing one.
-
-        The item identifier is its name, so it is not possible to have
-        more than one item with the same name. 
-        The changed date is updated only if password was changed.
-        """
-        if after:
-            index = model.index_of(self.items, item['name'], 'name')
-            # Update
-            if index != None:
-                if history:
-                    old = self.items[index]
-                    self.add_history(
-                        new=item, old=old, action=conf.UPDATE)
-                # Update the changed only if password was changed
-                if self.items[index]['password'] != item['password']:
-                    item['changed'] = datetime.now().isoformat(
-                        sep=' ', timespec='seconds')
-                self.items[index] = item
-            else:  # Append
-                item['created'] = item['changed'] = datetime.now().isoformat(
-                    sep=' ', timespec='seconds')
-                self.items.append(item)
-                if history:
-                    self.add_history(new=None, old=item, action=conf.APPEND)
-            self.items.sort(key=lambda k: str(k['name']).lower())
-        else:
-            model.add_index(item)
-            Clock.schedule_once(lambda dt: self.save_item(
-                item=item, history=history, after=True), 0)
-        return True
-
-    def add_history(self, new, old, action=''):
-        """
-        History Data model: for the present the history is a back up of
-        the data model.
-        {'name': item_name, 'changed': timestamp, 'item': item_json_dump}
-        """
-        if new != old:
-            self.history.append(model.state(item=old, action=action))
-            # self.history[0:0] = [model.state(item=old, action=action)]
-
-    def encrypt(self, text):
-        """
-        Encrypt a password using the security algorithm and seed.
-            Parameters
-        ----------
-            text : text to encrypt
-
-            Returns
-        ----------
-            cipher text as base64 encoded utf-8 string
-        -------
-        type :
-            Raises
-        ------
-        Exception
-        """
-        # Get the seed:
-        try:
-            key = self.seedwrapper.secret(self.session_seed)
-            cryptod = self.cipher_fachade.encrypt(text, self.cryptod, key)
-            # encoding='utf-8'
-            r = bytes(json.dumps(cryptod), encoding='utf-8')
-            r = str(base64.b64encode(r), encoding='utf-8')
-        except Exception as e:
-            message(_('Decipher'), e.args, 'i')
-            return None
-        return r
-
-    def decrypt(self, text):
-        """
-        Decrypt a text using the security algorithm and seed.
-            Parameters
-        ----------
-            text : text to encrypt
-
-            Returns
-        ----------
-            plain object
-        -------
-        type :
-            Raises
-        ------
-        Exception
-        """
-        # Get the seed:
-        try:
-            cryptod = json.loads(str(base64.b64decode(text), encoding='utf-8'))
-            key = self.seedwrapper.secret(self.session_seed)
-            t = self.cipher_fachade.decrypt(cryptod, key)
-            return t
-        except Exception as e:
-            message(_('Decipher'), e.args, 'e')
-        return False
-
-    def generate(self, length, letters, numbers, symbols):
-        """
-        Generate a password.
-        Generate a password and update the strenght.
-            Parameters
-        ----------
-        length : password length.
-
-        letters : letters are allowed: True/False.
-
-        numbers : a number, numbers allowed at least.
-
-        symbols : a number, symbols allowed at least.
-
-            Returns
-        -------
-        type :
-            Raises
-        ------
-        Exception
-        """
-        edit_screen = self.root.get_screen(conf.EDIT)
-        if letters:
-            letters = 1
-        else:
-            letters = 0
-        try:
-            pattern = cryptofachade.Pattern(
-                lett=letters,
-                num=numbers,
-                sym=symbols,
-                length=length
-            )
-            seed = self.seedwrapper.secret(self.session_seed)
-            pwd, salt = self.cipher_fachade.secret(
-                seed, conf.ITERATIONS, pattern)
-            edit_screen.pr_auto_wid.pr_password.text = pwd
-            edit_screen.pr_auto_wid.set_strength(pwd)
-            # Put in the ciphered
-            edit_screen.pr_cipherpwd.text = str(
-                base64.b64encode(salt), encoding='utf-8')
-        except ValueError as e:
-            message(_('Password'), e.args, 'e')
-            return False
-        return True
-
-    def show(self, item):
-        """
-        Show a generated password and its strenght.
-            Parameters
-        ----------
-        item : the item.
-
-            Returns
-        ----------
-        boolean
-        -------
-        type :
-            Raises
-        ------
-        Exception
-        """
-        try:
-            if item['letters'] == 'False':
-                letters = 0
-            else:
-                letters = 1
-            pattern = cryptofachade.Pattern(
-                lett=letters,
-                num=item['numbers'],
-                sym=item['symbols'],
-                length=item['length']
-            )
-            seed = self.seedwrapper.secret(self.session_seed)
-            salt = base64.b64decode(item['password'])
-            p = self.cipher_fachade.password(
-                seed, salt, conf.ITERATIONS, pattern)
-            return p
-        except ValueError as e:
-            message(_('Password'), e, 'e')
-        return False
-
-    def secure(self, cryptod, passwd, seed):
-        """
-        Turn the security on (call once)."""
-        try:
-            self.cipher_fachade = cryptofachade.CipherFachade()
-            self.keywrapper = cryptofachade.KeyWrapper()
-            self.seedwrapper = cryptofachade.KeyWrapper()
-            # Wrapping secret key
-            key = self.cipher_fachade.key_derivation_function(
-                cryptod).derive(passwd)
-            self.session_key = self.keywrapper.wrap(key)
-            # Wrapping secret seed
-            seed = self.cipher_fachade.key_derivation_function(
-                cryptod).derive(seed)
-            self.session_seed = self.seedwrapper.wrap(seed)
-            # security settings
-            self.cryptod = cryptod
-            self.timeout()
-        except Exception as e:
-            self.unsecure()
-            message(title=_('Security error'),
-                    text=_('Initialisation error:\n%s') % (e), type='e')
-            return False
-        return True
-
-    def unsecure(self):
-        """Turn the security off."""
-        self.cipher_fachade = None
-        self.session_key = None
-        self.session_seed = None
-        self.keywrapper = None
-        self.seedwrapper = None
-        self.cryptod = None
-        return True
-
+    # App
     def timeout(self, after=False):
         """Security timeout"""
         if after:
@@ -1915,7 +1883,7 @@ class SkipKeyApp(App):
                 self.save(self.file)
                 self.initialize()
                 self.root.transition.direction = 'right'
-                self.root.current = conf.ENTER
+                self.root.current = ENTER
                 self.evt_timeout.cancel()
         else:
             if self.evt_timeout:
@@ -1927,162 +1895,128 @@ class SkipKeyApp(App):
                 lambda dt: self.timeout(after=True), 1)
         return True
 
+    # interface
+    def open(self, file, passwd, seed):
+        """
+        Open the file and prepare the records. Raises excepions."""
+        self.update_recent_files(file)
+        return super().open(file, passwd, seed)
+
+    # interface
+    def delete_item(self, item):
+        """
+        Delete an item from the item list.
+        """
+        return super().delete_item(item)
+
+    # interface
+    def save_item(self, item, history=True):
+        """
+        Add a new item or update an existing one.
+        """
+        return super().save_item(item, history)
+
+    # interface
+    def add_history(self, new, old, action=''):
+        """
+        Add an object to the history of changes
+        """
+        return super().add_history(new, old, action)
+
+    # interface
+    def encrypt(self, text):
+        """
+        Encrypt a text using the security algorithm and seed.
+        """
+        return super().encrypt(text)
+
+    # interface
+    def decrypt(self, text):
+        """
+        Decrypt a text using the security algorithm and seed.
+        """
+        return super().decrypt(text)
+
+    # interface
+    def generate(self, length, letters, numbers, symbols):
+        """
+        Generate a password.
+        """
+        return super().generate(length, letters, numbers, symbols)
+
+    # interface
+
+    def show(self, item):
+        """
+        Show a generated password.
+        """
+        return super().show(item)
+
+    # interface
+    def secure(self, cryptod, passwd, seed):
+        """
+        Turn the security on (call once)."""
+        self.timeout()
+        return super().secure(cryptod, passwd, seed)
+
+    # interface
+    def unsecure(self):
+        """Turn the security off."""
+        return model.SkipKey.unsecure(self)
+
+    # interface TODO decouple this method from view App
     def initialize(self):
         """Initializes app context"""
-        self.unsecure()
-        # Data model
-        self.items = []
-        # Current file
-        self.file = None
-        # Mementos Data model
-        self.history = []
-        # Keeps recent files
-        self.files
         # Stop count down
         if self.evt_timeout:
             self.evt_timeout.cancel()
-        return True
+        return super().initialize()
 
+    # interface
     def save(self, file, force=False):
         """
         Save items into a file.
-
-        The file is saved if any changes was made, otherwise return
-        without saving. If the optional parameter force is True, then
-        the file is saved even if no changes were made.
-        The file is always encrypted.
-        Parameters
-        ----------
-        - file :
-        the file path.
-        - force :
-        force the saving.
-
-        Returns
-        -------
-        True :
-        if the file was saved, otherwise returns False.
         """
-        if file and self.session_key and (len(self.history) > 0 or force):
-            try:
-                items = list(map(model.delete_index, self.items))
-                data = self.cipher_fachade.encrypt(
-                    items,
-                    cryptod=self.cryptod,
-                    secret=self.keywrapper.secret(self.session_key)
-                )
-                with open(file, mode='w') as f:
-                    json.dump(data, f)
-                    self.update_recent_files(file)
-            except IOError as e:
-                message(_('Error'), _('Save file error:\n%s') % (e), 'e')
-                return False
-            except TypeError as e:
-                message(_('Error'), _('Save file error:\n%s') % (e), 'e')
-                return False
-            except AttributeError as e:
-                message(_('Error'), _('Save file error:\n%s') % (e), 'e')
-                return False
-            return True
-        # Nothing to save
-        return False
+        return super().save(file, force)
 
+    # interface
     def copy(self, file, cryptod, passwd, seed, thread=False):
         """
-        Save items into a file.
-        The file is encrypted.
-            Parameters
-        ----------
-        file : the file path.
-
-        cryptod : the cryprographic stuff for generating the secret key.
-
-            Returns
-        -------
-        type :
-            Raises
-        ------
-        Exception
+        Save items into a file with new password and random seed.
         """
-        if not thread:
-            kwargs = {'file': file, 'cryptod': cryptod,
-                      'passwd': passwd, 'seed': seed, 'thread': True}
-            copy_thread = threading.Thread(target=self.copy, kwargs=kwargs)
-            copy_thread.start()
-            message(_('Copy file'),
-                    _('File copyed to: %s') % (os.path.basename(file)), 'i')
-            return True
+        self.update_recent_files(file)
+        return super().copy(file, cryptod, passwd, seed, thread)
 
-        # Before copying all password must be encrypted
-        # with the new key, and all generated ones must be
-        # converted in user typed
-        # Shoul be done in another thread
-        items_copy = list(map(model.delete_index, self.items[0:]))
-        try:
-            # Get the seed:
-            try:
-                local_cf = cryptofachade.CipherFachade()
-                key = local_cf.key_derivation_function(
-                    cryptod).derive(passwd)
-                seed = local_cf.key_derivation_function(
-                    cryptod).derive(seed)
-                for item in items_copy:
-                    if item['auto'] == 'True':
-                        pwd = self.show(item)
-                        item['auto'] = 'False'
-                        item['length'] = ''
-                        item['letters'] = ''
-                        item['numbers'] = ''
-                        item['symbols'] = ''
-                    elif item['auto'] == 'False':
-                        pwd = self.decrypt(item['password'])
-
-                    r = local_cf.encrypt(pwd, cryptod, seed)
-                    r = bytes(json.dumps(r), encoding='utf-8')
-                    r = str(base64.b64encode(r), encoding='utf-8')
-                    item['password'] = r
-            except Exception as e:
-                message(
-                    _('Decipher'), _("Item {item['name']}:\nerror %s") % (e), 'i')
-                return None
-
-            data = local_cf.encrypt(
-                items_copy, cryptod=cryptod, secret=key)
-            local_cf = None
-            with open(file, mode='w') as f:
-                json.dump(data, f)
-            self.update_recent_files(file)
-        except IOError as e:
-            message(_('Error'), _('Copy file error:\n%s') % (e), 'e')
-            return False
-        except TypeError as e:
-            message(_('Error'), _('Copy file error:\n%s') % (e), 'e')
-            return False
-        except AttributeError as e:
-            message(_('Error'), _('Copy file error:\n%s') % (e), 'e')
-            return False
-        except ValueError as e:
-            message(_('Error'), _('Copy file error:\n%s') % (e), 'e')
-            return False
-        return True
-
+    # interface
     def export(self, file):
-        items_csv = []
-        for i in self.items[:]:
-            item = model.new_item(**i)
-            if item['auto'] == 'True':
-                item['password'] = self.show(item)
-            elif item['auto'] == 'False':
-                item['password'] = self.decrypt(item['password'])
-            else:
-                pass
-            items_csv.append(item)
-        try:
-            return model.export_csv(file=file, items=items_csv, delimiter='\t', lineterminator='\r\n')
-        except Exception:
-            raise
-        return True
+        return super().export(file)
 
 
 if __name__ == '__main__':
-    SkipKeyApp().run()
+    search_fields = ('name',
+                     'tag',
+                     'description',
+                     'login',
+                     'url',
+                     'email')
+
+    item_template = {
+        'name': '',  # new name
+        'url': '',  # Check valid url
+        'login': '',  # Any string
+        'email': '',  # @-mail
+        'description': '',  # Any string
+        'tag': '',  # Any string
+        'color': '',  # Basic colors as string
+        'created': '',  # Date
+        'changed': '',  # Date
+        'auto': '',  # True, False=user
+        'length': '',  # Integer
+        'letters': '',  # True / False
+        'numbers': '',  # At least [0 length]
+        'symbols': '',  # At least [0 length]
+        'password': '',  # User encrypted password or salt Base64 encoded
+        'history': ''  # Record history - not yet managed
+    }
+
+    SkipKeyApp(search_fields=search_fields, item_template=item_template).run()

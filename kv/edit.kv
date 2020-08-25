@@ -37,19 +37,19 @@
 					icon: 'data/icons/left_arrow.png'
 					text: _('Back')
 					on_release: 
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/save.png'
 					text: _('Save')
 					on_release: 
-						if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')(app)
+						if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/trash.png'
 					text: _('Delete')
 					on_release:
-						if hasattr(root, 'cmd_delete'): getattr(root, 'cmd_delete')(app)
+						if hasattr(root, 'cmd_delete'): getattr(root, 'cmd_delete')()
 				# ActionOverflow:
 		FrameTitle:
             id: _lab_account
@@ -61,7 +61,7 @@
 				orientation: 'vertical'
 				# padding: screen_padding
 				size_hint_y: None
-				height: ui.page_height
+				height: ui.page_h
 				FrameTitle:
 					id: _lab_account
 					text: _('Account data')

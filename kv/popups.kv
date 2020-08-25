@@ -43,7 +43,7 @@
             pos_hint: {'x': 0.7}
             text: _('OK')
             on_release:
-				if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')(app)
+				if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')()
                 root.dismiss()
 #---------------------------------------------------------
 #-------------------- DECISION POPUP

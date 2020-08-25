@@ -69,7 +69,7 @@ class ItemList(FloatLayout):
     
     Parameters:
     -----------
-    - mask:
+    - cols:
         a dictionary of field-name that must be displayed in the 'ItemComposite',
         default is None.
     - sel_mode:
@@ -77,12 +77,13 @@ class ItemList(FloatLayout):
         or 'MULTI' (one or more lines at a time).
     """
 
-    def __init__(self, mask=None, sel_mode=SINGLE, **kwargs):
+    def __init__(self, cols=None, sel_mode=SINGLE, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
         super(ItemList, self).__init__(**kwargs)
         self.sel_mode = sel_mode
-        self.mask = mask
+        self.cols = cols if cols else {}
         self.bubble = None
+        
 
         self.container = BoxLayout(orientation='vertical', size_hint_y=None)
         scroll_view = ScrollView()
@@ -242,8 +243,8 @@ class ItemComposite(Item):
         self.spacing = (dp(10), dp(10))
         self.height = dp(40)
         self._cells = {}
-        if self.header.mask:
-            self._fill_mask()
+        if self.header.cols:
+            self._fill_cols()
         else:
             self._fill()
 
@@ -259,9 +260,9 @@ class ItemComposite(Item):
             cell.text = v
             self.add(cell)
 
-    def _fill_mask(self):
+    def _fill_cols(self):
         """Internal: fill the composite with the 'kwparams' parameters."""
-        for key in self.header.mask:
+        for key in self.header.cols:
             cell = SubItem(sid=key)
             if key in self.kwparams:
                 cell.text = self.kwparams[key]
@@ -271,31 +272,33 @@ class ItemComposite(Item):
 
     def add(self, item_cell):
         """Add a subitem to the composite."""
+        #item_cell.sid = item_cell.sid if item_cell.sid else id(item_cell)
+        #sid = item_cell.sid if item_cell.sid else id(item_cell)
         sid = item_cell.sid if hasattr(
-            item_cell, 'sid') and item_cell.sid else None
-        # Set the width according to the mask
-        if sid in self.header.mask and self.header.mask[sid]:
-            item_cell.width = float(self.header.mask[sid])
+            item_cell, 'sid') and item_cell.sid else id(item_cell)
+        # Set the width according to the cols
+        if self.header.cols and sid in self.header.cols and self.header.cols[sid]:
+            item_cell.width = float(self.header.cols[sid])
         # Adapt text to the available width
-        if sid and self.header.mask:
+        if sid and self.header.cols:
             try:
                 if isinstance(item_cell, Label):
                     item_cell.bind(texture_size=self._set_width)
-            except Error as err:
+            except Exception as err:
                 pass
         self.add_widget(item_cell)
         self.width += item_cell.width
-        self._cells[item_cell.sid] = item_cell
+        self._cells[sid] = item_cell
 
     def _set_width(self, *args):
-        """Internal: set the width according to the defined mask or
+        """Internal: set the width according to the defined cols or
         adapt the width to the texture_size"""
         subitem = args[0]
         sid = subitem.sid
         texture_size = subitem.texture_size
         # Set the width according to the defined dictionary
-        if sid in self.header.mask and self.header.mask[sid]:
-            length = float(self.header.mask[sid])
+        if sid in self.header.cols and self.header.cols[sid]:
+            length = float(self.header.cols[sid])
             if texture_size[0] > length:
                 subitem.text_size = length, subitem.height
             w = length
@@ -612,7 +615,7 @@ if __name__ == '__main__':
                    'email': 150,
                    'date': 400}
 
-    widget = ItemList(sel_mode=SINGLE, mask=cell_widths)
-    # widget = ItemList(sel_mode=MULTI, mask=cell_widths)
+    widget = ItemList(sel_mode=SINGLE, cols=cell_widths)
+    # widget = ItemList(sel_mode=MULTI, cols=cell_widths)
 
     TestingApp(widget=widget).run()

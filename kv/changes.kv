@@ -23,20 +23,20 @@
 					app_icon: 'data/icons/skip.png'
 					previous_icon: 'data/icons/left_arrow.png'
 					on_release:
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
 				# TimerLabel:
 				ActionButton:
 					important: True
 					text: _('Back')
 					icon: 'data/icons/left_arrow.png'
 					on_release: 
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')(app)
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
 				ActionButton:
 					important: True
 					icon: 'data/icons/undo.png'
 					text: _('Undo')
 					on_release: 
-						if hasattr(root, 'cmd_undo'): getattr(root, 'cmd_undo')(args)
+						if hasattr(root, 'cmd_undo'): getattr(root, 'cmd_undo')()
 				ActionOverflow:				
 
 		FrameTitle:

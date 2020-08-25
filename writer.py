@@ -50,4 +50,5 @@ if __name__ == '__main__':
     data = 'user\tpassword'
     daemon = TypewriteThread(text=data, timeout=10)
     daemon.start()
-    daemon.join()
+    daemon.join() # The Main thread wait for daemon stop before process further
+    print('All done!')

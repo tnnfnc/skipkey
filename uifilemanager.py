@@ -49,9 +49,9 @@ class SaveFilePopup(Popup):
         '''To be implemented in the extending subclass.'''
         self.dismiss()
 
-    def do_save(self, file):
-        '''To be implemented in the extending subclass.'''
-        self.dismiss()
+    # def save(self, file):
+    #     '''To be implemented in the extending subclass.'''
+    #     self.dismiss()
 
     def cmd_cancel(self):
         '''To be implemented in the extending subclass.'''
