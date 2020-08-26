@@ -17,121 +17,121 @@ import base64
 def _(text):
     return text
 
-# def load_dll():
-#     import os
-#     import sys
 
-#     options = {"build_exe": {}}
-#     PYTHON_INSTALL_DIR = os.path.dirname(os.path.dirname(os.__file__))
-#     if sys.platform == "win32":
-#         options["build_exe"]['include_files'] = [
-#             os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'libcrypto-1_1-x64.dll'),
-#             os.path.join(PYTHON_INSTALL_DIR, 'DLLs', 'libssl-1_1-x64.dll'),
-#      ]
+def init_symbols():
+    """Return a tuple of symbols characters from exadecimal 
+    ranges [0x21-0x2f], [0x3a-0x40], [0x5b-0x5f]."""
+    symbols = []
+    # Symbols
+    for hex in range(int('21', base=16), int('30', base=16)):
+        symbols.append(chr(hex))
+    for hex in range(int('3a', base=16), int('41', base=16)):
+        symbols.append(chr(hex))
+    for hex in range(int('5b', base=16), int('60', base=16)):
+        symbols.append(chr(hex))
+    return tuple(symbols)
 
-# load_dll()
-
-
-SYMBOLS = []
-# Symbols
-for hex in range(int('21', base=16), int('30', base=16)):
-    SYMBOLS.append(chr(hex))
-for hex in range(int('3a', base=16), int('41', base=16)):
-    SYMBOLS.append(chr(hex))
-for hex in range(int('5b', base=16), int('60', base=16)):
-    SYMBOLS.append(chr(hex))
-SYMBOLS = tuple(SYMBOLS)
 
 # Digit
-NUMBERS = []
-for hex in range(int('30', base=16), int('3a', base=16)):
-    NUMBERS.append(chr(hex))
-NUMBERS = tuple(NUMBERS)
+def init_numbers():
+    """Return a tuple of numbers digit from exadecimal 
+    ranges [0x30-0x39]."""
+    numbers = []
+    for hex in range(int('30', base=16), int('3a', base=16)):
+        numbers.append(chr(hex))
+    return tuple(numbers)
 
 
 # Upper
-LETTERS = []
-for hex in range(int('41', base=16), int('5b', base=16)):
-    LETTERS.append(chr(hex))
-# Lower
-for hex in range(int('61', base=16), int('7b', base=16)):
-    LETTERS.append(chr(hex))
-LETTERS = tuple(LETTERS)
-
-default_cryptod = {'algorithm': 'AES',
-                   'mode': 'CBC',
-                   'keysize': 256,
-                   'pbkdf': 'PBKDF2HMAC',
-                   'hash': 'SHA256',
-                   'length': int(256/8),
-                   'iterations': 100,
-                   'salt': str(base64.b64encode(os.urandom(32)), encoding='utf-8')}
+def init_letters():
+    """Return a tuple of lowercase and uppercase letters from exadecimal 
+    ranges [0x41-0x5a], [0x61-0x7a]."""
+    letters = []
+    for hex in range(int('41', base=16), int('5b', base=16)):
+        letters.append(chr(hex))
+    # Lower
+    for hex in range(int('61', base=16), int('7b', base=16)):
+        letters.append(chr(hex))
+    return tuple(letters)
 
 
-def encrypt_by_key(cryptod, password, seed, items, key):
-    '''Encrypt in place the content of items witk the key specified'''
-    try:
-        local_cf = CipherFachade()
-        # key = local_cf.key_derivation_function(
-        #     cryptod).derive(password)
-        seed = local_cf.key_derivation_function(
-            cryptod).derive(seed)
-        for item in items:
-            r = local_cf.encrypt(item[key], cryptod, seed)
-            r = bytes(json.dumps(r), encoding='utf-8')
-            r = str(base64.b64encode(r), encoding='utf-8')
-            item[key] = r
-        return items
-    except Exception as e:
-        return None
+def get_cryptografy_parameters(**kwargs):
+    """Return a dictionary of default cryptographic parameters.
 
+    Existing keys are updated from optional kwargs.
 
-def cryptodict(strict=True, **args):
+    --------
     """
-    Cripto dicionary builder.
-    Return a dictionary with the predefined keys and ''empty'' values.
+    d = {'algorithm': 'AES',
+         'mode': 'CBC',
+         'keysize': 256,
+         'pbkdf': 'PBKDF2HMAC',
+         'hash': 'SHA256',
+         'length': int(256/8),
+         'iterations': 100,
+         'salt': str(base64.b64encode(os.urandom(32)), encoding='utf-8')}
+    if kwargs:
+        for k in kwargs:
+            d[k] = kwargs[k]
+    return d
+
+
+# def encrypt_by_key(cryptod, password, seed, items, key):
+#     '''Encrypt in place the content of items witk the key specified'''
+#     try:
+#         local_cf = CipherFachade()
+#         # key = local_cf.key_derivation_function(
+#         #     cryptod).derive(password)
+#         seed = local_cf.key_derivation_function(
+#             cryptod).derive(seed)
+#         for item in items:
+#             r = local_cf.encrypt(item[key], cryptod, seed)
+#             r = bytes(json.dumps(r), encoding='utf-8')
+#             r = str(base64.b64encode(r), encoding='utf-8')
+#             item[key] = r
+#         return items
+#     except Exception as e:
+#         return None
+
+
+def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
+    """
+    Cryptographic envelop containing key derivation materials.
+
+    Return a dictionary with the predefined keys.
     If ''**args'' is passed the new keys are added to the predefined.
-        Parameters
+
     ----------
+        Parameters
     strict : Default ''True'' only predefined keys are returned.
 
-    **args : Key-value pairs.
+    **args : Key-value pairs for custom further infos
 
-        Return a dictionary with the predefined keys.
     -------
-    type :
-        Raises
-    ------
-    Exception
-    See Also
-    --------
-
-    Examples
-    --------
-    >>>
-
+        Return 
+    a dictionary with the predefined keys.
     """
-    template = {
-        'algorithm': '',  # algorithms=AES
-        'mode': '',  # CBC fixed
-        'iv': '',  # initialisation vector al long as cipher's block
-        'keysize': '',  # cipher key size in bits
-        'pbkdf': '',
-        'hash': '',  # SHA256
-        'length': '',  # length of the derived key, converted in bits must match keysize
-        'iterations': '',
-        'salt': '',  # 32 bytes for key derivation
-        'ciphervalue': ''  # Base64 file encoded
-    }
-    if strict:
-        for key in args:
-            if key in template:
-                template[key] = str(args[key])
-    else:
-        for key in args:
-            template[key] = str(args[key])
+    # template = {
+    #     'algorithm': '',  # algorithms=AES
+    #     'mode': '',  # CBC fixed
+    #     'keysize': '',  # cipher key size in bits
+    #     'pbkdf': '',
+    #     'hash': '',  # SHA256
+    #     'length': '',  # length of the derived key, converted in bits must match keysize
+    #     'iterations': '',
+    #     'salt': '',  # 32 bytes for key derivation
 
-    return template
+    #     'iv': '',  # initialisation vector al long as cipher's block
+    #     'ciphervalue': ''  # Base64 file encoded
+    # }
+    d = dict(cryptopars)
+    d['ciphervalue'] = ciphervalue
+    d['iv'] = iv
+    # Add further custom data
+    if kwargs:
+        for key in kwargs:
+            d[key] = str(kwargs[key])
+    return d
 
 
 def cipher_algorithms():
@@ -156,59 +156,68 @@ def key_derivators():
             }
 
 
+SYMBOLS = init_symbols()
+NUMBERS = init_numbers()
+LETTERS = init_letters()
+
+
 class Pattern():
-    def __init__(self, lett, num, sym, length, *args, **kwargs):
-        if lett is None or lett == '':
-            lett = 0
-        if num is None or num == '':
-            num = 0
-        if sym is None or sym == '':
-            sym = 0
-        if length is None or sym == '':
+    """Define the pattern that a text must be compliant to.
+    """
+
+    def __init__(self, letters, numbers, symbols, length, *args, **kwargs):
+        if letters is None or letters == '':
+            letters = 0
+        if numbers is None or numbers == '':
+            numbers = 0
+        if symbols is None or symbols == '':
+            symbols = 0
+        if length is None or symbols == '':
             length = 0
         # try:
-        self.num = int(num)
-        self.sym = int(sym)
-        self.lett = int(lett)
+        self.numbers = int(numbers)
+        self.symbols = int(symbols)
+        self.letters = int(letters)
         self._length = int(length)
-        # except ValueError as ve:
-        #     ('Accept integer only')
 
         self._gliphs = []
-        if self.lett > 0:
+        if self.letters > 0:
             self._gliphs.extend(LETTERS)
-        if self.num > 0:
+        if self.numbers > 0:
             self._gliphs.extend(NUMBERS)
-        if self.sym > 0:
+        if self.symbols > 0:
             self._gliphs.extend(SYMBOLS)
-        if self.num + self.lett + self.sym == 0:
+        if self.numbers + self.letters + self.symbols == 0:
             raise ValueError(_('Inconsistent pattern of zeros gliphs'))
-
-    def check(self, text):
-        l = s = n = 0
-        result = False
-        for g in text:
-            if g in LETTERS and l < self.lett:
-                l += 1
-            if g in NUMBERS and n < self.num:
-                n += 1
-            if g in SYMBOLS and s < self.sym:
-                s += 1
-            if n == self.num and s == self.sym and l == self.lett:
-                result = True
-                break
-        return result
 
     @property
     def gliphs(self):
+        """Return the list of allowed textual symbols."""
         return self._gliphs
 
     @property
     def length(self):
+        """Lenght"""
         return self._length
 
+    def check(self, text):
+        """Check the text contains at least as many allowed textual symbols as set."""
+        l = s = n = 0
+        result = False
+        for g in text:
+            if g in LETTERS and l < self.letters:
+                l += 1
+            if g in NUMBERS and n < self.numbers:
+                n += 1
+            if g in SYMBOLS and s < self.symbols:
+                s += 1
+            if n == self.numbers and s == self.symbols and l == self.letters:
+                result = True
+                break
+        return result
+
     def token(self, key):
-        # transorm key to number
+        """Transform a bytes sequence to a token compliant to the pattern."""
         n = int(key.hex(), base=16)
         d = len(self.gliphs)
         p = []
@@ -234,7 +243,7 @@ class KeyWrapper():
             _wrapkey, secret, default_backend())
         return _wrapkey
 
-    def secret(self, wrapkey):
+    def unwrap(self, wrapkey):
         '''Return the secret key'''
         secret = keywrap.aes_key_unwrap_with_padding(
             wrapkey, self._wrappedkey, default_backend())
@@ -247,13 +256,14 @@ class CipherFachade():
         self.encoding = encoding
         self.backend = default_backend()
 
-
     @staticmethod
     def parse(obj):
         '''Parse an encrypted object to crypto-dictionary format'''
-        return cryptodict(**json.loads(obj))
+        data = json.loads(obj)
+        cryptopars = get_cryptografy_parameters(**data)
+        return cipherdata(cryptopars, **data)
 
-    def algorithm(self, secret, name='AES'):
+    def _algorithm(self, secret, name='AES'):
         if not name:
             return algorithms.AES(secret)
         name = name.upper()
@@ -276,7 +286,7 @@ class CipherFachade():
             data = gzip.compress(
                 bytes(json.dumps(obj), encoding=self.encoding))
             # Format content in a crypto-dictioray
-            algorithm = self.algorithm(
+            algorithm = self._algorithm(
                 secret=secret, name=cryptod['algorithm'])
             iv = os.urandom(int(algorithm.block_size/8))
             cryptod['iv'] = str(base64.b64encode(iv), encoding=self.encoding)
@@ -305,7 +315,7 @@ class CipherFachade():
                 bytes(cryptod['ciphervalue'], encoding=self.encoding))
             # Decrypt
             iv = base64.b64decode(bytes(cryptod['iv'], encoding=self.encoding))
-            algorithm = self.algorithm(
+            algorithm = self._algorithm(
                 secret=secret, name=cryptod['algorithm'])
             cipher = Cipher(algorithm, modes.CBC(iv), backend=self.backend)
             decryptor = cipher.decryptor()
@@ -399,7 +409,7 @@ class CipherFachade():
 
 if __name__ is '__main__':
     '''Prepare a key'''
-    cd = cryptodict(
+    cryptopars = get_cryptografy_parameters(
         algorithm='AES',
         mode='CBC',
         iv='',
@@ -409,8 +419,12 @@ if __name__ is '__main__':
         length=int(256/8),
         iterations=100,
         salt=str(base64.b64encode(os.urandom(32)), encoding='utf-8'),
-        ciphervalue=''
-    )
+        ciphervalue='')
+
+    cd = cipherdata(cryptopars,
+                    iv='',
+                    ciphervalue=''
+                    )
 
     items = [a for a in range(0, 100)]
 
@@ -424,9 +438,9 @@ if __name__ is '__main__':
     '''Wrap and unwrap key is ok during a session'''
     kw = KeyWrapper()
     wrappingkey = kw.wrap(sc)
-    print(kw.secret(wrappingkey))
+    print(kw.unwrap(wrappingkey))
 
-    key = kw.secret(wrappingkey)
+    key = kw.unwrap(wrappingkey)
     print(f"Test key wrapping: {key==sc}")
     c = cf.encrypt(obj=items, cryptod=cd, secret=key)
     jc = json.dumps(c)

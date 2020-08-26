@@ -56,7 +56,7 @@ from writer import TypewriteThread
 from uilist import (ItemList, Item, ItemComposite,
                     Comparison, ProgressItem, SubItem, WarningItem)
 from uifilemanager import OpenFilePopup, SaveFilePopup
-import cryptofachade
+import cipherfachade
 import password
 import model
 from localize import translate
@@ -532,14 +532,19 @@ class CipherPopup(Popup):
                 self.file = self.file[0]
             # Build security:
             if self.pr_kderive.text and self.pr_cipher.text and self.pr_iters.text:
-                cryptod = cryptofachade.cryptodict(
-                    **cryptofachade.default_cryptod)
-                cryptod['algorithm'] = self.pr_cipher.text
-                cryptod['pbkdf'] = self.pr_kderive.text
-                cryptod['iterations'] = int(self.pr_iters.text)
+
+                # cryptod = cipherfachade.cryptodict(
+                #     **cipherfachade.get_cryptografy_parameters())
+                # cryptod['algorithm'] = self.pr_cipher.text
+                # cryptod['pbkdf'] = self.pr_kderive.text
+                # cryptod['iterations'] = int(self.pr_iters.text)
+                params = cipherfachade.get_cryptografy_parameters(algorithm=self.pr_cipher.text,
+                                                                  pbkdf=self.pr_kderive.text,
+                                                                  iterations=int(self.pr_iters.text))
+
                 p = bytes(self.pr_login_wid.pr_password.text, encoding='utf-8')
                 s = bytes(self.pr_seed_wid.pr_seed.text, encoding='utf-8')
-                self.action(cryptod=cryptod, passwd=p, seed=s)
+                self.action(cryptod=params, passwd=p, seed=s)
             else:
                 message(_('Security setup'), _(
                     'Please choose an algorithm'), 'w')
@@ -557,11 +562,11 @@ class CipherPopup(Popup):
 
     def cipher_algorithms(self):
         """Returns the list of available ciphers algorithms."""
-        return list(cryptofachade.cipher_algorithms().keys())
+        return list(cipherfachade.cipher_algorithms().keys())
 
     def key_derivators(self):
         """Returns the list of available key derivation functions."""
-        return list(cryptofachade.key_derivators().keys())
+        return list(cipherfachade.key_derivators().keys())
 
     def reset(self):
         """Clear user input."""
@@ -1348,16 +1353,20 @@ class ChangesScreen(Screen):
         deletes it from history. Undo of Undo is, at present, impossible."""
         try:
             pos = self.pr_actions.values.index(self.pr_actions.text)
-            item = self.app.history[pos]['body']
+            #item = self.app.history[pos]['body']
             # del self.app.history[pos]
-            self.app.history.pop(pos)
-            self.app.save_item(item, history=False)  # no history
+            state = self.app.history.pop(pos)
+            item = state['body']
+            if state['action'] == model.SkipKey.APPEND:
+                self.app.delete_item(item, history=False)
+            else:
+                self.app.save_item(item, history=False)  # no history
             self.on_enter()
-        except ValueError:
-            # Nothing to restore
-            pass
-        except IndexError:
-            pass
+        except Exception as e:
+            message(title=_('Undo'),
+                    text=_('Revert action "%s" failed: %s') % (
+                        self.pr_actions.text, e.args[0]),
+                    type='e')
 
     def cmd_actions(self, text):
         self._fill_fields(self.app.history)
@@ -1903,11 +1912,11 @@ class SkipKeyApp(App, model.SkipKey):
         return super().open(file, passwd, seed)
 
     # interface
-    def delete_item(self, item):
+    def delete_item(self, item, history=True):
         """
         Delete an item from the item list.
         """
-        return super().delete_item(item)
+        return super().delete_item(item, history)
 
     # interface
     def save_item(self, item, history=True):

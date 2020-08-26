@@ -5,7 +5,7 @@ Created on Sat Jul 20 15:35:21 2019
 @author: Franco
 """
 import threading
-import cryptofachade
+import cipherfachade
 import base64
 import json
 import csv
@@ -15,24 +15,38 @@ from datetime import datetime
 
 def new_item(strict=True, template={}, **args):
     """Item builder.
-    Return a dictionary with the predefined keys and ''empty'' values.
-    If ''**args'' is passed the new keys are added to the predefined.
-        Parameters
+    Return a dictionary from the provided template.
+
+    Item keys are updated from **args key-value pairs.
+
     ----------
-    strict : Default ''True'' only predefined keys are returned.
+        Parameters
 
     **args : Key-value pairs.
 
+    ----------
+        Return
+
         Return a dictionary with the predefined keys.
     """
-    item = dict(template)
-    if strict:
-        for key in args:
-            if key in template:
-                item[key] = str(args[key])
+    # item = dict(template)
+    # if strict:
+    #     for key in args:
+    #         if key in template:
+    #             item[key] = str(args[key])
+    # else:
+    #     for key in args:
+    #         item[key] = str(args[key])
+    if template:
+        item = dict(template)
     else:
+        item = {}
+    if args:
         for key in args:
-            item[key] = str(args[key])
+            if strict and key in item:
+                item[key] = str(args[key])
+            elif not strict:
+                item[key] = str(args[key])
     return item
 
 
@@ -273,7 +287,7 @@ class SkipKey():
             self.file = file
             self.items = self.cipher_fachade.decrypt(
                 cryptod,
-                self.keywrapper.secret(self.session_key)
+                self.keywrapper.unwrap(self.session_key)
             )
             self.items.sort(key=lambda x: str.lower(x['name']))
             #
@@ -285,14 +299,15 @@ class SkipKey():
 
     # interface
 
-    def delete_item(self, item):
+    def delete_item(self, item, history=True):
         """
         Delete an item from the item list.
         """
         index = index_of(self.items, item['name'], 'name')
         if index > -1:  # Delete
-            self.add_history(
-                new=None, old=self.items.pop(index), action=SkipKey.DELETE)
+            old = self.items.pop(index)
+            if history:
+                self.add_history(new=None, old=old, action=SkipKey.DELETE)
             self.items.sort(key=lambda k: str(k['name']).lower())
         else:
             raise ValueError('Item "%s" not found' % (item['name']))
@@ -357,7 +372,7 @@ class SkipKey():
         """
         # Get the seed:
         # try:
-        key = self.seedwrapper.secret(self.session_seed)
+        key = self.seedwrapper.unwrap(self.session_seed)
         cryptod = self.cipher_fachade.encrypt(text, self.cryptod, key)
         # encoding='utf-8'
         r = bytes(json.dumps(cryptod), encoding='utf-8')
@@ -385,7 +400,7 @@ class SkipKey():
         # Get the seed:
         # try:
         cryptod = json.loads(str(base64.b64decode(text), encoding='utf-8'))
-        key = self.seedwrapper.secret(self.session_seed)
+        key = self.seedwrapper.unwrap(self.session_seed)
         t = self.cipher_fachade.decrypt(cryptod, key)
         return t
         # except Exception as e:
@@ -419,21 +434,23 @@ class SkipKey():
             letters = 1
         else:
             letters = 0
-
-        if letters or numbers or symbols and length:
-            pattern = cryptofachade.Pattern(
-                lett=letters,
-                num=numbers,
-                sym=symbols,
-                length=length
-            )
-            seed = self.seedwrapper.secret(self.session_seed)
-            pwd, salt = self.cipher_fachade.secret(
-                seed, self.cryptod['iterations'], pattern)
-            # seed, ITERATIONS, pattern)
-            return pwd, salt
-        else:
-            raise ValueError('The password preferences are missing')
+        try:
+            if letters or numbers or symbols and length:
+                pattern = cipherfachade.Pattern(
+                    letters=letters,
+                    numbers=numbers,
+                    symbols=symbols,
+                    length=length
+                )
+                seed = self.seedwrapper.unwrap(self.session_seed)
+                pwd, salt = self.cipher_fachade.secret(
+                    seed, self.cryptod['iterations'], pattern)
+                # seed, ITERATIONS, pattern)
+                return pwd, salt
+            else:
+                raise ValueError('The password preferences are missing')
+        except Exception as e:
+            raise ValueError(e)
 
     # interface
     def show(self, item):
@@ -454,13 +471,13 @@ class SkipKey():
             letters = 0
         else:
             letters = 1
-        pattern = cryptofachade.Pattern(
-            lett=letters,
-            num=item['numbers'],
-            sym=item['symbols'],
+        pattern = cipherfachade.Pattern(
+            letters=letters,
+            numbers=item['numbers'],
+            symbols=item['symbols'],
             length=item['length']
         )
-        seed = self.seedwrapper.secret(self.session_seed)
+        seed = self.seedwrapper.unwrap(self.session_seed)
         salt = base64.b64decode(item['password'])
         p = self.cipher_fachade.password(
             seed, salt, self.cryptod['iterations'], pattern)
@@ -475,9 +492,9 @@ class SkipKey():
         """
         Turn the security on (call once)."""
         # try:
-        self.cipher_fachade = cryptofachade.CipherFachade()
-        self.keywrapper = cryptofachade.KeyWrapper()
-        self.seedwrapper = cryptofachade.KeyWrapper()
+        self.cipher_fachade = cipherfachade.CipherFachade()
+        self.keywrapper = cipherfachade.KeyWrapper()
+        self.seedwrapper = cipherfachade.KeyWrapper()
         # Wrapping secret key
         key = self.cipher_fachade.key_derivation_function(
             cryptod).derive(passwd)
@@ -542,11 +559,10 @@ class SkipKey():
             data = self.cipher_fachade.encrypt(
                 items,
                 cryptod=self.cryptod,
-                secret=self.keywrapper.secret(self.session_key)
+                secret=self.keywrapper.unwrap(self.session_key)
             )
             with open(file, mode='w') as f:
                 json.dump(data, f)
-                # self.update_recent_files(file)
             return True
         # Nothing to save
         return False
@@ -586,7 +602,7 @@ class SkipKey():
         # try:
         # Get the seed:
         try:
-            local_cf = cryptofachade.CipherFachade()
+            local_cf = cipherfachade.CipherFachade()
             key = local_cf.key_derivation_function(
                 cryptod).derive(passwd)
             seed = local_cf.key_derivation_function(
