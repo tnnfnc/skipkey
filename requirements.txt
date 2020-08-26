@@ -1,9 +1,8 @@
 altgraph==0.17
-asn1crypto @ file:///tmp/build/80754af9/asn1crypto_1596577642040/work
 autopep8==1.5
 certifi==2020.6.20
-cffi==1.14.0
-cryptography==2.8
+cffi @ file:///C:/ci/cffi_1598352799320/work
+cryptography @ file:///C:/ci/cryptography_1598353383151/work
 docutils==0.16
 future==0.18.2
 idna @ file:///tmp/build/80754af9/idna_1593446292537/work
@@ -14,9 +13,9 @@ pefile==2019.4.18
 Pillow @ file:///C:/ci/pillow_1594298234712/work
 pycodestyle==2.5.0
 pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
-pycrypto==2.6.1
+pycryptodome==3.8.2
 Pygments==2.6.1
-PyInstaller==3.5
+PyInstaller==3.6
 pynput==1.6.6
 pywin32==227
 pywin32-ctypes @ file:///C:/ci/pywin32-ctypes_1594392691209/work
