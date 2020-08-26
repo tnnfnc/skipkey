@@ -14,8 +14,8 @@ import base64
 # Translations
 
 
-def _(text):
-    return text
+def _(x):
+    return x
 
 
 def init_symbols():

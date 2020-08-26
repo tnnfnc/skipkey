@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2020-01-31 16:39+0100\n"
-"PO-Revision-Date: 2020-01-31 16:44+0100\n"
+"POT-Creation-Date: 2020-08-26 18:01+0200\n"
+"PO-Revision-Date: 2020-08-26 18:16+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17,17 +17,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: it\n"
 
-#: cryptofachade.py:146
+#: cipherfachade.py:146
 msgid "Advanced Encryption Standard"
 msgstr "Advanced Encryption Standard"
 
-#: cryptofachade.py:147
+#: cipherfachade.py:147
 msgid "Camellia is a block cipher approved for use by CRYPTREC and ISO/IEC."
 msgstr ""
 "Cammellia è un algoritmo di cifratura a blocchi approvato da CRYPTREC e da "
 "ISO/IEC."
 
-#: cryptofachade.py:148
+#: cipherfachade.py:148
 msgid ""
 "CAST5 (also known as CAST-128) is a block cipher approved for use in the "
 "Canadian government."
@@ -35,15 +35,15 @@ msgstr ""
 "CATS5 (noto anche come CAST-128) è un algoritmo di cifratura a blocchi in "
 "uso presso il governo canadese."
 
-#: cryptofachade.py:149
+#: cipherfachade.py:149
 msgid ""
 "SEED is a block cipher developed by the Korea Information Security Agency "
 "(KISA)."
 msgstr ""
-"SEED  è un algoritmo di cifratura a blocchi sviluppato dall'agenzia coreana "
-"per la sicurezza delle informazioni (KISA)."
+"SEED  è un algoritmo di cifratura a blocchi sviluppato dall'agenzia "
+"coreana per la sicurezza delle informazioni (KISA)."
 
-#: cryptofachade.py:154
+#: cipherfachade.py:154
 msgid ""
 "Password Based Key Derivation Function 2, is typically used for deriving a "
 "cryptographic key from a password."
@@ -51,23 +51,378 @@ msgstr ""
 "Password Based Key Derivation Function (PBKDF2), è usata per ricavare una "
 "chiave (bit) a partire dalla password dell'utente."
 
-#: cryptofachade.py:155
+#: cipherfachade.py:155
 msgid ""
 "HMAC-based Extract-and-Expand Key Derivation Function, is suitable for "
 "deriving keys of a fixed size."
 msgstr ""
-"HMAC è un codice per l'autenticazione di un messaggio basato su un algoritmo "
-"di hashing."
+"HMAC è un codice per l'autenticazione di un messaggio basato su un "
+"algoritmo di hashing."
 
-#: cryptofachade.py:185
+#: cipherfachade.py:191
 msgid "Inconsistent pattern of zeros gliphs"
 msgstr "Schema inconsistente di simboli"
 
-#: skipkey.py:162 skipkey.py:524
+#: kv_messages.py:5 kv_messages.py:11 kv_messages.py:60 kv_messages.py:65
+msgid "Back"
+msgstr "Indietro"
+
+#: kv_messages.py:6 skipkey.py:1366
+msgid "Undo"
+msgstr "Annulla..."
+
+#: kv_messages.py:7 kv_messages.py:73
+msgid "Changes"
+msgstr "Modifiche"
+
+#: kv_messages.py:12 kv_messages.py:58 kv_messages.py:66
+msgid "Save"
+msgstr "Salva"
+
+#: kv_messages.py:13 kv_messages.py:32
+msgid "Delete"
+msgstr "Cancella"
+
+#: kv_messages.py:14
+msgid "Edit account"
+msgstr "Modifica account"
+
+#: kv_messages.py:15
+msgid "Account data"
+msgstr "Dati dell'account"
+
+#: kv_messages.py:16 skipkey.py:1726
+msgid "Name"
+msgstr "Nome"
+
+#: kv_messages.py:17
+msgid "name"
+msgstr "nome"
+
+#: kv_messages.py:18 skipkey.py:1727
+msgid "Web site"
+msgstr "Sito web"
+
+#: kv_messages.py:19
+msgid "web site url"
+msgstr "URL"
+
+#: kv_messages.py:20 skipkey.py:1728
+msgid "Login user"
+msgstr "User"
+
+#: kv_messages.py:21
+msgid "login user"
+msgstr "Utente"
+
+#: kv_messages.py:22 kv_messages.py:23 skipkey.py:1729
+msgid "e-mail"
+msgstr "e-mail"
+
+#: kv_messages.py:24 kv_messages.py:25 skipkey.py:1730
+msgid "Free text"
+msgstr "Testo libero"
+
+#: kv_messages.py:26 skipkey.py:1733
+msgid "Created"
+msgstr "Creato"
+
+#: kv_messages.py:27 skipkey.py:1734
+msgid "Changed"
+msgstr "Modificato"
+
+#: kv_messages.py:28 skipkey.py:1741
+msgid "Cipher Data"
+msgstr "Dati cifrati"
+
+#: kv_messages.py:29 skipkey.py:1731
+msgid "Tag"
+msgstr "Tag"
+
+#: kv_messages.py:30
+msgid "Rename"
+msgstr "Rinomina"
+
+#: kv_messages.py:31 kv_messages.py:67
+msgid "Add"
+msgstr "Aggiungi"
+
+#: kv_messages.py:33
+msgid "Colors"
+msgstr "Colori"
+
+#: kv_messages.py:34
+msgid "White"
+msgstr "Bianco"
+
+#: kv_messages.py:35
+msgid "Red"
+msgstr "Rosso"
+
+#: kv_messages.py:36
+msgid "Green"
+msgstr "Verde"
+
+#: kv_messages.py:37
+msgid "Blue"
+msgstr "Blu"
+
+#: kv_messages.py:38
+msgid "Yellow"
+msgstr "Giallo"
+
+#: kv_messages.py:39
+msgid "Password set"
+msgstr "Inserire la password"
+
+#: kv_messages.py:40 skipkey.py:1735
+msgid "Auto"
+msgstr "Automatico"
+
+#: kv_messages.py:41 kv_messages.py:122
+msgid "User"
+msgstr "Utente"
+
+#: kv_messages.py:43 skipkey.py:727
+msgid "Open"
+msgstr "Apri"
+
+#: kv_messages.py:44
+msgid "New"
+msgstr "Nuovo"
+
+#: kv_messages.py:45
+msgid "Exit"
+msgstr "Esci"
+
+#: kv_messages.py:46
+msgid "Clear recents"
+msgstr "Cancella recenti"
+
+#: kv_messages.py:47 skipkey.py:712
+msgid "Recent files"
+msgstr "File recenti"
+
+#: kv_messages.py:49 kv_messages.py:54
+msgid "List"
+msgstr "Lista"
+
+#: kv_messages.py:50
+msgid "Icons"
+msgstr "Icone"
+
+#: kv_messages.py:51 kv_messages.py:56
+msgid "..\\"
+msgstr ""
+
+#: kv_messages.py:52 kv_messages.py:57 kv_messages.py:80 kv_messages.py:87
+#: kv_messages.py:90 kv_messages.py:100 kv_messages.py:133
+msgid "Cancel"
+msgstr "Annulla"
+
+#: kv_messages.py:53
+msgid "Load"
+msgstr "Apri"
+
+#: kv_messages.py:55
+msgid "Icon"
+msgstr "Icone"
+
+#: kv_messages.py:61
+msgid "Import"
+msgstr "Importa"
+
+#: kv_messages.py:62
+msgid "Fields mapping"
+msgstr "Corrispondenza campi"
+
+#: kv_messages.py:63
+msgid "Mapping the app keys to the imported file keys or leave blank to skip"
+msgstr ""
+"Collega i nomi dei campi dell'applicazione ai nomi dei campi del file da "
+"importare o lasciali vuoti"
+
+#: kv_messages.py:68
+msgid "More..."
+msgstr "Altro..."
+
+#: kv_messages.py:69
+msgid "Copy to..."
+msgstr "Copia in..."
+
+#: kv_messages.py:70
+msgid "Import from..."
+msgstr "Importa da..."
+
+#: kv_messages.py:71
+msgid "Export as..."
+msgstr "Esporta a..."
+
+#: kv_messages.py:72 kv_messages.py:92 skipkey.py:864 skipkey.py:1128
+msgid "Info"
+msgstr "Informazioni"
+
+#: kv_messages.py:74
+msgid "Personal accounts"
+msgstr "Account personale"
+
+#: kv_messages.py:75
+msgid "find"
+msgstr "Trova"
+
+#: kv_messages.py:76
+msgid "Expiring"
+msgstr "Scadenze"
+
+#: kv_messages.py:78 kv_messages.py:85
+msgid "Password for data encryption"
+msgstr "Password per cifrare i dati"
+
+#: kv_messages.py:79 kv_messages.py:86
+msgid "Seed for password generation"
+msgstr "Codice casuale per generare le password"
+
+#: kv_messages.py:81
+msgid "Enter"
+msgstr "Enter"
+
+#: kv_messages.py:82
+msgid "Cipher"
+msgstr "Algoritmo per cifrare"
+
+#: kv_messages.py:83
+msgid "Key generation"
+msgstr "Generazione della chiave"
+
+#: kv_messages.py:84
+msgid "Iters."
+msgstr "Iteraz."
+
+#: kv_messages.py:88 kv_messages.py:91 kv_messages.py:130 kv_messages.py:132
+msgid "OK"
+msgstr "OK"
+
+#: kv_messages.py:89
+msgid "Custom tag"
+msgstr "Tag personalizzato"
+
+#: kv_messages.py:93
+msgid "File"
+msgstr "File"
+
+#: kv_messages.py:94
+msgid "Security"
+msgstr "Sicurezza"
+
+#: kv_messages.py:95
+msgid "Algorithm"
+msgstr "Algoritmo"
+
+#: kv_messages.py:96
+msgid "Chain mode"
+msgstr "Modalità a catena"
+
+#: kv_messages.py:97
+msgid "Key size"
+msgstr "Lunghezza chiave"
+
+#: kv_messages.py:98
+msgid "Key derivator"
+msgstr "Generazione chiave"
+
+#: kv_messages.py:99
+msgid "Iterations"
+msgstr "Iterazioni"
+
+#: kv_messages.py:102 kv_messages.py:104
+msgid "Display password"
+msgstr "Mostra password"
+
+#: kv_messages.py:103 kv_messages.py:105
+msgid "type your password"
+msgstr "Inserire la password"
+
+#: kv_messages.py:106
+msgid "Confirm"
+msgstr "Conferma"
+
+#: kv_messages.py:107
+msgid "confirm your password"
+msgstr "Conferma la password"
+
+#: kv_messages.py:108
+msgid "Display seed"
+msgstr "Mostra il codice casuale"
+
+#: kv_messages.py:109
+msgid "input your seed"
+msgstr "Inserisci un codice casuale"
+
+#: kv_messages.py:110
+msgid "Generate"
+msgstr "Genera"
+
+#: kv_messages.py:111
+msgid "Password hint"
+msgstr "Password suggerita"
+
+#: kv_messages.py:112 skipkey.py:1736
+msgid "Length"
+msgstr "Lunghezza"
+
+#: kv_messages.py:113
+msgid "password length"
+msgstr "Lunghezza della password"
+
+#: kv_messages.py:114 skipkey.py:1737
+msgid "Letters"
+msgstr "Lettere"
+
+#: kv_messages.py:115 skipkey.py:1738
+msgid "Numbers"
+msgstr "Numeri"
+
+#: kv_messages.py:116 kv_messages.py:119
+msgid "At least"
+msgstr "Almeno"
+
+#: kv_messages.py:117 kv_messages.py:120
+msgid "a number"
+msgstr "numero"
+
+#: kv_messages.py:118 skipkey.py:1739
+msgid "Symbols"
+msgstr "Simboli"
+
+#: kv_messages.py:121
+msgid "url"
+msgstr "URL"
+
+#: kv_messages.py:123 skipkey.py:1532
+msgid "Password"
+msgstr "Password"
+
+#: kv_messages.py:124
+msgid "Login"
+msgstr "Login"
+
+#: kv_messages.py:125
+msgid "Edit"
+msgstr "Modifica"
+
+#: kv_messages.py:126
+msgid "Strenght"
+msgstr "Robustezza"
+
+#: kv_messages.py:129 kv_messages.py:131
+msgid "Message"
+msgstr "Messaggio"
+
+#: skipkey.py:250 skipkey.py:708
 msgid "Login to: %s"
 msgstr "Login: %s"
 
-#: skipkey.py:229 skipkey.py:274
+#: skipkey.py:321 skipkey.py:371
 msgid ""
 "%s exists:\n"
 "overwrite?"
@@ -75,217 +430,107 @@ msgstr ""
 "%s esiste già:\n"
 "sovrascrivere?"
 
-#: skipkey.py:290
+#: skipkey.py:387
 msgid "Export successful"
 msgstr "Esportazione completata"
 
-#: skipkey.py:294
+#: skipkey.py:391
 msgid "Export failed: %s"
 msgstr "Esportazione fallita: %s"
 
-#: skipkey.py:320
+#: skipkey.py:420
 msgid "The file %s does not exists"
 msgstr "Il file %s non esiste"
 
-#: skipkey.py:332 skipkey.py:395
+#: skipkey.py:440 skipkey.py:444
+msgid "Open File: %s"
+msgstr "Apri il file %s"
+
+#: skipkey.py:449 skipkey.py:554
 msgid "Fill password and seed"
 msgstr "Inserisci la password e il codice casuale"
 
-#: skipkey.py:332 skipkey.py:395
+#: skipkey.py:449 skipkey.py:554
 msgid "Login warning"
 msgstr "Login, avvertimento"
 
-#: skipkey.py:381
-msgid "Please selectan algorithm"
-msgstr "Seleziona un algoritmo"
+#: skipkey.py:508 skipkey.py:511
+msgid "Save File: %s"
+msgstr "Salva: %s"
 
-#: skipkey.py:381
+#: skipkey.py:509
+msgid ""
+"Exception:\n"
+"%s"
+msgstr ""
+"Eccezione:\n"
+"%s"
+
+#: skipkey.py:512
+msgid "File saved"
+msgstr "File salvato"
+
+#: skipkey.py:522
+msgid "File Copy Error"
+msgstr "Errore nella copia del file"
+
+#: skipkey.py:524
+msgid "Copy file: %s"
+msgstr "Copia file: %s"
+
+#: skipkey.py:525
+msgid "File copy successful"
+msgstr "File copiato senza errori"
+
+#: skipkey.py:549
+msgid "Please choose an algorithm"
+msgstr "Scegli un algoritmo"
+
+#: skipkey.py:549
 msgid "Security setup"
 msgstr "Impostazioni di sicurezza"
 
-#: skipkey.py:474 skipkey.py:484
+#: skipkey.py:656 skipkey.py:666
 msgid "Action failed because: %s is already used."
 msgstr "Azione interrotta: %s è già presente."
 
-#: skipkey.py:528
+#: skipkey.py:712
 msgid "%s not found"
 msgstr "%s non trovato"
 
-#: skipkey.py:528 skipkey_kv_messages.py:47
-msgid "Recent files"
-msgstr "File recenti"
-
-#: skipkey.py:536
+#: skipkey.py:720
 msgid "New file: %s"
 msgstr "Nuovo file: %s"
 
-#: skipkey.py:543 skipkey.py:1568 skipkey.py:1572 skipkey_kv_messages.py:43
-msgid "Open"
-msgstr "Apri"
-
-#: skipkey.py:628 skipkey.py:669
+#: skipkey.py:811
 msgid "Set %s days ago"
 msgstr "Impostata %s giorni fa"
 
-#: skipkey.py:682 skipkey.py:914 skipkey_kv_messages.py:77
-#: skipkey_kv_messages.py:100
-msgid "Info"
-msgstr "Informazioni"
+#: skipkey.py:873
+msgid "Copy %s to:"
+msgstr "Copia %s in:"
 
-#: skipkey.py:688
-msgid "Copy to"
-msgstr "Copia in"
+#: skipkey.py:880
+msgid "Import from a CSV file:"
+msgstr "Importa dal file CSV:"
 
-#: skipkey.py:693
-msgid "Import from:"
-msgstr "Importa da"
+#: skipkey.py:887
+msgid "Export %s to CSV:"
+msgstr "Esporta %s nel file CSV: "
 
-#: skipkey.py:697
-msgid "Export to:"
-msgstr "Esporta in"
-
-#: skipkey.py:791
+#: skipkey.py:981
 msgid "Exit %s without saving?"
 msgstr "Uscire dal file %s senza salvare?"
 
-#: skipkey.py:791
+#: skipkey.py:981
 msgid "Leave"
 msgstr "Uscire"
 
-#: skipkey.py:914
-msgid "No changes."
-msgstr "Nessuna modifica."
+#: skipkey.py:994
+msgid "No file is opened"
+msgstr "Nessun file aperto"
 
-#: skipkey.py:943
-msgid "Name is mandatory"
-msgstr "Il nome è obbligatorio"
-
-#: skipkey.py:945
-msgid "No password defined"
-msgstr "Nessuna password inserita"
-
-#: skipkey.py:950
-msgid "Check email adress: %s"
-msgstr "Controllare l'indirizzo e-mail: %s"
-
-#: skipkey.py:952
-msgid "Warning"
-msgstr "Attenzione"
-
-#: skipkey.py:1018
-msgid ""
-"Check the syntax:\n"
-"%s"
-msgstr ""
-"Controlla la sintassi di:\n"
-"%s"
-
-#: skipkey.py:1018 skipkey.py:1923 skipkey.py:1926 skipkey.py:1929
-#: skipkey.py:2002 skipkey.py:2005 skipkey.py:2008 skipkey.py:2011
-msgid "Error"
-msgstr "Errore"
-
-#: skipkey.py:1030
-msgid ""
-"Write couples separated by comma:\n"
-"('<source>', '<target>')."
-msgstr ""
-"Scrivere le coppie separate da virgola:\n"
-"('<sorgente>', '<destinazione>')."
-
-#: skipkey.py:1082
-msgid "No changes"
-msgstr "Nessuna modifica"
-
-#: skipkey.py:1429 skipkey_kv_messages.py:16
-msgid "Name"
-msgstr "Nome"
-
-#: skipkey.py:1430 skipkey_kv_messages.py:18
-msgid "Web site"
-msgstr "Sito web"
-
-#: skipkey.py:1431 skipkey_kv_messages.py:20
-msgid "Login user"
-msgstr "User"
-
-#: skipkey.py:1432 skipkey_kv_messages.py:22 skipkey_kv_messages.py:23
-msgid "e-mail"
-msgstr "e-mail"
-
-#: skipkey.py:1433 skipkey_kv_messages.py:24 skipkey_kv_messages.py:25
-msgid "Free text"
-msgstr "Testo libero"
-
-#: skipkey.py:1434 skipkey_kv_messages.py:29
-msgid "Tag"
-msgstr "Tag"
-
-#: skipkey.py:1435
-msgid "Color"
-msgstr "Colore"
-
-#: skipkey.py:1436 skipkey_kv_messages.py:26
-msgid "Created"
-msgstr "Creato"
-
-#: skipkey.py:1437 skipkey_kv_messages.py:27
-msgid "Changed"
-msgstr "Modificato"
-
-#: skipkey.py:1438 skipkey_kv_messages.py:40
-msgid "Auto"
-msgstr "Automatico"
-
-#: skipkey.py:1439 skipkey_kv_messages.py:120
-msgid "Length"
-msgstr "Lunghezza"
-
-#: skipkey.py:1440 skipkey_kv_messages.py:122
-msgid "Letters"
-msgstr "Lettere"
-
-#: skipkey.py:1441 skipkey_kv_messages.py:123
-msgid "Numbers"
-msgstr "Numeri"
-
-#: skipkey.py:1442 skipkey_kv_messages.py:126
-msgid "Symbols"
-msgstr "Simboli"
-
-#: skipkey.py:1444 skipkey_kv_messages.py:28
-msgid "Cipher Data"
-msgstr "Dati cifrati"
-
-#: skipkey.py:1568
-msgid ""
-"Invalid file: \"%s\":\n"
-"%s"
-msgstr ""
-"File non valido: \"%s\":\n"
-"%s"
-
-#: skipkey.py:1703 skipkey.py:1731 skipkey.py:1992
-msgid "Decipher"
-msgstr "Algoritmo per decifrare"
-
-#: skipkey.py:1776 skipkey.py:1818 skipkey_kv_messages.py:131
-msgid "Password"
-msgstr "Password"
-
-#: skipkey.py:1840
-msgid "Security error"
-msgstr "Errore di sicurezza"
-
-#: skipkey.py:1841
-msgid ""
-"Initialisation error:\n"
-"%s"
-msgstr ""
-"Errore di inizializzazione:\n"
-"%s"
-
-#: skipkey.py:1923 skipkey.py:1926 skipkey.py:1929
+#: skipkey.py:996
 msgid ""
 "Save file error:\n"
 "%s"
@@ -293,312 +538,96 @@ msgstr ""
 "Errore nel salvataggio:\n"
 "%s"
 
-#: skipkey.py:1957
-msgid "Copy file"
-msgstr "Copia file"
+#: skipkey.py:996 skipkey.py:1267
+msgid "Error"
+msgstr "Errore"
 
-#: skipkey.py:1958
-msgid "File copyed to: %s"
-msgstr "File copiato in: %s"
+#: skipkey.py:1073
+msgid "Delete Item Error"
+msgstr "Errore nel cancellare record"
 
-#: skipkey.py:1992
+#: skipkey.py:1102 skipkey.py:1657
+msgid "Password Error"
+msgstr "Errore nella password"
+
+#: skipkey.py:1128
+msgid "No changes."
+msgstr "Nessuna modifica."
+
+#: skipkey.py:1132
+msgid "\"%s\" exists. Choose another name"
+msgstr "\"%s\" esiste. Scegli un altro nome"
+
+#: skipkey.py:1132
+msgid "Duplicate key"
+msgstr "Record doppio"
+
+#: skipkey.py:1145
+msgid "Exception: %s"
+msgstr "Errore: %s"
+
+#: skipkey.py:1145
+msgid "Save item"
+msgstr "Salva il record"
+
+#: skipkey.py:1153
+msgid "Name is mandatory"
+msgstr "Il nome è obbligatorio"
+
+#: skipkey.py:1155
+msgid "No password defined"
+msgstr "Nessuna password inserita"
+
+#: skipkey.py:1160
+msgid "Check email adress: %s"
+msgstr "Controllare l'indirizzo e-mail: %s"
+
+#: skipkey.py:1162
+msgid "Warning"
+msgstr "Attenzione"
+
+#: skipkey.py:1267
 msgid ""
-"Item {item['name']}:\n"
-"error %s"
-msgstr ""
-"Item {item['name']}:\n"
-"error %s"
-
-#: skipkey.py:2002 skipkey.py:2005 skipkey.py:2008 skipkey.py:2011
-msgid ""
-"Copy file error:\n"
+"Check the syntax:\n"
 "%s"
 msgstr ""
-"Errore nella copia del file:\n"
+"Controlla la sintassi di:\n"
 "%s"
 
-#: skipkey_kv_messages.py:5 skipkey_kv_messages.py:11 skipkey_kv_messages.py:65
-#: skipkey_kv_messages.py:70
-msgid "Back"
-msgstr "Indietro"
+#: skipkey.py:1275
+msgid "Import error"
+msgstr "Errore nell'importazione"
 
-#: skipkey_kv_messages.py:6
-msgid "Undo"
-msgstr "Annulla..."
+#: skipkey.py:1283
+msgid "Import report"
+msgstr "Report importazione"
 
-#: skipkey_kv_messages.py:7 skipkey_kv_messages.py:78
-msgid "Changes"
-msgstr "Modifiche"
-
-#: skipkey_kv_messages.py:12 skipkey_kv_messages.py:58
-#: skipkey_kv_messages.py:71
-msgid "Save"
-msgstr "Salva"
-
-#: skipkey_kv_messages.py:13 skipkey_kv_messages.py:32
-msgid "Delete"
-msgstr "Cancella"
-
-#: skipkey_kv_messages.py:14
-msgid "Edit account"
-msgstr "Modifica account"
-
-#: skipkey_kv_messages.py:15
-msgid "Account data"
-msgstr "Dati dell'account"
-
-#: skipkey_kv_messages.py:17
-msgid "name"
-msgstr "nome"
-
-#: skipkey_kv_messages.py:19
-msgid "web site url"
-msgstr "URL"
-
-#: skipkey_kv_messages.py:21
-msgid "login user"
-msgstr "Utente"
-
-#: skipkey_kv_messages.py:30
-msgid "Rename"
-msgstr "Rinomina"
-
-#: skipkey_kv_messages.py:31 skipkey_kv_messages.py:72
-msgid "Add"
-msgstr "Aggiungi"
-
-#: skipkey_kv_messages.py:33
-msgid "Colors"
-msgstr "Colori"
-
-#: skipkey_kv_messages.py:34
-msgid "White"
-msgstr "Bianco"
-
-#: skipkey_kv_messages.py:35
-msgid "Red"
-msgstr "Rosso"
-
-#: skipkey_kv_messages.py:36
-msgid "Green"
-msgstr "Verde"
-
-#: skipkey_kv_messages.py:37
-msgid "Blue"
-msgstr "Blu"
-
-#: skipkey_kv_messages.py:38
-msgid "Yellow"
-msgstr "Giallo"
-
-#: skipkey_kv_messages.py:39
-msgid "Password set"
-msgstr "Inserire la password"
-
-#: skipkey_kv_messages.py:41 skipkey_kv_messages.py:130
-msgid "User"
-msgstr "Utente"
-
-#: skipkey_kv_messages.py:44
-msgid "New"
-msgstr "Nuovo"
-
-#: skipkey_kv_messages.py:45
-msgid "Exit"
-msgstr "Esci"
-
-#: skipkey_kv_messages.py:46
-msgid "Clear recents"
-msgstr "Cancella recenti"
-
-#: skipkey_kv_messages.py:49 skipkey_kv_messages.py:54
-msgid "List"
-msgstr "Lista"
-
-#: skipkey_kv_messages.py:50
-msgid "Icons"
-msgstr "Icone"
-
-#: skipkey_kv_messages.py:51 skipkey_kv_messages.py:56
-msgid "..\\"
+#: skipkey.py:1284
+msgid ""
+"Imported items: %d \n"
+" -New items: %d \n"
+" -Duplicated items: %d"
 msgstr ""
+"Record importati: %d\n"
+"-Record nuovi: %d\n"
+"-Record doppi: %d"
 
-#: skipkey_kv_messages.py:52 skipkey_kv_messages.py:57
-#: skipkey_kv_messages.py:63 skipkey_kv_messages.py:88
-#: skipkey_kv_messages.py:95 skipkey_kv_messages.py:98
-#: skipkey_kv_messages.py:108
-msgid "Cancel"
-msgstr "Annulla"
+#: skipkey.py:1290
+msgid ""
+"Write couples separated by comma:\n"
+"('<source>', '<target>')."
+msgstr ""
+"Scrivere le coppie separate da virgola:\n"
+"('<sorgente>', '<destinazione>')."
 
-#: skipkey_kv_messages.py:53
-msgid "Load"
-msgstr "Apri"
+#: skipkey.py:1342
+msgid "No changes"
+msgstr "Nessuna modifica"
 
-#: skipkey_kv_messages.py:55
-msgid "Icon"
-msgstr "Icone"
+#: skipkey.py:1367
+msgid "Revert action \"%s\" failed: %s"
+msgstr "Annullamento azione \"%s\" fallito: %s"
 
-#: skipkey_kv_messages.py:59 skipkey_kv_messages.py:61
-msgid "Message"
-msgstr "Messaggio"
-
-#: skipkey_kv_messages.py:60 skipkey_kv_messages.py:62
-#: skipkey_kv_messages.py:96 skipkey_kv_messages.py:99
-msgid "OK"
-msgstr "OK"
-
-#: skipkey_kv_messages.py:66
-msgid "Import"
-msgstr "Importa"
-
-#: skipkey_kv_messages.py:67
-msgid "Fields mapping"
-msgstr "Corrispondenza campi"
-
-#: skipkey_kv_messages.py:73
-msgid "More..."
-msgstr "Altro..."
-
-#: skipkey_kv_messages.py:74
-msgid "Copy to..."
-msgstr "Copia in..."
-
-#: skipkey_kv_messages.py:75
-msgid "Import from..."
-msgstr "Importa da..."
-
-#: skipkey_kv_messages.py:76
-msgid "Export as..."
-msgstr "Esporta a..."
-
-#: skipkey_kv_messages.py:79
-msgid "Personal accounts"
-msgstr "Account personale"
-
-#: skipkey_kv_messages.py:80 skipkey_kv_messages.py:83
-msgid "find"
-msgstr "Trova"
-
-#: skipkey_kv_messages.py:81
-msgid "Expiring"
-msgstr "Scadenze"
-
-#: skipkey_kv_messages.py:82 skipkey_kv_messages.py:84
-msgid "Clear"
-msgstr "Cancella"
-
-#: skipkey_kv_messages.py:86 skipkey_kv_messages.py:93
-msgid "Password for data encryption"
-msgstr "Password per cifrare i dati"
-
-#: skipkey_kv_messages.py:87 skipkey_kv_messages.py:94
-msgid "Seed for password generation"
-msgstr "Codice casuale per generare le password"
-
-#: skipkey_kv_messages.py:89
-msgid "Enter"
-msgstr "Enter"
-
-#: skipkey_kv_messages.py:90
-msgid "Cipher"
-msgstr "Algoritmo per cifrare"
-
-#: skipkey_kv_messages.py:91
-msgid "Key generation"
-msgstr "Generazione della chiave"
-
-#: skipkey_kv_messages.py:92
-msgid "Iters."
-msgstr "Iteraz."
-
-#: skipkey_kv_messages.py:97
-msgid "Custom tag"
-msgstr "Tag personalizzato"
-
-#: skipkey_kv_messages.py:101
-msgid "File"
-msgstr "File"
-
-#: skipkey_kv_messages.py:102
-msgid "Security"
-msgstr "Sicurezza"
-
-#: skipkey_kv_messages.py:103
-msgid "Algorithm"
-msgstr "Algoritmo"
-
-#: skipkey_kv_messages.py:104
-msgid "Chain mode"
-msgstr "Modalità a catena"
-
-#: skipkey_kv_messages.py:105
-msgid "Key size"
-msgstr "Lunghezza chiave"
-
-#: skipkey_kv_messages.py:106
-msgid "Key derivator"
-msgstr "Generazione chiave"
-
-#: skipkey_kv_messages.py:107
-msgid "Iterations"
-msgstr "Iterazioni"
-
-#: skipkey_kv_messages.py:110 skipkey_kv_messages.py:112
-msgid "Display password"
-msgstr "Mostra password"
-
-#: skipkey_kv_messages.py:111 skipkey_kv_messages.py:113
-msgid "type your password"
-msgstr "Inserire la password"
-
-#: skipkey_kv_messages.py:114
-msgid "Confirm"
-msgstr "Conferma"
-
-#: skipkey_kv_messages.py:115
-msgid "confirm your password"
-msgstr "Conferma la password"
-
-#: skipkey_kv_messages.py:116
-msgid "Display seed"
-msgstr "Mostra il codice casuale"
-
-#: skipkey_kv_messages.py:117
-msgid "input your seed"
-msgstr "Inserisci un codice casuale"
-
-#: skipkey_kv_messages.py:118
-msgid "Generate"
-msgstr "Genera"
-
-#: skipkey_kv_messages.py:119
-msgid "Password hint"
-msgstr "Password suggerita"
-
-#: skipkey_kv_messages.py:121
-msgid "password length"
-msgstr "Lunghezza della password"
-
-#: skipkey_kv_messages.py:124 skipkey_kv_messages.py:127
-msgid "At least"
-msgstr "Almeno"
-
-#: skipkey_kv_messages.py:125 skipkey_kv_messages.py:128
-msgid "a number"
-msgstr "numero"
-
-#: skipkey_kv_messages.py:129
-msgid "url"
-msgstr "URL"
-
-#: skipkey_kv_messages.py:132
-msgid "Login"
-msgstr "Login"
-
-#: skipkey_kv_messages.py:133
-msgid "Edit"
-msgstr "Modifica"
-
-#: skipkey_kv_messages.py:134
-msgid "Strenght"
-msgstr "Robustezza"
+#: skipkey.py:1732
+msgid "Color"
+msgstr "Colore"

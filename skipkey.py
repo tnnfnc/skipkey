@@ -61,6 +61,7 @@ import password
 import model
 from localize import translate
 from uicontroller import GuiController
+import kvgraphics as kvgraphics
 #
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
@@ -79,7 +80,9 @@ __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 current_dir = os.path.dirname(os.path.realpath(__file__))
 icons_dir = '%s\data\icons' % (current_dir)
 locale_dir = '%s\locale' % (current_dir)
+kivy_dir = '%s\kv' % (current_dir)
 
+kivy.resources.resource_add_path(current_dir)
 
 # Screen Names
 ENTER = 'Enter'
@@ -146,7 +149,9 @@ def elapsed_days(item, keys):
     return 0
 
 
-Builder.load_file('kv/commons.kv')
+# Import of local modules from import directive in .kv
+# files works only if module is in the app dir!!
+Builder.load_file('commons.kv')
 Builder.load_file('kv/dynamic.kv')
 Builder.load_file('kv/popup.kv')
 Builder.load_file('kv/widgets.kv')
@@ -1130,7 +1135,7 @@ class EditScreen(Screen):
         # If the item is a new one from the add check name is not in items
         if self.is_new and model.contains(items=app.items, value=item['name'], key='name'):
             message(title=_('Duplicate key'), text=_(
-                '"%s" exists. Choose another name' % (item['name'])), type='e')
+                '"%s" exists. Choose another name') % (item['name']), type='e')
             return False
 
         # if app.save_item(item):
