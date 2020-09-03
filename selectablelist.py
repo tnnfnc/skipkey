@@ -36,8 +36,24 @@ from kivy.graphics import InstructionGroup
 from kivy.metrics import dp
 kivy.require('1.11.0')  # Current kivy version
 
+Builder.load_string(
+    """
+<Item>:
 
-Builder.load_file('kv/selectablelist.kv')
+<ItemPart>:
+	size_hint: None, 1
+	# padding_x: dp(2)
+	# Adapt size to text
+	halign: 'left'
+	valign: 'center'
+	text_size: self.size 
+	canvas:
+		Color:
+			rgb: 0.5, 0.5, 0.5, 1
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: 1.2
+    """)
 
 
 def selection(widget, select=False):
@@ -59,38 +75,31 @@ def selection(widget, select=False):
 
 
 # class SelectableItemList(BoxLayout):
-class SelectableItemList(CompoundSelectionBehavior, FloatLayout):
+# class SelectableItemList(CompoundSelectionBehavior, BoxLayout):
+class SelectableItemList(CompoundSelectionBehavior, BoxLayout):
     """
-    The widget works as a container for a list of widget_list. Items can be added and removed.
-    It supports an optional bubble-menu that can displayed over it by touching an item.
-
-    Parameters:
-    -----------
-    - cols:
-        a dictionary of field-name that must be displayed in the 'ItemComposite',
-        default is None.
-    - sel_mode:
-        is selection mode: possible values are 'SINGLE' (one line at a time),
-        or 'MULTI' (one or more lines at a time).
+    The widget works as a container for a list of widget_list.
     """
 
     def __init__(self, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
         super(SelectableItemList, self).__init__(**kwargs)
-        self.bubble = None
-
+        # self.orientation='vertical'
+        # self.size_hint_y=None
         self.container = BoxLayout(orientation='vertical', size_hint_y=None)
+        self.container.bind(minimum_height=self.container.setter('height'))
+        #
         scroll_view = ScrollView()
         scroll_view.add_widget(self.container)
         self.add_widget(scroll_view)
-        self.container.bind(minimum_height=self.container.setter('height'))
 
     @property
     def row_count(self):
         """
         Property:
+
         ---------
-            the number of widget_list.
+        Number of widget in the list.
         """
         return len(self.container.children)
 
@@ -98,21 +107,11 @@ class SelectableItemList(CompoundSelectionBehavior, FloatLayout):
     def widget_list(self):
         """
         Property:
+
         ---------
-            widget_list list.
+        List of widgets.
         """
         return self.container.children
-
-    def add_bubble(self, bubble):
-        """
-        Add a bubble menu.
-        Parameters:
-        -----------
-            bubble: the Bubble menu.
-        """
-        if self.bubble:
-            self.remove_widget(self.bubble)
-        self.bubble = bubble
 
     def add(self, item, **kwargs):
         """
@@ -128,7 +127,7 @@ class SelectableItemList(CompoundSelectionBehavior, FloatLayout):
 
             The number of list elements
         """
-        item.controller = self
+        item.selection_behavior = self
         self.container.add_widget(item)
         item.set_index(len(self.container.children) - 1)
         self.container.height += item.height
@@ -145,30 +144,16 @@ class SelectableItemList(CompoundSelectionBehavior, FloatLayout):
         self.container.height = 0
         self.height = self.container.height
 
-    def show_bubble(self, item):
-        '''Internal: shows the bubble menu over the touched item.'''
-        self.remove_widget(self.bubble)
-        self.bubble.item = item
-        scroll = self.container.parent
-        y_view = scroll.to_parent(item.x, item.y)
-        if y_view[1] + self.bubble.height + item.height/2 < self.parent.height:
-            y = list(map(sum, zip(y_view, (0, item.height/2))))
-            self.bubble.arrow_pos = 'bottom_mid'
-        else:
-            y = list(
-                map(sum, zip(y_view, (0, + item.height/2 - self.bubble.height))))
-            self.bubble.arrow_pos = 'top_mid'
-
-        self.bubble.pos = (0, y[1])
-        self.add_widget(self.bubble)
-
     def select_node(self, node):
         selection(node, True)
-        print(node.index, node.data)
+        if hasattr(self, 'show_bubble'):
+            self.show_bubble(node)
         return super(SelectableItemList, self).select_node(node)
 
     def deselect_node(self, node):
         selection(node, False)
+        if hasattr(self, 'hide_bubble'):
+            self.hide_bubble(node)
         return super(SelectableItemList, self).deselect_node(node)
 
     def on_selected_nodes(self, gird, nodes):
@@ -193,16 +178,24 @@ class Item(GridLayout):
     def __init__(self, **kwargs):
         super(Item, self).__init__(**kwargs)
         self.rows = 1
-        self.controller = None
+        self._selection_behavior = None
         self._data = kwargs
+
+    @property
+    def selection_behavior(self):
+        return self._selection_behavior
+
+    @selection_behavior.setter
+    def selection_behavior(self, b):
+        self._selection_behavior = b
 
     @property
     def data(self):
         """Return the item data dictionary.
-        
+
         Item data must be implemented in your subclass."""
         return self._data
-    
+
     @property
     def index(self):
         return self._list_index
@@ -216,7 +209,11 @@ class Item(GridLayout):
         The touch event is consumed.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
-                self.controller.select_with_touch(self, touch)
+                #self.selection_behavior.select_with_touch(self, touch)
+                if self in self.selection_behavior.selected_nodes:
+                    self.selection_behavior.deselect_node(self)
+                else:
+                    self.selection_behavior.select_with_touch(self, touch)
                 # Consume event
                 return True
         # Bubble up event
@@ -267,7 +264,7 @@ class ItemComposite(Item):
 
     def add(self, key, part):
         """Add a widget to the composite. 
-        
+
         ----------------
         The widget will be added also to the dictionary
         data with the corresponding key. Existing keys are overwritten."""
@@ -278,6 +275,7 @@ class ItemComposite(Item):
         self._data[key] = part
         self.add_widget(part)
         self.width += part.width
+
 
 class ItemPart(Label):
     """
@@ -304,17 +302,20 @@ class ItemPart(Label):
 
 if __name__ == '__main__':
     import model
+    from bubblemenu import BubbleDecorator, BubbleMenu
 
     cols = {'name': 100,
             'url': 200,
             'login': 150,
             }
 
+    class SelectableBubbleList(BubbleDecorator, SelectableItemList):
+        def __init__(self, **kwargs):
+            super(SelectableBubbleList, self).__init__(**kwargs)
+
     class MyLabel(Item, Label):
         def __init__(self, **kwargs):
             Item.__init__(self)
-                
-
 
     class TestingApp(App):
 
@@ -348,16 +349,18 @@ if __name__ == '__main__':
                 {'name': 'Abracadabra', 'url': 'www.googlere.com',
                     'login': 'UsernamePippo'},
             ]
+
             for item in data:
                 widg = ItemComposite(**item)
                 w_item = self.widget.add(ItemComposite(header=cols, **item))
                 self.widget.add(MyLabel(**item))
                 # Comparator
-            
 
             return self.widget
 
-    widget = SelectableItemList()
-
+    # widget = SelectableItemList()
+    widget = SelectableBubbleList()
+    widget.add_bubble(BubbleMenu(size_hint=(
+        None, None), size=(dp(300), dp(60))))
 
     TestingApp(widget=widget).run()

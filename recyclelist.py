@@ -15,9 +15,29 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color
 from kivy.graphics import Line
 from kivy.graphics import Rectangle
+from kivy.metrics import dp
 
 
-Builder.load_file('kv/recycleview.kv')
+Builder.load_string(
+    """
+<ItemController>:
+	SelectableRecycleBoxLayout:
+
+<SubItem>:
+	size_hint: None, 1
+	padding_x: dp(2)
+	# Adapt size to text
+	halign: 'left'
+	valign: 'center'
+	text_size: self.size 
+	canvas:
+		Color:
+			rgb: 0.5, 0.5, 0.5, 1
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: 1.5
+"""
+)
 
 
 def selection(widget, select=False):
@@ -39,11 +59,56 @@ def selection(widget, select=False):
 
 
 class ItemController(RecycleView):
-    """MVC Controller"""
+    """MVC Controller of a list of ItemAdapters.
+
+    You must specify in the instance the 'viewclass' attribute to an
+    'AccountAdapter' subclass.
+
+    If you want provide a bubble context menu you must add this widget
+    to a BubbleDecorator and add a BubbleMenu subclass implementig your
+    actions.
+    """
 
     def __init__(self, **kwargs):
         super(ItemController, self).__init__(**kwargs)
-        # self.viewclass = 'ItemAdapter'
+
+    @property
+    def selection_behavior(self):
+        """Return the LayoutSelectionBehavior"""
+        return self.children[0]
+
+
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                 RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # id: recycle_layout
+        self.default_size = (None, dp(50))
+        self.default_size_hint = (1, None)
+        self.size_hint_y = None
+        self.orientation = 'vertical'
+        self.multiselect = False
+        self.touch_multiselect = False
+        self.bind(minimum_height=self.setter('height'))
+
+    def on_selected_nodes(self, gird, nodes):
+        pass
+
+    def select_node(self, node):
+        node.selected = True
+        selection(node, select=node.selected)
+        if hasattr(self.parent.parent, 'show_bubble'):
+            self.parent.parent.show_bubble(node)
+        return super(SelectableRecycleBoxLayout, self).select_node(node)
+
+    def deselect_node(self, node):
+        node.selected = False
+        selection(node, select=node.selected)
+        if hasattr(self.parent.parent, 'hide_bubble'):
+            self.parent.parent.hide_bubble(node)
+        super(SelectableRecycleBoxLayout, self).deselect_node(node)
 
 
 class ItemAdapter(RecycleDataViewBehavior, GridLayout):
@@ -61,6 +126,7 @@ class ItemAdapter(RecycleDataViewBehavior, GridLayout):
         super(ItemAdapter, self).__init__(**kwargs)
         self.rows = 1
         self.index = -1
+        self.spacing = 10
 
     def refresh_view_attrs(self, rv, index, data):
         ''' Catch and handle the view changes '''
@@ -99,30 +165,3 @@ class SubItem(Label):
 
     def __init__(self, *args, **kwargs):
         super(SubItem, self).__init__(**kwargs)
-
-
-class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
-                                 RecycleBoxLayout):
-    ''' Adds selection and focus behaviour to the view. '''
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    def on_selected_nodes(self, gird, nodes):
-        pass
-    
-    def select_node(self, node):
-        node.selected = True
-        selection(node, select=node.selected)
-        if hasattr(self.parent.parent, 'show_bubble'):
-            self.parent.parent.show_bubble(node)
-        return super(SelectableRecycleBoxLayout, self).select_node(node)
-
-    def deselect_node(self, node):
-        node.selected = False
-        selection(node, select=node.selected)
-        if hasattr(self.parent.parent, 'hide_bubble'):
-            self.parent.parent.hide_bubble(node)
-        super(SelectableRecycleBoxLayout, self).deselect_node(node)
-
-

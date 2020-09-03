@@ -33,15 +33,7 @@
 			id: _out_path
 			size_hint: 1, 0.2
 			text: _wid_filechooser.path
-		# Go up
-		# BoxLayout:
-			# orientation: 'horizontal'
-			# size_hint_y: None
-			# height: button_size_y
-			# ToggleButton:
-				# text: _('..\\')
-				# on_release: 
-					# if hasattr(root, 'cmd_parentdir'): getattr(root, 'cmd_parentdir')(button=self, state=self.state)
+
 		FileChooser:
 			id: _wid_filechooser
 			on_selection: 
@@ -94,16 +86,7 @@
 		Label:
 			id: _out_path
             size_hint: 1, 0.2
-			text: _wid_filechooser.path
-		# Go up
-		# BoxLayout:
-			# orientation: 'horizontal'
-			# size_hint_y: None
-			# height: button_size_y
-			# ToggleButton:
-				# text: _('..\\')
-				# on_release: 
-					# if hasattr(root, 'cmd_parentdir'): getattr(root, 'cmd_parentdir')(button=self, state=self.state)					
+			text: _wid_filechooser.path		
 		FileChooser:
 			id: _wid_filechooser
 			on_selection: 
@@ -111,7 +94,6 @@
 			FileChooserListLayout
 			FileChooserIconLayout
 
-			
 		InputField:
             id: _inp_file
             size_hint: 1, None
