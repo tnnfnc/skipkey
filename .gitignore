@@ -126,3 +126,4 @@ dmypy.json
 
 # Skipkey local configuration
 skipkey.ini
+test/

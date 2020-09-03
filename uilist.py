@@ -6,11 +6,11 @@ The :class: `ItemList` implements a container for items, like a list.
 The :class: `Item` is the basic item widget for the list: at present
 there are these subclasses of `Item`:
 
-    -:class: `ItemComposite` that provides an in-line `SubItem` structure,
+    -:class: `ItemComposite` that provides an in-line `ItemPart` structure,
     -:class: `Comparison` that provides a comparison between an 'old' vs  a 'new'
         object, emphasizing changes of the tho contents,
     -:class: `ProgressItem` that provides a way to represent the
-        last changed date with respect to a deadline date.
+        new changed date with respect to a deadline date.
 
 
 SkipKey: a help to password management
@@ -40,6 +40,7 @@ SINGLE = '0'
 '''Only one cell is selected.'''
 MULTI = '1'
 '''The row is selected as long as one of its cells is.'''
+
 Builder.load_file('kv/polyitemlist.kv')
 
 
@@ -66,7 +67,7 @@ class ItemList(FloatLayout):
     """
     The widget works as a container for a list of items. Items can be added and removed.
     It supports an optional bubble-menu that can displayed over it by touching an item.
-    
+
     Parameters:
     -----------
     - cols:
@@ -83,7 +84,6 @@ class ItemList(FloatLayout):
         self.sel_mode = sel_mode
         self.cols = cols if cols else {}
         self.bubble = None
-        
 
         self.container = BoxLayout(orientation='vertical', size_hint_y=None)
         scroll_view = ScrollView()
@@ -173,7 +173,7 @@ class ItemList(FloatLayout):
             for _item in [i for i in self.items if not i is item]:
                 _item.selected = False
                 selection(_item, _item.selected)
-        # Call the bubble on the last selected item!
+        # Call the bubble on the new selected item!
         if self.bubble:
             self.show_bubble(item)
 
@@ -235,7 +235,7 @@ class Item(GridLayout):
 
 
 class ItemComposite(Item):
-    '''Item is a row made of adjacent cells, each one is a 'SubItem' instance.
+    '''Item is a row made of adjacent cells, each one is a 'ItemPart' instance.
     has a key (see cells property)'''
 
     def __init__(self, **kwargs):
@@ -256,14 +256,14 @@ class ItemComposite(Item):
     def _fill(self):
         """Internal: fill the composite with the 'kwparams' parameters."""
         for key, v in self.kwparams.items():
-            cell = SubItem(sid=key)
+            cell = ItemPart(sid=key)
             cell.text = v
             self.add(cell)
 
     def _fill_cols(self):
         """Internal: fill the composite with the 'kwparams' parameters."""
         for key in self.header.cols:
-            cell = SubItem(sid=key)
+            cell = ItemPart(sid=key)
             if key in self.kwparams:
                 cell.text = self.kwparams[key]
                 self.add(cell)
@@ -308,8 +308,8 @@ class ItemComposite(Item):
         subitem.width = w
 
 
-# class SubItem(Label):
-class SubItem(Label):
+# class ItemPart(Label):
+class ItemPart(Label):
     """
     Implements a part of a 'ItemComposite' object.
     kwparams named parameters:
@@ -323,7 +323,7 @@ class SubItem(Label):
     sid = StringProperty('')
 
     def __init__(self, *args, **kwargs):
-        super(SubItem, self).__init__(**kwargs)
+        super(ItemPart, self).__init__(**kwargs)
         self.selected = False
         self.size_hint_x = None
         self.padding_x = dp(2)
@@ -344,202 +344,44 @@ class SubItem(Label):
         selection(self, self.selected)
 
 
-class Comparison(Item):
-    """
-    Provides a comparison between an 'old' vs  a 'new' object,
-    emphasizing changes of its content.
-    kwparams parameters:
-    -------------------
-    - 'name':
-        named parameter is the label displayed in the item.
-    - 'last':
-        named parameter is the new content.
-    - 'former':
-        named parameter is the old content.
-    """
-    pr_label = ObjectProperty(None)
-    pr_last = ObjectProperty(None)
-    pr_former = ObjectProperty(None)
-
-    def __init__(self, **kwargs):
-        super(Comparison, self).__init__(**kwargs)
-        self.compare()
-
-    def compare(self, *args):
-        name = last = former = ''
-        if 'name' in self.kwparams:
-            name = self.kwparams['name']
-        if 'last' in self.kwparams:
-            last = self.kwparams['last']
-        if 'former' in self.kwparams:
-            former = self.kwparams['former']
-
-        name = name if name else ' - '
-        last = last if last else ' - '
-        former = former if former else ' - '
-        if last != former:
-            self.pr_last.markup = True
-            self.pr_former.markup = True
-            last = '[color=ff3333]%s[/color]' % (last)
-            former = '[color=33FF33]%s[/color]' % (former)
-        else:
-            self.pr_last.markup = False
-            self.pr_former.markup = False
-
-        self.pr_label.text = name
-        self.pr_last.text = last
-        self.pr_former.text = former
-
-
-class ProgressItem(Item):
-    """
-    Provides a way to graphically represent the last changed date
-    with respect to 'today' date.
-    It renders the passed date wuth a progress bar in a [-max, +max] range
-    centered on today.
-    Parameters:
-    -----------
-    kwparams named parameters:
-        'max' named parameters is the half date range in days.
-        'date' named parameters is the date .
-
-    """
-
-    def __init__(self, max=100, **kwargs):
-        super(ProgressItem, self).__init__(**kwargs)
-        self.max = max
-        if 'max' in self.kwparams:
-            self.max = int(self.kwparams.pop('max'))
-        self._build()
-
-    def _build(self, *args):
-        """Internal."""
-        if 'date' in self.kwparams:
-            self.date = self.kwparams['date']
-
-        if isinstance(self.date, datetime):
-            expire_date = self.date
-        else:
-            expire_date = datetime.fromisoformat(self.date)
-
-        # value = (datetime.now() - d - timedelta(days=self.max)).days
-        left = (expire_date - datetime.now()).days
-        left = int(left)
-        self.ids['_lab_number'].text = str(left)
-        self.ids['_prb_before'].max = self.max
-        self.ids['_prb_after'].max = self.max
-
-        if left >= 0 and left <= self.max:
-            green_value = self.max - left
-            red_value = 0
-        if left >= 0 and left >= self.max:
-            green_value = self.max
-            red_value = 0
-        # Expired
-        if left < 0 and left >= -self.max:
-            green_value = self.max
-            red_value = -left
-        if left < 0 and left <= -self.max:
-            green_value = self.max
-            red_value = self.max
-
-        self.ids['_prb_before'].value = green_value
-        self.ids['_prb_after'].value = red_value
-
-
-class WarningItem(Item):
-    """
-    Provides a way to graphically represent the last changed date
-    with respect to 'today' date.
-    It renders the passed date wuth a progress bar in a [-max, +max] range
-    centered on today.
-    Parameters:
-    -----------
-    kwparams named parameters:
-        'max' named parameters is the time duration.
-        'elapsed' named parameters is the elapsed days.
-        'label' named parameters is an optional label.
-
-    """
-
-    def __init__(self, max=100, **kwargs):
-        super(WarningItem, self).__init__(**kwargs)
-        self.max = max
-        if 'max' in self.kwparams:
-            self.max = int(self.kwparams['max'])
-        if 'label' in self.kwparams:
-            self.label = str(self.kwparams['label'])
-        else:
-            self.label = ''
-        self._build()
-
-    def _build(self, *args):
-        """Internal."""
-        progressbar = self.ids['_prb_bar']
-        if 'elapsed' in self.kwparams:
-            self.elapsed = self.kwparams['elapsed']
-        progressbar.max = self.max
-        progressbar.value = self.elapsed if self.elapsed < self.max else self.max - \
-            self.max/self.elapsed
-        self.ids['_lab_number'].text = '{hh:.1%}'.format(
-            hh=progressbar.value/progressbar.max)
-
-        # self.ids['_prb_bar'].max = self.max
 
 
 if __name__ == '__main__':
     import model
-    # import skipkey
-    # 'name': '',  # new name
-    # 'url': '',  # Check valid url
-    # 'login': '',  # Any string
-    # 'email': '',  # @-mail
-    # 'description': '',  # Any string
-    # 'tag': '',  # Any string
-    # 'color': '',  # Basic colors as string
-    # 'created': '',  # Date
-    # 'changed': '',  # Date
-    # 'auto': '',  # True, False=user
-    # 'length': '',  # Integer
-    # 'letters': '',  # True / False
-    # 'numbers': '',  # At least [0 length]
-    # 'symbols': '',  # At least [0 length]
-    # 'password': '',  # User encrypted password or salt Base64 encoded
-    # 'history': ''  # Record history - not yet managed
     items = []
     items.extend([
-        model.new_item(name='item 7', url='', login='',
+        model.new_item(strict=False, name='item 7', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 2', url='', login='',
+        model.new_item(strict=False, name='item 2', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 3', url='', login='',
+        model.new_item(strict=False, name='item 3', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account ', tag='Web'),
-        model.new_item(name='item 5', url='', login='',
+        model.new_item(strict=False, name='item 5', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 4', url='', login='',
+        model.new_item(strict=False, name='item 4', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is  account description', tag='Web'),
-        model.new_item(name='item 6', url='', login='',
+        model.new_item(strict=False, name='item 6', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 1', url='', login='',
+        model.new_item(strict=False, name='item 1', url='', login='',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov'),
-        model.new_item(name='item 8', url='', login='', email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov')]
+        model.new_item(strict=False, name='item 8', url='', login='', email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov')]
     )
     items.extend([
-        model.new_item(name='item 7', url='www.googlex.coop', login='tnnfnc_user_',
+        model.new_item(strict=False, name='item 7', url='www.googlex.coop', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 2', url='www.googlex.coop.COOP.NETkfjrwoifjrowifjrwofjwoifj kkk', login='tnnfnc_user_',
+        model.new_item(strict=False, name='item 2 - long', url='www.googlex.coop.COOP.NET.kfjrwoif \nkkk', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 3', url='www.googlex.coop', login='tnnfnc__',
+        model.new_item(strict=False, name='item 3', url='www.googlex.coop', login='tnnfnc__',
                        email='tnnfnc@gmaiail.coop', description='This is the account ', tag='Web'),
-        model.new_item(name='item 5', url='www.googlex.coop', login='tnnfnc_user_PIPPOLOlog',
+        model.new_item(strict=False, name='item 5', url='www.googlex.coop', login='tnnfnc_user_PIPPOLOlog',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 4', url='www.googlex.coop', login='tnnfnc_user_',
+        model.new_item(strict=False, name='item 4', url='www.googlex.coop', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is  account description', tag='Web'),
-        model.new_item(name='item 6', url='www.googlex.coop', login='tnnfnc_user_',
+        model.new_item(strict=False, name='item 6', url='www.googlex.coop', login='tnnfnc_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Free'),
-        model.new_item(name='item 1', url='www.googlex.coop', login='_user_',
+        model.new_item(strict=False, name='item 1', url='www.googlex.coop', login='_user_',
                        email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov'),
-        model.new_item(name='item 8', url='www.googlex.coop', login='tnnfnc_user_', email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov')]
+        model.new_item(strict=False, name='item 8', url='www.googlex.coop', login='tnnfnc_user_', email='tnnfnc@gmaiail.coop', description='This is the account description', tag='Gov')]
     )
 
     to_compare = {'password': 'secret',
@@ -570,7 +412,6 @@ if __name__ == '__main__':
         {'elapsed': 80}
     ]
 
-    pi = ProgressItem(header=None, kwparams=to_progress[0])
 
     class TestingApp(App):
 
@@ -580,31 +421,11 @@ if __name__ == '__main__':
 
         def build(self):
             # Items
-            for item, progress in zip(items, to_progress):
-                w_item = self.widget.add(item_class=ItemComposite, **item)
-                # header=self, kwargs=kwargs
-                w_item.add(ProgressItem(
-                    sid='date', header=self.widget, kwparams=progress))
-                print(type(w_item))
 
             for item in items:
                 w_item = self.widget.add(item_class=ItemComposite, **item)
                 # Comparator
-            for k, v in to_compare.items():
-                self.widget.add(item_class=Comparison, key=k, name=k,
-                                last=v*8, former='old_%s' % (v)*18)
-            # To progress
-            for k in to_progress:
-                self.widget.add(item_class=ProgressItem, max='10',
-                                name=k['name'], date=k['date'])
-            # To progress
-            for k, w in zip(items, to_elapsed):
-                w_item = self.widget.add(item_class=ItemComposite, **k)
-                # header=self, kwargs=kwargs
-                w_item.add(WarningItem(
-                    sid='warning', header=self.widget, kwparams=w))
-                # i = self.widget.add(item_class=WarningItem, **k)
-
+            
             return self.widget
 
     cell_widths = {'name': 100,

@@ -6,7 +6,7 @@
 	orientation: 'vertical'
 	size_hint_y: None
 	height: dp(4)
-<NavButton@Button>:
+<NavButton@FocusBehavior+Button>:
     # id: _bt
     text: 'Button' 
     size_hint: None, None
@@ -61,7 +61,7 @@
 	size: (ui.field_bigger_x, ui.field_y) #field_size_long
 	disabled: True
 ## --------------------           
-<SmallButton@Button>:
+<SmallButton@FocusBehavior+Button>:
     # The small button fits the label size
     text: 'Small Button' 
     size_hint: None, None

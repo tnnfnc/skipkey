@@ -1,0 +1,42 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Fielda widget
+#---------------------------------------------------------
+<ChangeView>:
+	# Adapt its height to the max text's one
+	orientation: 'horizontal'
+	size_hint: 1, None
+	height: max(new.height, old.height)
+	canvas:
+		Color:
+			rgb: 0.5, 0.5, 0.5, 1
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: dp(.8)
+            joint: 'miter'
+
+	Label:
+		id: label
+		size_hint: None, 1
+		# halign: 'left'
+		valign: 'top'
+		width: dp(120)
+		text_size: self.size
+	Label:
+		id: new
+		halign: 'left'
+		valign: 'top'
+		# Rewrite this costraint
+		markup: True
+		text_size: (root.width - label.width)/2, None
+		size: self.texture_size
+
+	Label:
+		padding_x: dp(5)
+		id: old
+		halign: 'left'
+		valign: 'top'
+		markup: True
+		# Rewrite this costraint
+		text_size: (root.width - label.width)/2, None
+		size: self.texture_size

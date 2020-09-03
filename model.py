@@ -10,7 +10,7 @@ import base64
 import json
 import csv
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def new_item(strict=True, template={}, **args):
@@ -48,6 +48,44 @@ def new_item(strict=True, template={}, **args):
             elif not strict:
                 item[key] = str(args[key])
     return item
+
+
+def time_left(item, lifetime):
+    """Return the password validity time left from today, assuming a lifetime.
+    
+    If the password is still valid it returns a positive number, else it returns
+    the negative number of days from its expiration.
+    """
+    today = datetime.now()
+    try:
+        changed = None
+        if 'changed' in item:
+            changed = datetime.fromisoformat(item['changed'])
+        elif 'created' in item:
+            changed = datetime.fromisoformat(item['created'])
+        else:
+            return 0
+        expire_date = changed + timedelta(days=lifetime)
+        return (expire_date - today).days
+    except Exception:
+        pass
+    return 0
+
+
+def elapsed(item):
+    """Return elapsed days since password was set."""
+    today = datetime.now()
+    try:
+        changed = None
+        if 'changed' in item:
+            changed = datetime.fromisoformat(item['changed'])
+        elif 'created' in item:
+            changed = datetime.fromisoformat(item['created'])
+        else:
+            return 0
+        return (today - changed).days
+    except Exception:
+        return 0
 
 
 def add_index(key_list):
@@ -180,6 +218,11 @@ def state(item, key='name', action='', **kvargs):
     except KeyError:
         h = None
     return h
+    
+def state_object(state):
+    '''Return a memento item: a dictionary: 
+    '''
+    return state['body']
 
 
 def import_csv(file, delimiter='\t', lineterminator='\r\n', mapping=None):

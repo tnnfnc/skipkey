@@ -1,0 +1,37 @@
+#:kivy 1.11
+# MULTI ITEMS WIDGET
+#---------------------------------------------------------
+# ITEM LIST (box of full list height)
+#---------------------------------------------------------
+<ItemController>:
+	SelectableRecycleBoxLayout:
+		id: recycle_layout
+		default_size: None, dp(50)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        multiselect: False
+        touch_multiselect: False
+
+<ItemAdapter>:
+	spacing: dp(10)
+
+
+<SubItem>:
+	size_hint: None, 1
+	padding_x: dp(2)
+	# Adapt size to text
+	halign: 'left'
+	valign: 'center'
+	text_size: self.size 
+	#if self.texture_size[0] > self.width else self.text_size
+	canvas:
+		Color:
+			rgb: 0.5, 0.5, 0.5, 1
+        Line:
+            points: self.x, self.y, self.x + self.width, self.y 
+            width: 1.5
+
+
+
