@@ -7,11 +7,10 @@ def translate(domain='', localedir='', languages=['it']):
     try:
         lang = gettext.translation(
             domain, localedir=localedir, languages=languages)
-        lang.install()
     except FileNotFoundError as e:
         # print(f'No translation found: {e}')
         lang = gettext.NullTranslations(fp=None)
-        lang.install()
     finally:
+        lang.install()
         f = lang.gettext
     return f
