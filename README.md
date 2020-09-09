@@ -7,7 +7,7 @@ The design principles are:
 - a password for encrypting the file containing all user passwords,
 - a user 'casual code' (like a password) used internally to derive passwords automatically (if the password 'mode'preference is set to 'auto').
 
-BOTH *password* and *casual code* are needed and must be remembered by the user: the password is responsible of protecting the file, the casual code is responsible of password generating ('auto' mode) or encrypting ('user' mode).
+BOTH *password* and *casual `code`* are needed and must be remembered by the user: the password is responsible of protecting the file, the casual code is responsible of password generating ('auto' mode) or encrypting ('user' mode).
 To enhance security no checks was implemented on password or casual code input.
 
 The strenght of this program is fully exploited when user choses to have only generated passwords, anyway he/she can choose custom passwords for specific accounts.
@@ -73,13 +73,30 @@ In order to making skipkey available as an executable on Windows systems it is p
 Here you are my packaging hint with pyinstaller for avoiding hassles:
 
 Note:
-If you use [conda](https://www.anaconda.com/) environments or python virtual environments please install pyinstaller into the environment of the app you wanto to package.
-* Make a 'skipkey' directory in the environment you use for compiling the app by cloning the git repository.
-* Make a 'compiled' directory in the environment where you decided to have the compiled app.
-* Change your current directory to the 'compiled' and run this command (without line breaks!):
+If you use [conda](https://www.anaconda.com/) environments or python virtual environments please install pyinstaller into the environment of the app you want to package.
+* Make a <my_project> directory in the environment you use for compiling the app by cloning the git repository.
+* Make a <my_package> directory in the environment where you decided to have the compiled app.
+* Open a terminal and change the current directory to the <my_package> 
+* Activate your virtual environment
+* Run `pyinstaller` command from the **virtual environment** including the following options.
 	
+### Details
+Run the command without line breaks, enclosing values between quotation marks: " ", remember to substitute windows backslash `\` to slash `/` in the following.
 
-	C:\\...\\...\\compiled>..\Scripts\pyinstaller --name skipkey --noconsole --paths="..\skipkey" --add-data="..\skipkey\\\*.json;." --add-data="..\skipkey\locale\it\LC_MESSAGES\\\*;locale\it\LC_MESSAGES\\." --add-data="..\skipkey\data\icons\\\*;data\icons\." --add-data="..\skipkey\data\\\*.\*;data\\." --add-data="..\skipkey\kv\\\*.*;kv\\." --icon ..\skipkey\data\icons\skip_big.ico --hidden-import=win32timezone ..\skipkey\\skipkey.py
-
-
+Command/option | value | Result
+--- | --- | ---
+`../Scripts/pyinstaller` | `../<my_project>/main.py`
+--name | `<my app>`| app executable name
+--noconsole | launch app without a terminal
+--onedir | build the app into one dir
+--paths |`../<my_project>` | relative path to the project directory
+--add-data |`../<my_project>/*.json; . `| add the .json files
+--add-data |`../<my_project>/locale/<lang>/LC_MESSAGES/*; locale/<lang>/LC_MESSAGES/.` | add localizations files
+--add-data |`../<my_project>/data/icons/*; data/icons/.` | add icons
+--add-data |`../<my_project>/data/\*.*; data/.` | add other resources
+--add-data |`../<my_project>/kv/*;kv/.` | add .kv kivy lang files
+--add-data |`../<my_project>/*.kv;.` | add .kv kivy lang files
+--icon | `../<my_project>/data/icons/skip_big.ico`| add the icon to the .exe executable
+--hidden-import | `win32timezone` | add dll
+--hidden-import | `pkg_resources.py2_warn` | add python 2 adapter
 

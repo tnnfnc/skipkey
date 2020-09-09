@@ -97,6 +97,7 @@
 				id: _inp_search
 				pos_hint: {'center_y': 0.5}
 				hint_text: _('find')
+				size_hint_y: 1
 				on_text: 
 					if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')()
 				on_focus:
