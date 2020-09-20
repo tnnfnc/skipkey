@@ -1,44 +1,20 @@
 """SkipKey: a help to password management.
-    Conventions:
-        - Define kv field as _<prefix>_<name>, prefixes:
-            _inp_ : input text widget
-            _lab_ : label widgets
-            _spi_ : spinner widget
-            _out_ : output text widget
-            _wid_ : widget container
-            _btn_ : button widget
-            _swi_ : switch widget
-            _scr_ : scroll widget
-            _prb_ : progress bar widget
-
-        - Define kivy properties prefixes:
-            pr_<name> :
-            pr_<name>_wid : container widget property
-        - Field convention:
-            Fields are dictionary key - value, the input field in a .kv screen
-            is _inp_key, the kivy property is pr_key.
 """
-# import kivy_environment
-import threading
-import kivy
 import base64
 import json
 import re
 import os
 import sys
-from datetime import datetime
-#
+# Third parties modules
 import webbrowser as browser
+import kivy
 #
 from kivy.core.clipboard import Clipboard
-import kivy.metrics as metrix
 from kivy.metrics import dp
-from kivy.graphics import InstructionGroup, Rectangle, Color
-from kivy.factory import Factory
+from kivy.graphics import Rectangle, Color
 from kivy.properties import StringProperty
 from kivy.properties import ObjectProperty
 from kivy.lang.builder import Builder
-from kivy.uix.bubble import Bubble
 from kivy.uix.spinner import Spinner
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
@@ -46,10 +22,8 @@ from kivy.uix.bubble import BubbleButton
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
-from kivy.core.window import Window
 from kivy.app import App
 from kivy import utils
-from kivy.uix.behaviors.codenavigation import CodeNavigationBehavior
 from kivy.uix.behaviors.focus import FocusBehavior
 #
 from typewritethread import TypewriteThread
@@ -59,7 +33,6 @@ import password
 import model
 from localize import translate
 from uicontroller import GuiController
-import kvgraphics as kvgraphics
 from bubblemenu import BubbleDecorator, BubbleMenu
 from selectablelist import SelectableItemList, ItemComposite, Item
 from recyclelist import ItemAdapter, ItemController, SubItem
@@ -78,10 +51,13 @@ MICRO = 5
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
+# icons_dir = '%s\data\icons' % (current_dir)
+# locale_dir = '%s\locale' % (current_dir)
+# kivy_dir = '%s\kv' % (current_dir)
 current_dir = os.path.dirname(os.path.realpath(__file__))
-icons_dir = '%s\data\icons' % (current_dir)
-locale_dir = '%s\locale' % (current_dir)
-kivy_dir = '%s\kv' % (current_dir)
+icons_dir = os.path.join(current_dir, 'data', 'icons')
+locale_dir = os.path.join(current_dir, 'locale')
+kivy_dir = os.path.join(current_dir, 'kv')
 
 kivy.resources.resource_add_path(current_dir)
 
@@ -100,10 +76,6 @@ TAGS = ('...')  # Default for all tags
 _ = translate(domain='skipkey', localedir=locale_dir, languages=['it'])
 
 
-def dp(pix):
-    return metrix.dp(pix)
-
-
 def hh_mm_ss(seconds):
     """
     Converts seconds into hh:mm:ss padded with zeros.
@@ -118,17 +90,17 @@ def hh_mm_ss(seconds):
 # Import of local modules from import directive in .kv
 # files works only if module is in the app dir!!
 Builder.load_file('commons.kv')
-Builder.load_file('kv/dynamic.kv')
-Builder.load_file('kv/popup.kv')
-Builder.load_file('kv/widgets.kv')
-Builder.load_file('kv/popups.kv')
-Builder.load_file('kv/enter.kv')
-Builder.load_file('kv/list.kv')
-Builder.load_file('kv/edit.kv')
-Builder.load_file('kv/import.kv')
-Builder.load_file('kv/changes.kv')
-Builder.load_file('kv/percentprogressbar.kv')
-Builder.load_file('kv/changeview.kv')
+Builder.load_file(os.path.join('kv', 'dynamic.kv'))
+Builder.load_file(os.path.join('kv', 'popup.kv'))
+Builder.load_file(os.path.join('kv', 'widgets.kv'))
+Builder.load_file(os.path.join('kv', 'popups.kv'))
+Builder.load_file(os.path.join('kv', 'enter.kv'))
+Builder.load_file(os.path.join('kv', 'list.kv'))
+Builder.load_file(os.path.join('kv', 'edit.kv'))
+Builder.load_file(os.path.join('kv', 'import.kv'))
+Builder.load_file(os.path.join('kv', 'changes.kv'))
+Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
+Builder.load_file(os.path.join('kv', 'changeview.kv'))
 
 
 class MessagePopup(Popup):
@@ -143,13 +115,13 @@ class MessagePopup(Popup):
         text = utils.escape_markup(f'{text}')
         if type == 'e':
             text = ''.join(('[b][color=ff0000]', text, '[/color][/b]'))
-            self.pr_image.source = 'data/icons/bug.png'
+            self.pr_image.source = os.path.join('data', 'icons', 'bug.png')
         elif type == 'w':
             text = ''.join(('[b][color=ffff00]', text, '[/color][/b]'))
-            self.pr_image.source = 'data/icons/pen.png'
+            self.pr_image.source = os.path.join('data', 'icons', 'pen.png')
         elif type == 'i':
             text = ''.join(('[b][color=00ff00]', text, '[/color][/b]'))
-            self.pr_image.source = 'data/icons/ok.png'
+            self.pr_image.source = os.path.join('data', 'icons', 'ok.png')
         else:
             pass
 
@@ -171,7 +143,8 @@ class DecisionPopup(Popup):
         self.pr_message.text = text
         self.title = title
 
-    def show(self, title, text, fn_ok=None, fn_canc=None, ok_kwargs={}, canc_kwargs={}, **kwargs):
+    def show(self, title, text, fn_ok=None, fn_canc=None,
+             ok_kwargs={}, canc_kwargs={}, **kwargs):
         self.title = title
         self.pr_message.text = ''.join(
             ('[b]', utils.escape_markup(text), '[/b]'))
@@ -335,7 +308,7 @@ class ExportFile(SaveFilePopup):
         """
         if selection:
             if not os.path.dirname(selection):
-                selection = '%s\\%s' % (path, selection)
+                selection = os.path.join(path, selection)
             if not os.path.exists(selection):
                 self.do_save(selection)
             else:
@@ -385,7 +358,7 @@ class LoginPopup(FocusBehavior, Popup):
         Preconditions: enter decipher password and casual seed."""
         app = App.get_running_app()
         if self.pr_login_wid.pr_password.text and self.pr_seed_wid.pr_seed.text:
-            # Check login was successful (file opened) and check the key was set
+            # Check login successful (file opened) and check the key set
             if isinstance(self.file, list):
                 self.file = self.file[0]
             if not os.path.exists(self.file):
@@ -438,9 +411,9 @@ class LoginPopup(FocusBehavior, Popup):
 
 class CipherPopup(Popup):
     """
-    GUI element. Cipher file popup enable user to choose a password and a casual seed,
-    and an algorithm for encrypring the file and generating the casual secret key
-    from the seed.
+    GUI element. Cipher file popup enable user to choose a password and
+    a casual seed, and an algorithm for encrypring the file and generating
+    the casual secret key from the seed.
     """
     # Widget hooks
     pr_login_wid = ObjectProperty(None)
@@ -511,9 +484,10 @@ class CipherPopup(Popup):
                 # cryptod['algorithm'] = self.pr_cipher.text
                 # cryptod['pbkdf'] = self.pr_kderive.text
                 # cryptod['iterations'] = int(self.pr_iters.text)
-                params = cipherfachade.get_cryptografy_parameters(algorithm=self.pr_cipher.text,
-                                                                  pbkdf=self.pr_kderive.text,
-                                                                  iterations=int(self.pr_iters.text))
+                params = cipherfachade.get_cryptografy_parameters(
+                    algorithm=self.pr_cipher.text,
+                    pbkdf=self.pr_kderive.text,
+                    iterations=int(self.pr_iters.text))
 
                 p = bytes(self.pr_login_wid.pr_password.text, encoding='utf-8')
                 s = bytes(self.pr_seed_wid.pr_seed.text, encoding='utf-8')
@@ -634,9 +608,11 @@ class EditTagPopup(Popup):
             tag = ''
         # Add a new tag
         elif self.mode == 1 and self.value == '':
-            if model.contains(items=app.items, value=tag, key='tag', casefold=True):
-                message(
-                    tag, _('Action failed because: %s is already used.') % (tag), 'w')
+            if model.contains(items=app.items,
+                              value=tag, key='tag', casefold=True):
+                message(tag,
+                        ('Action failed because: %s is already used.') % (tag),
+                       'w')
                 return False
             # else:
             #     app.root.get_screen(EDIT).pr_tag.text = tag
@@ -772,12 +748,9 @@ class ListScreen(Screen):
                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
             pwd_lifetime = float(self.app.config.getdefault(
                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
-            today = datetime.now()
             data = []
-            date_keys = ['changed', 'created']  # Where to search for dates
             for i in self.app.items:
                 try:
-                    elapsed = model.elapsed(i)
                     if model.time_left(i, pwd_lifetime) <= pwd_warn:
                         data.append(i)
                 except Exception:
@@ -833,7 +806,7 @@ class ListScreen(Screen):
 
     def cmd_import(self):
         """Screen menu command."""
-        app = App.get_running_app()
+        # app = App.get_running_app()
         popup = ImportFile()
         popup.title = _('Import from a CSV file:')
         popup.open()
@@ -1093,10 +1066,6 @@ class EditScreen(FocusBehavior, Screen):
                 '"%s" exists. Choose another name') % (item['name']), type='e')
             return False
 
-        # if app.save_item(item):
-        #     self.manager.transition.direction = 'right'
-        #     self.manager.current = LIST
-#
         try:
             Clock.schedule_once(lambda dt: app.save_item(item=item), 0)
             self.manager.transition.direction = 'right'
@@ -1124,9 +1093,6 @@ class EditScreen(FocusBehavior, Screen):
             return False
         return True
 
-    # def cmd_selectiontag(self, spinner):
-    #     """Nothing to do here."""
-    #     return True
 
     def cmd_renametag(self, instance, spinner):
         """Rename the current tag and updates all items accordingly
@@ -1174,9 +1140,6 @@ class ImportScreen(Screen):
             'created': '',
             'changed': '',
         }
-        #  'color': '',
-    #     'history': ''
-    # }
 
         self.mapping_list = ImportScreen.MappingList()
         container = self.ids['_grid_container']
@@ -1205,8 +1168,8 @@ class ImportScreen(Screen):
     def cmd_import(self):
         """Import the '.csv' into current file. Once the mapping is applied,
         new accounts are formed and appended to the current list.
-        New records are normalized by adding calculated values in place of missing
-        information. Nevertheless errors may occurs."""
+        New records are normalized by adding calculated values in place of
+        missing information. Nevertheless errors may occurs."""
         app = App.get_running_app()
         try:
             mapping = {
@@ -1294,12 +1257,7 @@ class ChangesScreen(Screen):
                               old=old[key])
 
             self.pr_changed_item_list_wid.add(view)
-            # data.append({'key': SkipKeyApp.LABELS[key], 'new': new[key], 'old': old[key]})
-            # self.pr_changed_item_list_wid.add(item_class=ChangeView,
-            #                                   key=key, label=SkipKeyApp.LABELS.get(
-            #                                       key, key),
-            #                                   new=new[key],
-            #                                   old=old[key])
+
 
     def on_enter(self):
         """Screen initialization."""
@@ -1381,7 +1339,7 @@ class LoginPanel(BoxLayout):
 class UserPanel(BoxLayout):
     """
     GUI element. Panel for changing password.
-    It is used by LoginPopup, CipherPopup. 
+    It is used by LoginPopup, CipherPopup.
     """
     # Widget hooks
     pr_password = ObjectProperty(None)
@@ -1396,7 +1354,7 @@ class UserPanel(BoxLayout):
 
     def cmd_text(self, text):
         """
-        Callback for TextInput on_text event. 
+        Callback for TextInput on_text event.
         """
         self.pr_strenght.set_strength(text)
 
@@ -1432,7 +1390,7 @@ class SeedPanel(BoxLayout):
 
     def cmd_text(self, text):
         """
-        Callback for TextInput on_text event. 
+        Callback for TextInput on_text event.
         """
         self.pr_strenght.set_strength(text)
 
@@ -1531,7 +1489,7 @@ class PercentProgressBar(BoxLayout):
     Parameters:
         percentage: the percentage.
     """
-
+    id = StringProperty('')
     def __init__(self, **kwargs):
         super(PercentProgressBar, self).__init__(**kwargs)
 
@@ -1576,7 +1534,7 @@ class AccountItemList(BubbleDecorator):
         self.add_widget(self.controller)
         # Add the bubble menu
         self.add_bubble(ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
-                                 background_image='data/background.png'))
+                                 background_image=os.path.join('data', 'background.png')))
 
         # self.container = BubbleDecorator()
         # self.controller = ItemController()
@@ -1597,16 +1555,6 @@ class AccountItemList(BubbleDecorator):
     def layout_manager(self):
         """Return the RecycleView selectable layout."""
         return self.controller.layout_manager
-
-    # @property
-    # def bubble_decorator(self):
-    #     """Return the menu decorator."""
-    #     return self
-
-
-# class ChangeView(BoxLayout):
-#     def __init__(self, **kwargs):
-#         super(ChangeView, self).__init__(**kwargs)
 
 
 class ChangeView(Item):
@@ -1652,18 +1600,6 @@ class ChangeView(Item):
 
     def compare(self, *args):
         pass
-        # label = self.kwparams.get('label', '-')
-        # new = self.kwparams.get('new', '-')
-        # old = self.kwparams.get('old', '-')
-        # new = new if new else ' '
-        # old = old if old else ' '
-        # if new != old:
-        #     new = '[color=ff3333]%s[/color]' % (new)
-        #     old = '[color=33FF33]%s[/color]' % (old)
-
-        # self.ids.label.text = label
-        # self.ids.new.text = new
-        # self.ids.old.text = old
 
 
 class ChangedItemList(SelectableItemList):
@@ -1683,10 +1619,10 @@ class ItemMenu(BubbleMenu):
     -------------
         Menu options:
 
-    - Get the account url. 
-    - Get the account user. 
-    - Get the account password. 
-    - Get the account login: 'user' [tab] 'password'. 
+    - Get the account url.
+    - Get the account user.
+    - Get the account password.
+    - Get the account login: 'user' [tab] 'password'.
     - Edit the account item: leave the screen and enter 'EditScreen'.
     """
 
@@ -1710,7 +1646,7 @@ class ItemMenu(BubbleMenu):
         url = item['url']
         try:
             browser.open(url, new=0, autoraise=True)
-        except Exception as e:
+        except Exception:
             self._publish(app, url)
 
         return True
@@ -1781,11 +1717,9 @@ class ItemMenu(BubbleMenu):
             # app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
         return True
 
-    # def cb_clean(self, dt):
-    #     Clipboard.copy(' ')
     def cmd_edit(self, *args):
         """
-        Edit the account item. 
+        Edit the account item.
         Leave the screen and enter 'EditScreen'.
         """
         app = App.get_running_app()
@@ -1868,7 +1802,7 @@ class SkipKeyApp(App, model.SkipKey):
     def build(self):
         self.title = 'SkipKey %s' % (__version__)
         # path = os.path.dirname(os.path.realpath(__file__))
-        self.icon = '%s\\%s' % (icons_dir, ICON)
+        self.icon = os.path.join(icons_dir, ICON)
         # ----------------> App configuration
         sm = ScreenManager()
         self.root = sm
@@ -1890,7 +1824,8 @@ class SkipKeyApp(App, model.SkipKey):
         """
         # JSON template is needed ONLY to create the panel
         path = os.path.dirname(os.path.realpath(__file__))
-        with open(f'{path}\settings.json') as f:
+        # with open(f'{path}\settings.json') as f:
+        with open(os.path.join(path, 'settings.json')) as f:
             s = json.dumps(eval(f.read()))
         settings.add_json_panel(SkipKeyApp.SETTINGS, self.config, data=s)
 
@@ -1913,8 +1848,9 @@ class SkipKeyApp(App, model.SkipKey):
     # App
     def on_start(self):
         """
-        Event handler for the on_start event which is fired after initialization
-        (after build() has been called) but before the application has started running."""
+        Event handler for the on_start event which is fired after
+        initialization (after build() has been called) but before
+        the application has started running."""
         # Init screens:
         return super().on_start()
 
@@ -1922,21 +1858,24 @@ class SkipKeyApp(App, model.SkipKey):
     def on_pause(self):
         """
         Event handler called when Pause mode is requested. You should return
-        True if your app can go into Pause mode, otherwise return False and your
-        application will be stopped."""
+        True if your app can go into Pause mode, otherwise return False and
+        your application will be stopped."""
         return super().on_pause()
 
     # App
     def on_resume(self):
         """
-        Event handler called when your application is resuming from the Pause mode."""
+        Event handler called when your application is resuming from the
+        Pause mode."""
         return super().on_resume()
 
     # App
     def on_stop(self):
         """
-        Event handler for the on_stop event which is fired when the application
-        has finished running (i.e. the window is about to be closed)."""
+        Event handler for the on_stop event which is fired when the
+        application has finished running (i.e. the window is about
+        to be closed).
+        """
         self.save(file=self.file)
         return super().on_stop()
 

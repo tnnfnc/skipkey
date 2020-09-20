@@ -16,21 +16,21 @@ there are these subclasses of `Item`:
 SkipKey: a help to password management
 """
 # from progresslist import ProgressItem
-from datetime import datetime, timedelta
+# from datetime import datetime, timedelta
 import kivy
 from kivy.app import App
 from kivy.lang.builder import Builder
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.floatlayout import FloatLayout
+# from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.behaviors.compoundselection import CompoundSelectionBehavior
-from kivy.properties import ObjectProperty
-from kivy.properties import StringProperty
-from kivy.properties import DictProperty
+# from kivy.properties import ObjectProperty
+# from kivy.properties import StringProperty
+# from kivy.properties import DictProperty
 from kivy.graphics import Color
-from kivy.graphics import Line
+# from kivy.graphics import Line
 from kivy.graphics import Rectangle
 from kivy.graphics import InstructionGroup
 from kivy.metrics import dp
@@ -41,17 +41,17 @@ Builder.load_string(
 <Item>:
 
 <ItemPart>:
-	size_hint: None, 1
-	# padding_x: dp(2)
-	# Adapt size to text
-	halign: 'left'
-	valign: 'center'
-	text_size: self.size 
-	canvas:
-		Color:
-			rgb: 0.5, 0.5, 0.5, 1
+    size_hint: None, 1
+    # padding_x: dp(2)
+    # Adapt size to text
+    halign: 'left'
+    valign: 'center'
+    text_size: self.size
+    canvas:
+        Color:
+            rgb: 0.5, 0.5, 0.5, 1
         Line:
-            points: self.x, self.y, self.x + self.width, self.y 
+            points: self.x, self.y, self.x + self.width, self.y
             width: 1.2
     """)
 
@@ -161,16 +161,18 @@ class SelectableItemList(CompoundSelectionBehavior, BoxLayout):
 
 
 class Item(GridLayout):
-    """Item is the base class implementing an item for the 'SelectableItemList'.
+    """Item is the base class implementing an item
+    for the 'SelectableItemList'.
 
-    Extend this class for adding your widget to the Selectable Item List.
+    Extend this class for adding your widget to the
+    Selectable Item List.
 
     --------------------
 
     Properties:
 
-    - data: a dictionary of key - value pairs from kwargs or implemented in
-    the subclasses.
+    - data: a dictionary of key - value pairs from
+    kwargs or implemented in the subclasses.
     - index: the position of the item in the SelectableItemList
     """
     _list_index = None
@@ -205,7 +207,8 @@ class Item(GridLayout):
         self._list_index = index
 
     def on_touch_down(self, touch):
-        '''On touch down it emphasizes the item according to the solection mode.
+        '''On touch down it emphasizes the item according
+        to the solection mode.
         The touch event is consumed.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
@@ -267,7 +270,8 @@ class ItemComposite(Item):
 
         ----------------
         The widget will be added also to the dictionary
-        data with the corresponding key. Existing keys are overwritten."""
+        data with the corresponding key. Existing keys are overwritten.
+        """
         if self.header:
             part.width = float(self.header.get(key, None))
             # Adapt text to the available width
@@ -291,7 +295,8 @@ class ItemPart(Label):
         self.padding_x = dp(4)
 
     def on_touch_down(self, touch):
-        '''On touch down it emphasizes the item according to the solection mode.
+        '''On touch down it emphasizes the item according
+        to the solection mode.
         The touch event is consumed.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):

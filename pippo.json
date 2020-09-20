@@ -1,0 +1,1 @@
+{"algorithm": "AES", "mode": "CBC", "keysize": 256, "pbkdf": "PBKDF2HMAC", "hash": "SHA256", "length": 32, "iterations": 100000, "salt": "T/i9dByd6uvDFl2A56j0GZ1bbkagYs9aKxEPVY0rzN0=", "iv": "Ulks/zwGry5TxbdmqTrdbw==", "ciphervalue": "mADzFdLVNxvfEE1JrsswUq/2NlYsorY94oHqN9Kt0Qc="}

@@ -5,7 +5,8 @@ from pynput import mouse
 import time
 
 '''Start a daemon responsible for pasting login and password from the
-        clipboard to the input fields when user press double click in the user field'''
+clipboard to the input fields when user press double click in the user field
+'''
 # Listen to mouse event
 # Access the clipboard or a memory area where login and password are stored
 #
@@ -50,5 +51,6 @@ if __name__ == '__main__':
     data = 'user\tpassword'
     daemon = TypewriteThread(text=data, timeout=10)
     daemon.start()
-    daemon.join() # The Main thread wait for daemon stop before process further
+    # The Main thread wait for daemon stop before process further
+    daemon.join()
     print('All done!')

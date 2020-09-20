@@ -5,7 +5,7 @@ from kivy.metrics import dp
 page_h = dp(800)
 page_w = dp(428)
 
-## SCREEN & BOX
+# SCREEN & BOX
 screen_padding = (dp(2), dp(2), dp(2), dp(2))
 box_padding = (dp(2), dp(2), dp(2), dp(2))
 

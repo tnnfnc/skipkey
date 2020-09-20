@@ -19,7 +19,7 @@ def _(x):
 
 
 def init_symbols():
-    """Return a tuple of symbols characters from exadecimal 
+    """Return a tuple of symbols characters from exadecimal
     ranges [0x21-0x2f], [0x3a-0x40], [0x5b-0x5f]."""
     symbols = []
     # Symbols
@@ -34,7 +34,7 @@ def init_symbols():
 
 # Digit
 def init_numbers():
-    """Return a tuple of numbers digit from exadecimal 
+    """Return a tuple of numbers digit from exadecimal
     ranges [0x30-0x39]."""
     numbers = []
     for hex in range(int('30', base=16), int('3a', base=16)):
@@ -44,8 +44,8 @@ def init_numbers():
 
 # Upper
 def init_letters():
-    """Return a tuple of lowercase and uppercase letters from exadecimal 
-    ranges [0x41-0x5a], [0x61-0x7a]."""
+    """Return a tuple of lowercase and uppercase letters
+    from exadecimal ranges [0x41-0x5a], [0x61-0x7a]."""
     letters = []
     for hex in range(int('41', base=16), int('5b', base=16)):
         letters.append(chr(hex))
@@ -108,7 +108,7 @@ def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
     **args : Key-value pairs for custom further infos
 
     -------
-        Return 
+        Return
     a dictionary with the predefined keys.
     """
     # template = {
@@ -137,12 +137,17 @@ def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
 def cipher_algorithms():
     '''Advanced Encryption Standard is a block cipher standardized by NIST;
     it is fast and cryptographically strong. Camellia is a block cipher
-    approved for use by CRYPTREC and ISO/IEC. It is considered to have comparable
-    security and performance to AES but is not as widely studied or deployed. CAST5
-    (also known as CAST-128) is a block cipher approved for use in the Canadian
-    government by the Communications Security Establishment. SEED is a block cipher
-    developed by the Korea Information Security Agency (KISA). It is defined in RFC
-    4269 and is used broadly throughout South Korean industry.'''
+    approved for use by CRYPTREC and ISO/IEC. It is considered to have
+    comparable security and performance to AES but is not as widely studied
+    or deployed.
+
+    CAST5 (also known as CAST-128) is a block cipher approved for use in
+    the Canadian government by the Communications Security Establishment.
+
+    SEED is a block cipher developed by the Korea Information Security
+    Agency (KISA).
+    It is defined in RFC 4269 and is used broadly throughout South Korean
+    industry.'''
     return {'AES': _('Advanced Encryption Standard'),
             'Camellia': _('Camellia is a block cipher approved for use by CRYPTREC and ISO/IEC.'),
             'CAST5': _('CAST5 (also known as CAST-128) is a block cipher approved for use in the Canadian government.'),
@@ -201,17 +206,18 @@ class Pattern():
         return self._length
 
     def check(self, text):
-        """Check the text contains at least as many allowed textual symbols as set."""
-        l = s = n = 0
+        """Check the text contains at least as many allowed
+        textual symbols as set."""
+        lt = s = n = 0
         result = False
         for g in text:
-            if g in LETTERS and l < self.letters:
-                l += 1
+            if g in LETTERS and lt < self.letters:
+                lt += 1
             if g in NUMBERS and n < self.numbers:
                 n += 1
             if g in SYMBOLS and s < self.symbols:
                 s += 1
-            if n == self.numbers and s == self.symbols and l == self.letters:
+            if n == self.numbers and s == self.symbols and lt == self.letters:
                 result = True
                 break
         return result
@@ -308,7 +314,8 @@ class CipherFachade():
             raise ValueError('Encrypting failure!') from ve
 
     def decrypt(self, cryptod, secret):
-        '''Decrypt the content from crypto-dictionary format to python plain object'''
+        '''Decrypt the content from crypto-dictionary format
+        to python plain object'''
         try:
             # From json to python crypto dict
             data = base64.b64decode(
@@ -336,7 +343,8 @@ class CipherFachade():
         return data
 
     def key_derivation_function(self, cryptod, info=None):
-        '''Return a KeyDerivationFunction from crypto-dictionary specifications.'''
+        '''Return a KeyDerivationFunction from crypto-dictionary
+        specifications.'''
         pbkdf = None
         try:
             if cryptod['pbkdf']:
@@ -367,7 +375,9 @@ class CipherFachade():
             raise ValueError('Invalid argument!')
 
     def secret(self, key, iterations, pattern):
-        '''Return a readable password generated from a secret key and a pattern.
+        '''Return a readable password generated from a secret
+        key and a pattern.
+
         A password of n characters requires a length of (n - 1) bytes.
 
         Parameters:
@@ -377,7 +387,7 @@ class CipherFachade():
         Return:
 
             password, salt
-            '''
+        '''
 
         pwd = ''
         while not pattern.check(pwd):

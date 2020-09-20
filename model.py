@@ -202,9 +202,9 @@ def iterator(items, key, value):
 
 
 def state(item, key='name', action='', **kvargs):
-    '''Return a memento item: a dictionary: 
+    '''Return a memento item: a dictionary:
     - name: the item key
-    - timestamp: date and time 
+    - timestamp: date and time
     - action: the user action
     - body: the python object.'''
     try:
@@ -218,9 +218,10 @@ def state(item, key='name', action='', **kvargs):
     except KeyError:
         h = None
     return h
-    
+
+
 def state_object(state):
-    '''Return a memento item: a dictionary: 
+    '''Return a memento item: a dictionary:
     '''
     return state['body']
 
@@ -362,7 +363,7 @@ class SkipKey():
         Add a new item or update an existing one.
 
         The item identifier is its name, so it is not possible to have
-        more than one item with the same name. 
+        more than one item with the same name.
         The changed date is updated only if password was changed.
         """
         add_index(self.search_fields)(item)
@@ -501,11 +502,17 @@ class SkipKey():
         Show a generated password and its strenght.
 
             Parameters
-        - item : the item.
+
+            item : the item.
+
         ----------
-            Returns     
+
+            Returns
+
         - password
+
         -------
+        
         Exception :
             Raises Exceptions
         """

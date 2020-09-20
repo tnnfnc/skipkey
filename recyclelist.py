@@ -1,19 +1,19 @@
-from kivy.factory import Factory
-from kivy.app import App
+# from kivy.factory import Factory
+# from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.label import Label
-from kivy.properties import BooleanProperty
-from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import BooleanProperty, StringProperty
+# from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.floatlayout import FloatLayout
+# from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color
-from kivy.graphics import Line
+# from kivy.graphics import Line
 from kivy.graphics import Rectangle
 from kivy.metrics import dp
 
@@ -21,20 +21,20 @@ from kivy.metrics import dp
 Builder.load_string(
     """
 <ItemController>:
-	SelectableRecycleBoxLayout:
+    SelectableRecycleBoxLayout:
 
 <SubItem>:
-	size_hint: None, 1
-	padding_x: dp(2)
-	# Adapt size to text
-	halign: 'left'
-	valign: 'center'
-	text_size: self.size 
-	canvas:
-		Color:
-			rgb: 0.5, 0.5, 0.5, 1
+    size_hint: None, 1
+    padding_x: dp(2)
+    # Adapt size to text
+    halign: 'left'
+    valign: 'center'
+    text_size: self.size
+    canvas:
+        Color:
+            rgb: 0.5, 0.5, 0.5, 1
         Line:
-            points: self.x, self.y, self.x + self.width, self.y 
+            points: self.x, self.y, self.x + self.width, self.y
             width: 1.5
 """
 )
@@ -115,8 +115,8 @@ class ItemAdapter(RecycleDataViewBehavior, GridLayout):
     """MVC Viev adapter.
 
     --------------
-    Extends this class and implement refresh_view_attrs(self, rv, index, data) for
-    updating data from the model.
+    Extends this class and implement refresh_view_attrs(self, rv, index, data)
+    for updating data from the model.
     """
     index = None
     selected = BooleanProperty(False)
@@ -133,14 +133,16 @@ class ItemAdapter(RecycleDataViewBehavior, GridLayout):
         return super().refresh_view_attrs(rv, index, data)
 
     def on_touch_down(self, touch):
-        '''On touch down it emphasizes the item according to the selection mode.
+        '''On touch down it emphasizes the item according
+        to the selection mode.
         The touch event is consumed.
 
         Send the event to the SelectionManager, that calls deselect_node() 
         on selected nodes and select_node() on node under selection.'''
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
-                # Send the event to the SelectionManager, it calls deselect_node()
+                # Send the event to the SelectionManager,
+                # it calls deselect_node()
                 # on selected and select_node() on new selected node
                 if self.selected:
                     self.parent.deselect_node(self)
@@ -162,6 +164,7 @@ class ItemAdapter(RecycleDataViewBehavior, GridLayout):
 
 class SubItem(Label):
     """Part of ItemAdapter"""
-
-    def __init__(self, *args, **kwargs):
+    id = StringProperty('')
+    
+    def __init__(self, **kwargs):
         super(SubItem, self).__init__(**kwargs)

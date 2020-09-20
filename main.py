@@ -1,11 +1,11 @@
 from skipkey import SkipKeyApp
 
 search_fields = ('name',
-                    'tag',
-                    'description',
-                    'login',
-                    'url',
-                    'email')
+                 'tag',
+                 'description',
+                 'login',
+                 'url',
+                 'email')
 
 item_template = {
     'name': '',  # new name

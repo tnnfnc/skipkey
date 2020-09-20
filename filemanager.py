@@ -9,7 +9,7 @@ import os
 kivy.require('1.11.0')  # Current kivy version
 
 
-Builder.load_file('kv/filemanager.kv')
+Builder.load_file(os.path.join('kv', 'filemanager.kv'))
 
 
 class OpenFilePopup(Popup):

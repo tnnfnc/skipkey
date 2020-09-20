@@ -3,11 +3,11 @@ import gettext
 
 # Translations
 def translate(domain='', localedir='', languages=['it']):
-    def f(x): return x
+    # def f(x): return x
     try:
         lang = gettext.translation(
             domain, localedir=localedir, languages=languages)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         # print(f'No translation found: {e}')
         lang = gettext.NullTranslations(fp=None)
     finally:
