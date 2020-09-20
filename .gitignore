@@ -132,4 +132,5 @@ test/
 # buildozer (packager for Android)
 .buildozer/
 .buildozer
-.bin/
+bin/
+compile_log*.*
