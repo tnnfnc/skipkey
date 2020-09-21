@@ -2,11 +2,12 @@
 #---------------------------------------------------------
 # Import screen
 #---------------------------------------------------------
+<MappingList>:
+
 <ImportScreen>:
     # Kivy Properties
 	
 	BoxLayout:
-		id: _grid_container
 		orientation: 'vertical'
 		#--------------------------------- Main buttons
 		ActionBar:
@@ -42,6 +43,11 @@
 			size_hint: 1, None
 			height: self.texture_size[1]
 			text: _('Mapping the app keys to the imported file keys or leave blank to skip')
+
+		ScrollView:
+			MappingList:
+				id: _mapping_list
+
 
 
 						

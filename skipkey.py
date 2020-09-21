@@ -21,6 +21,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.app import App
 from kivy import utils
@@ -33,8 +34,9 @@ import password
 import model
 from localize import translate
 from uicontroller import GuiController
-from bubblemenu import BubbleDecorator, BubbleMenu
-from selectablelist import SelectableItemList, ItemComposite, Item
+from bubblemenu import BubbleMenu, Menu
+# from selectablelist import SelectableItemList, ItemComposite, Item
+from mlist import SelectableList, Item, ItemComposite, OneTextLine
 from recyclelist import ItemAdapter, ItemController, SubItem
 #
 dummy = os.path.dirname(os.path.realpath(__file__))
@@ -1113,16 +1115,15 @@ class EditScreen(FocusBehavior, Screen):
         popup.title = ': '.join((instance.text, ))
         popup.openAdd(value='')
 
+class MappingList(SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(MappingList, self).__init__(**kwargs)
 
 class ImportScreen(Screen):
     """
     GUI element. Screen enabling the import of a '.csv' password file
     into the current one."""
     # pr_mapping = ObjectProperty(None)
-
-    class MappingList(SelectableItemList):
-        def __init__(self, *args, **kwargs):
-            super(ImportScreen.MappingList, self).__init__(**kwargs)
 
     def __init__(self, **kwargs):
         super(ImportScreen, self).__init__(**kwargs)
@@ -1141,21 +1142,18 @@ class ImportScreen(Screen):
             'changed': '',
         }
 
-        self.mapping_list = ImportScreen.MappingList()
-        container = self.ids['_grid_container']
-        container.add_widget(self.mapping_list)
+        self.mapping_list = self.ids['_mapping_list']
 
     def on_enter(self, **kwargs):
         """Load a template for mapping the column headers of the input
         file to the headers of the current file."""
         super(ImportScreen, self).on_enter(**kwargs)
-        text = ',\n'.join(
-            [f"('{i}', '{j}')" for i, j in self.mapping.items()])
         if not self.initialized:
             for k, v in self.mapping.items():
-                item = ItemComposite(target=k)
-                item.add('source', TextInput(
-                    text=v, size_hint=(None, 1), width=dp(160)))
+                # item = ItemComposite(items={'target': k})
+                item = ItemComposite()
+                item.add('target', Label(text=k, size_hint=(0.5, 1.0)))
+                item.add('source', TextInput(text=v, size_hint=(0.5, 1.0)))
                 self.mapping_list.add(item)
             self.initialized = True
 
@@ -1220,7 +1218,7 @@ class ChangesScreen(Screen):
     At present, once the program is closed changes history is lost."""
     # Widget hooks
     pr_actions = ObjectProperty(None)
-    pr_changed_item_list_wid = ObjectProperty(None)
+    changed_item_list = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ChangesScreen, self).__init__(**kwargs)
@@ -1237,7 +1235,7 @@ class ChangesScreen(Screen):
         - history: list of changes. 
         """
         # Doesn't work with deleted records
-        self.pr_changed_item_list_wid.clear()
+        self.changed_item_list.clear()
 
         try:
             old = model.state_object(
@@ -1252,11 +1250,11 @@ class ChangesScreen(Screen):
             new = old
 
         for key, value in old.items():
-            view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(key, key),
-                              new=new[key],
-                              old=old[key])
-
-            self.pr_changed_item_list_wid.add(view)
+            if key in SkipKeyApp.LABELS:
+                view = ChangeView(key=key, new=new[key], old=value)
+                self.changed_item_list.add(OneTextLine(bold=True, padding_y=dp(5),
+                                                    text=SkipKeyApp.LABELS.get(key, key)+':'))
+                self.changed_item_list.add(view)
 
 
     def on_enter(self):
@@ -1521,7 +1519,7 @@ class AccountAdapter(ItemAdapter):
         self.data['elapsed'].ids.progressbar.value = elapsed
 
 
-class AccountItemList(BubbleDecorator):
+class AccountItemList(BubbleMenu):
     """
     GUI element. Accounts list container.
     The list is managed in EditScreen.
@@ -1536,15 +1534,6 @@ class AccountItemList(BubbleDecorator):
         self.add_bubble(ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
                                  background_image=os.path.join('data', 'background.png')))
 
-        # self.container = BubbleDecorator()
-        # self.controller = ItemController()
-        # self.controller.viewclass = 'AccountAdapter'
-        # self.container.add_widget(self.controller)
-        # self.add_widget(self.container)
-        # # Add the bubble menu
-        # self.container.add_bubble(
-        #     ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
-        #              background_image='data/background.png'))
 
     @property
     def data_model(self):
@@ -1572,7 +1561,7 @@ class ChangeView(Item):
     def __init__(self, **kwargs):
         super(ChangeView, self).__init__()
         self.rect = Rectangle(size=self.size, pos=self.pos)
-        label = kwargs.get('label', '-')
+        # label = kwargs.get('label', '-')
         new = kwargs.get('new', '-')
         old = kwargs.get('old', '-')
         new = new if new else ' '
@@ -1580,7 +1569,7 @@ class ChangeView(Item):
         if new != old:
             new = '[b][color=C63333]%s[/color][/b]' % (new)
             old = '[b][color=339B33]%s[/color][/b]' % (old)
-            self.ids.label.color = (0, 0, 0, 1)
+            # self.ids.label.color = (0, 0, 0, 1)
             with self.canvas.before:
                 Color(0.9, 0.9, 0.9, 1)
                 self.rect = Rectangle(size=self.size,
@@ -1589,7 +1578,7 @@ class ChangeView(Item):
         # listen to size and position changes
         self.bind(pos=self.update_rect, size=self.update_rect)
 
-        self.ids.label.text = label
+        # self.ids.label.text = label
         self.ids.new.text = new
         self.ids.old.text = old
         self.compare()
@@ -1602,7 +1591,7 @@ class ChangeView(Item):
         pass
 
 
-class ChangedItemList(SelectableItemList):
+class ChangedItemList(SelectableList):
     """
     GUI element. Container of changed account items.
     The list is managed in ChangesScreen.
@@ -1612,7 +1601,7 @@ class ChangedItemList(SelectableItemList):
         super(ChangedItemList, self).__init__(**kwargs)
 
 
-class ItemMenu(BubbleMenu):
+class ItemMenu(Menu):
     """
     GUI element. Bubble context menu for a selected account item.
 
@@ -1768,7 +1757,7 @@ class SkipKeyApp(App, model.SkipKey):
         'email': _('e-mail'),  # @-mail
         'description': _('Free text'),  # Any string
         'tag': _('Tag'),  # Any string
-        'color': _('Color'),  # Basic colors as string
+        #'color': _('Color'),  # Basic colors as string
         'created': _('Created'),  # Date
         'changed': _('Changed'),  # Date
         'auto': _('Auto'),  # True, False=user
@@ -1778,7 +1767,7 @@ class SkipKeyApp(App, model.SkipKey):
         'symbols': _('Symbols'),  # At least [0 length]
         # User encrypted password or salt Base64 encoded
         'password': _('Cipher Data'),
-        'history': ''  # Record history - not yet managed
+        #'history': ''  # Record history - not yet managed
     }
 
     pr_timer = StringProperty('')

@@ -5,8 +5,11 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.metrics import dp
-from recyclelist import *
-from bubblemenu import *
+#
+from recyclelist import ItemAdapter, SubItem, ItemController
+from bubblemenu import BubbleMenu, Menu
+
+
 
 manager = """
 <Manager>:
@@ -52,7 +55,7 @@ class Row(ItemAdapter):
         return super().refresh_view_attrs(rv, index, data)
 
 
-class BubbleList(BubbleDecorator, BoxLayout):
+class BubbleList(BubbleMenu, BoxLayout):
     def __init__(self, **kwargs):
         super(BubbleList, self).__init__(**kwargs)
         self.add_widget(ItemController())
@@ -75,7 +78,7 @@ class Manager(BoxLayout):
     def __init__(self, **kwargs):
         super(Manager, self).__init__(**kwargs)
 
-        self.container = BubbleDecorator()
+        self.container = BubbleMenu()
         self.controller = ItemController()
         self.controller.viewclass = 'Row'
         self.container.add_widget(self.controller)
@@ -103,7 +106,7 @@ class TestApp(App):
     def build(self):
         m = Manager()
         # m = BubbleList()
-        bubble = BubbleMenu(size=(dp(300), dp(50)), size_hint=(None, None))
+        bubble = Menu(size=(dp(300), dp(50)), size_hint=(None, None))
         m.container.add_bubble(bubble)
         return m
 

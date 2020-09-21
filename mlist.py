@@ -1,23 +1,16 @@
 """
-SelectableItemList
+SelectableList
 ========
 
-The :class: `SelectableItemList` implements a container for widget_list, like a list.
-The :class: `Item` is the basic item widget for the list: at present
-there are these subclasses of `Item`:
+The :class: `SelectableList` implements a container a list of widget.
+The :class: `Item` is the basic item widget for the list.
 
-    -:class: `ItemComposite` that provides an in-line `ItemPart` structure,
-    -:class: `Comparison` that provides a comparison between an 'old' vs  a 'new'
-        object, emphasizing changes of the tho contents,
-    -:class: `ProgressItem` that provides a way to represent the
-        new changed date with respect to a deadline date.
-
-
-SkipKey: a help to password management
+    -:class: `ItemComposite` provides an in-line `ItemPart` structure,
 """
 import kivy
 from kivy.app import App
 from kivy.lang.builder import Builder
+from kivy.properties import DictProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
@@ -32,6 +25,17 @@ kivy.require('1.11.0')
 
 Builder.load_string(
 """
+<SelectableList>:
+    orientation: 'vertical'
+    spacing: (dp(10), dp(10))
+    size_hint_y: None
+    height: self.minimum_height
+
+
+<ItemComposite>:
+    spacing: (dp(10), dp(10))
+    height: dp(40)
+
 <Item>:
 
 <ItemPart>:
@@ -46,8 +50,14 @@ Builder.load_string(
         Line:
             points: self.x, self.y, self.x + self.width, self.y
             width: 1.2
-""")
 
+<OneTextLine>:
+    size_hint: None, None
+    halign: 'left'
+    valign: 'top'
+    # Adapt size to text
+    size: self.texture_size    
+""")
 
 def selection(widget, select=False):
     """Emphasizes the widget adding a clear transparent background.
@@ -70,88 +80,65 @@ def selection(widget, select=False):
             pass  # Nothing to do here!
 
 
-class SelectableItemList(CompoundSelectionBehavior, BoxLayout):
+class SelectableList(CompoundSelectionBehavior, BoxLayout):
     """
     The widget works as a container for a list of widget_list.
     """
 
     def __init__(self, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
-        super(SelectableItemList, self).__init__(**kwargs)
-        self.container = BoxLayout(orientation='vertical', size_hint_y=None)
-        self.container.bind(minimum_height=self.container.setter('height'))
-        #
-        scroll_view = ScrollView()
-        scroll_view.add_widget(self.container)
-        self.add_widget(scroll_view)
+        super(SelectableList, self).__init__(**kwargs)
+
 
     @property
-    def row_count(self):
-        """
-        Property:
-
-        ---------
-        Number of widget in the list.
-        """
-        return len(self.container.children)
-
-    @property
-    def widget_list(self):
+    def widgets(self):
         """
         Property:
 
         ---------
         List of widgets.
         """
-        return self.container.children
+        return self.children
 
-    def add(self, item, **kwargs):
+    def add(self, item):
+        """Add items to the list.
+
+        Args:
+            item ([type]): [description]
+
+        Returns:
+            [type]: [description]
         """
-        Add a widget to the list.
-
-        ----------
-        Parameters:
-
-            item: the widget.
-
-        -------
-        Return:
-
-            The number of list elements
-        """
+        self.height += item.height
         item.selection_behavior = self
-        self.container.add_widget(item)
-        item.set_index(len(self.container.children) - 1)
-        self.container.height += item.height
-        self.height = self.container.height
-        return len(self.container.children)
+        item.index = (len(self.children) - 1)
+        self.add_widget(item)
 
     def remove(self, item):
-        '''Remove the item from the 'SelectableItemList'.'''
-        return self.container.remove_widget(item)
+        '''Remove the item from the 'SelectableList'.'''
+        return self.remove_widget(item)
 
     def clear(self):
-        '''Remove all 'Items' from the 'SelectableItemList'. '''
-        self.container.clear_widgets()
-        self.container.height = 0
-        self.height = self.container.height
+        '''Remove all 'Items' from the 'SelectableList'. '''
+        self.height = 0
+        return self.clear_widgets()
 
     def select_node(self, node):
         selection(node, True)
         if hasattr(self, 'show_bubble'):
             self.show_bubble(node)
-        return super(SelectableItemList, self).select_node(node)
+        return super(SelectableList, self).select_node(node)
 
     def deselect_node(self, node):
         selection(node, False)
         if hasattr(self, 'hide_bubble'):
             self.hide_bubble(node)
-        return super(SelectableItemList, self).deselect_node(node)
+        return super(SelectableList, self).deselect_node(node)
 
 
 class Item(GridLayout):
     """Item is the base class implementing an item
-    for the 'SelectableItemList'.
+    for the 'SelectableList'.
 
     Extend this class for adding your widget to the
     Selectable Item List.
@@ -162,15 +149,14 @@ class Item(GridLayout):
 
     - data: a dictionary of key - value pairs from
     kwargs or implemented in the subclasses.
-    - index: the position of the item in the SelectableItemList
+    - index: the position of the item in the SelectableList
     """
     _list_index = None
 
     def __init__(self, **kwargs):
         super(Item, self).__init__(**kwargs)
-        self.rows = 1
         self._selection_behavior = None
-        self._data = kwargs
+        self.rows = 1
 
     @property
     def selection_behavior(self):
@@ -180,19 +166,14 @@ class Item(GridLayout):
     def selection_behavior(self, b):
         self._selection_behavior = b
 
-    @property
-    def data(self):
-        """Return the item data dictionary.
-
-        Item data must be implemented in your subclass."""
-        return self._data
-
+ 
     @property
     def index(self):
         return self._list_index
 
-    def set_index(self, index):
-        """Set the position of the item in the SelectableItemList."""
+    @index.setter
+    def index(self, index):
+        """Set the position of the item in the SelectableList."""
         self._list_index = index
 
     def on_touch_down(self, touch):
@@ -211,6 +192,11 @@ class Item(GridLayout):
         return super().on_touch_down(touch)
 
 
+class OneTextLine(Label):
+    def __init__(self, **kwargs):
+        super(OneTextLine, self).__init__(**kwargs)
+
+
 class ItemComposite(Item):
     '''An item made of adjacent widget parts.
 
@@ -218,55 +204,44 @@ class ItemComposite(Item):
 
     Parameters:
 
-    - header: is a dictionary of key name and width values.
+    - widths: is a dictionary of key name and width values.
     The part width will have the desired width.
-    - kwargs: key-value arguments will add key - ItemPart
+    - items: key-value arguments will add key - ItemPart
     widget to the ItemComposite.
 
     has a key (see cells property)'''
 
-    def __init__(self, header={}, **kwargs):
-        super(ItemComposite, self).__init__()
+    items = DictProperty()
+    widths = DictProperty()
+
+    def __init__(self, **kwargs):
+        super(ItemComposite, self).__init__(**kwargs)
         self.rows = 1
-        self.spacing = (dp(10), dp(10))
-        self.height = dp(40)
-        self.header = header
-        if self.header:
-            self._fill_cols(kwargs)
-        else:
-            self._fill(kwargs)
+        if self.items:
+            self._compose()
 
-    def _fill(self, kwargs):
-        """Internal: fill the composite with the 'kwparams' parameters."""
-        for key, value in kwargs.items():
-            cell = ItemPart()
-            cell.text = value
-            self.add(key, cell)
+    def _compose(self):
+        """(internal) Compose the items into the widget.
+        """
+        for key, value in self.items.items():
+            part = ItemPart()
+            part.text = value
+            self.add(key, part)
 
-    def _fill_cols(self, kwargs):
-        """Internal: fill the composite with the 'kwparams' parameters."""
-        for key in self.header:
-            cell = ItemPart()
-            if key in kwargs:
-                cell.text = kwargs[key]
-                self.add(key, cell)
-            else:
-                pass
-
-    def add(self, key, part):
+    def add(self, key, item):
         """Add a widget to the composite. 
 
         ----------------
         The widget will be added also to the dictionary
         data with the corresponding key. Existing keys are overwritten.
         """
-        if self.header:
-            part.width = float(self.header.get(key, None))
-            # Adapt text to the available width
-        # Add to _data when called
-        self._data[key] = part
-        self.add_widget(part)
-        self.width += part.width
+        if self.widths:
+            w = float(self.widths.get(key, -1))
+            if w > 0:
+                item.width = w
+        # self._data[key] = part
+        self.add_widget(item)
+        self.width += item.width
 
 
 class ItemPart(Label):
@@ -295,16 +270,14 @@ class ItemPart(Label):
 
 if __name__ == '__main__':
     import model
-    from bubblemenu import BubbleMenu, Menu
+    from bubblemenu import Menu, BubbleMenu, BubbleBehavior
+
+
 
     cols = {'name': 100,
             'url': 200,
             'login': 150,
             }
-
-    class SelectableBubbleList(BubbleMenu, SelectableItemList):
-        def __init__(self, **kwargs):
-            super(SelectableBubbleList, self).__init__(**kwargs)
 
     class MyLabel(Item, Label):
         def __init__(self, **kwargs):
@@ -343,17 +316,35 @@ if __name__ == '__main__':
                     'login': 'UsernamePippo'},
             ]
 
+
+
             for item in data:
-                widg = ItemComposite(**item)
-                w_item = self.widget.add(ItemComposite(header=cols, **item))
-                self.widget.add(MyLabel(**item))
+                self.widget.add(ItemComposite(items=item, widths=cols))
+                # self.widget.add(MyLabel(**item))
                 # Comparator
+            # scrollw = ScrollView()
+            # scrollw.add_widget(self.widget)
+            # bubble = BubbleDecorator()
+            # bubble.add_widget(scrollw)
+            # bubble.add_bubble(BubbleMenu())
+            # for item in self.widget.widgets:
+            #     print(item.children)
+            KV = """
+BubbleMenu:
+    ScrollView:
+            """
 
-            return self.widget
+            root = Builder.load_string(KV)
+            root.children[0].add_widget(self.widget)
+            root.add_bubble(Menu(size=(dp(300), dp(50)), size_hint=(None, None)))
+            return root
 
-    # widget = SelectableItemList()
-    widget = SelectableBubbleList()
-    widget.add_bubble(Menu(size_hint=(
-        None, None), size=(dp(300), dp(60))))
+    class TestList(BubbleBehavior, SelectableList):
+        def __init__(self, **kwargs):
+            super(TestList, self).__init__(**kwargs)
+            pass
+
+    widget = SelectableList()
+    widget = TestList()
 
     TestingApp(widget=widget).run()

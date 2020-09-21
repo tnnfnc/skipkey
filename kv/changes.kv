@@ -6,7 +6,7 @@
 	# Properties
     # pr_accounts: _spi_accounts
     pr_actions: _spi_actions
-    pr_changed_item_list_wid: _wid_comparator
+    changed_item_list: _changed_item_list
 
     
     BoxLayout:
@@ -50,8 +50,8 @@
 				if hasattr(root, 'cmd_actions'): getattr(root, 'cmd_actions')(self.text)
 				
 		BBoxLayout: # WORKS!
-			orientation: 'vertical'		
-			ChangedItemList:
-				id: _wid_comparator
-				# height: dp(800)		
+			orientation: 'vertical'
+			ScrollView:
+				ChangedItemList:
+					id: _changed_item_list
 					
