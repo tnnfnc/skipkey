@@ -4,7 +4,6 @@
 #---------------------------------------------------------
 <ChangesScreen>:
 	# Properties
-    # pr_accounts: _spi_accounts
     pr_actions: _spi_actions
     changed_item_list: _changed_item_list
 
@@ -18,18 +17,12 @@
 			ActionView:
 				use_separator: True
 				ActionPrevious:
+					# TimerLabel:
 					title: app.pr_timer
 					with_previous: False
-					app_icon: 'data/icons/skip.png'
-					previous_icon: 'data/icons/left_arrow.png'
+					app_icon: 'data/icons/left_arrow.png'
+					# previous_icon: 'data/icons/left_arrow.png'
 					on_release:
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
-				# TimerLabel:
-				ActionButton:
-					important: True
-					text: _('Back')
-					icon: 'data/icons/left_arrow.png'
-					on_release: 
 						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
 				ActionButton:
 					important: True
@@ -37,7 +30,6 @@
 					text: _('Undo')
 					on_release: 
 						if hasattr(root, 'cmd_undo'): getattr(root, 'cmd_undo')()
-				ActionOverflow:				
 
 		FrameTitle:
             id: _lab_account
@@ -45,7 +37,7 @@
 		Spinner:
 			id: _spi_actions
 			size_hint: 1, None
-			size: (ui.spinner_x, ui.spinner_y) #spinner_size
+			size: (ui.spinner_x, ui.spinner_y)
 			on_text:
 				if hasattr(root, 'cmd_actions'): getattr(root, 'cmd_actions')(self.text)
 				
@@ -54,4 +46,5 @@
 			ScrollView:
 				ChangedItemList:
 					id: _changed_item_list
+
 					

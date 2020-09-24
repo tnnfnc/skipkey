@@ -6,7 +6,7 @@
 	# Properties
     pr_tag: _spi_tag
     pr_search: _inp_search
-	pr_item_list_wid: _wid_itemlist
+	account_list: _account_list
 	pr_expiring: _btn_expiring
     
     BoxLayout:
@@ -43,8 +43,10 @@
 					icon: 'data/icons/plus.png'
 					text: _('Add')
 					on_release: 
-						if hasattr(root, 'cmd_add'): getattr(root, 'cmd_add')(args)
-				# ActionOverflow:				
+						if hasattr(root, 'cmd_add'): getattr(root, 'cmd_add')()
+
+				ActionOverflow:		
+
 				ActionGroup:
 					text: _('More...')
 					ActionButton:
@@ -113,6 +115,8 @@
         #--------------------------------- List of items
 		BBoxLayout:
 			orientation: 'horizontal'
-			AccountItemList:
-				id: _wid_itemlist
+			BubbleMenu:
+				ScrollView:
+					AccountItemList:
+						id: _account_list
 

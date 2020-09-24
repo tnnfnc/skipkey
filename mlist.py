@@ -27,17 +27,17 @@ Builder.load_string(
 """
 <SelectableList>:
     orientation: 'vertical'
-    spacing: (dp(10), dp(10))
+    # spacing: (dp(10), dp(10))
     size_hint_y: None
     height: self.minimum_height
 
 
 <ItemComposite>:
-    spacing: (dp(10), dp(10))
-    height: dp(40)
+    # Horizontal spacing between parts
+    spacing: dp(10)
+    # height as decided
 
-<Item>:
-
+# Inherits from Label
 <ItemPart>:
     size_hint: None, 1
     # Adapt size to text
@@ -79,6 +79,36 @@ def selection(widget, select=False):
         else:
             pass  # Nothing to do here!
 
+class WidgetCache():
+    def __init__(self):
+        self.cache = {}
+
+    def set(self, widget):
+        """[summary]
+
+        Args:
+            widget ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        key = id(widget)
+        if key in self.cache:
+            pass
+        else:
+            self.cache[key] = widget
+        return key
+
+    def get(self, key):
+        """[summary]
+
+        Args:
+            key ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        return self.cache.get(key, None)
 
 class SelectableList(CompoundSelectionBehavior, BoxLayout):
     """
@@ -88,6 +118,7 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
     def __init__(self, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
         super(SelectableList, self).__init__(**kwargs)
+        self.cache = WidgetCache()
 
 
     @property
@@ -101,7 +132,7 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
         return self.children
 
     def add(self, item):
-        """Add items to the list.
+        """Add items to the list. Return a cache id.
 
         Args:
             item ([type]): [description]
@@ -113,6 +144,13 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
         item.selection_behavior = self
         item.index = (len(self.children) - 1)
         self.add_widget(item)
+        return self.cache.set(item)
+
+    def add_from_cache(self, id):
+        item = self.cache.get(id)
+        if item:
+            self.add(item)
+        return item
 
     def remove(self, item):
         '''Remove the item from the 'SelectableList'.'''
@@ -136,8 +174,8 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
         return super(SelectableList, self).deselect_node(node)
 
 
-class Item(GridLayout):
-    """Item is the base class implementing an item
+class Selectable():
+    """Selectable is the base class implementing a selectable item
     for the 'SelectableList'.
 
     Extend this class for adding your widget to the
@@ -154,7 +192,7 @@ class Item(GridLayout):
     _list_index = None
 
     def __init__(self, **kwargs):
-        super(Item, self).__init__(**kwargs)
+        super(Selectable, self).__init__(**kwargs)
         self._selection_behavior = None
         self.rows = 1
 
@@ -166,7 +204,6 @@ class Item(GridLayout):
     def selection_behavior(self, b):
         self._selection_behavior = b
 
- 
     @property
     def index(self):
         return self._list_index
@@ -191,13 +228,22 @@ class Item(GridLayout):
         # Bubble up event
         return super().on_touch_down(touch)
 
+    def refresh_view_attrs(self, items):
+        """Refresh the values displayed by this widget.
 
-class OneTextLine(Label):
+        Overwrite this method in your subclass.
+
+        Args:
+            items (dict): key-value pairs with new values.
+        """
+        return self
+
+class OneTextLine(Label, Selectable):
     def __init__(self, **kwargs):
         super(OneTextLine, self).__init__(**kwargs)
 
 
-class ItemComposite(Item):
+class ItemComposite(Selectable, GridLayout):
     '''An item made of adjacent widget parts.
 
     ---------------------
@@ -240,6 +286,7 @@ class ItemComposite(Item):
             if w > 0:
                 item.width = w
         # self._data[key] = part
+        self.items[key] = item
         self.add_widget(item)
         self.width += item.width
 
@@ -279,9 +326,9 @@ if __name__ == '__main__':
             'login': 150,
             }
 
-    class MyLabel(Item, Label):
+    class MyLabel(Selectable, Label):
         def __init__(self, **kwargs):
-            Item.__init__(self)
+            Selectable.__init__(self)
 
     class TestingApp(App):
 

@@ -24,12 +24,12 @@
 ## --------------------	
 <BoxFrame@BoxLayout>:
     orientation: 'vertical'
-    spacing: ui.box_spacing
+    padding: ui.screen_padding
     canvas:
         Color:
             rgb: ui.frame_color
         Line:
-            rectangle: self.x + 2, self.y + 2, self.width - 2, self.height - 2
+            rectangle: self.x, self.y, self.width, self.height
             width: 1.2
             joint: 'bevel'
 ## --------------------
@@ -103,52 +103,3 @@
 		Rectangle:
 			size: self.size
 			source: 'data/background.png'
-
-<ImageButton@Button>:
-    icon: ''
-    canvas:
-        Rectangle:
-            source: self.icon 
-            pos: self.x + self.height * 0.1, self.y + self.height * 0.1
-            size: self.height * 0.8, self.height * 0.8
-
-<IconButton@ImageButton>:
-    icon: ''
-    size_hint: None, None
-    size: ui.nav_button_y, ui.nav_button_y
-    halign: 'right'
-    valign: 'middle'
-    background_normal: 'data/transparent.png'
-    # text_size: self.size
-            
-<DropDownButton@FocusBehavior+ImageButton>:
-    size_hint: None, None
-    height: ui.nav_button_y
-    padding_x: dp(8)
-    halign: 'right'
-    valign: 'middle'
-    background_normal: 'data/black.png'
-            
-<OptionButton@Button>:
-    size_hint: None, None
-    height: ui.nav_button_y
-    halign: 'center'
-    valign: 'middle'
-    padding_x: dp(4)
-    background_normal: 'data/black.png'
-    # width: self.texture_size[0]
-
-<OptionLabel@Label>:
-    size_hint: None, None
-    height: ui.nav_button_y
-    padding_x: dp(4)
-
-
-# <OptionMore@Spinner>:
-#     size_hint: None, None
-#     height: ui.nav_button_y
-#     text: '...'
-#     halign: 'center'
-#     valign: 'center'
-#     padding_x: dp(4)
-#     values: ['...', 'Opt 1', 'Opt 2']

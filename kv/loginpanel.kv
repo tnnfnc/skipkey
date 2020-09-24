@@ -1,0 +1,33 @@
+#:kivy 1.11
+# ---------------------------------------------------------------------
+# ----------------------- Panels ---------------------
+# ---------------------------------------------------------------------
+# ------------------------ Login PANEL
+<LoginPanel>:
+    # Properties
+    pr_password: _inp_password
+    pr_strenght: _wid_strenght
+	
+    orientation: 'vertical'
+    BoxLayout:
+        orientation: 'horizontal'
+        FieldLabel:
+            id: _lab_pwddisp
+            size_hint_y: 1
+            text: _('Display password')
+        Switch:
+            id: _swi_pwddisp
+            size_hint_x: None
+            active: False
+    InputField:
+        id: _inp_password
+        hint_text: _('type your password')
+        password: not _swi_pwddisp.active
+        on_text: 
+            if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)
+		on_parent:
+			self.focus = True
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _inp_password.width
+        

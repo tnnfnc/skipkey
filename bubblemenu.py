@@ -6,17 +6,40 @@ from kivy.metrics import dp
 class BubbleBehavior():
     """Extends this class for adding a bubble menu to the widget.
     """
+    # Need store the menu before the widget tree will be created
+    menu = None
+
     def show_bubble(self, widg):
         if hasattr(self, 'walk_reverse'):
             for widget in self.walk_reverse(loopback=False):
                 if isinstance(widget, BubbleMenu):
+                    if self.menu:
+                        widget.add_bubble(self.menu)
+                        self.menu = None
                     widget.show_bubble(widg)
+                    break
 
     def hide_bubble(self, widg):
         if hasattr(self, 'walk_reverse'):
             for widget in self.walk_reverse(loopback=False):
                 if isinstance(widget, BubbleMenu):
                     widget.hide_bubble(widg)
+                    break
+    
+    def add_bubble(self, bubble):
+        """Add a bubble menu.
+
+        -----------
+            Parameters:
+                bubble: the Bubble menu.
+        """
+        self.menu = bubble
+        # if hasattr(self, 'walk_reverse'):
+        #     for widget in self.walk_reverse(loopback=False):
+        #         if isinstance(widget, BubbleMenu):
+        #             widget.add_bubble(self.menu)
+        #             self.menu = None
+        #             break
 
 
 class BubbleMenu(FloatLayout):

@@ -1,0 +1,71 @@
+#---------------------------------------------------------
+#-------------------- INFO POPUP
+#---------------------------------------------------------
+<InfoPopup>:
+    # Properties: Login and seed
+	pr_file: _out_file
+	pr_pbkdf: _out_pbkdf
+	pr_algorithm: _out_algorithm
+	pr_mode: _out_mode
+	pr_keysize: _out_keysize
+	pr_iterations: _out_iterations
+
+    auto_dismiss: False
+	size_hint: 0.9, 0.9
+	# pos: root.pos
+    # padding: screen_padding
+    BoxLayout:
+        orientation: 'vertical'
+		FrameTitle:
+			text: _('Info')
+		BoxLayout:
+			orientation: 'horizontal'
+			FieldLabel:
+				text: _('File')
+				size_hint_x: 0.3
+			OutputField:
+				id: _out_file
+				text: ''
+		FrameTitle:
+			text: _('Security')
+		GridLayout:
+			cols: 2
+			FieldLabel:
+				text: _('Algorithm')
+				size_hint_x: 0.5
+			OutputField:
+				id: _out_algorithm
+				text: ''
+			FieldLabel:
+				text: _('Chain mode')
+				size_hint_x: 0.5
+			OutputField:
+				id: _out_mode
+				text: ''
+			FieldLabel:
+				text: _('Key size')
+				size_hint_x: 0.5
+			OutputField:
+				id: _out_keysize
+				text: ''
+			FieldLabel:
+				text: _('Key derivator')
+				size_hint_x: 0.5
+			OutputField:
+				id: _out_pbkdf
+				text: ''
+			FieldLabel:
+				text: _('Iterations')
+				size_hint_x: 0.5
+			OutputField:
+				id: _out_iterations
+				text: ''
+        BoxLayout:
+			orientation: 'vertical'
+		NavButton:
+			id: _btn_cancel
+			pos_hint: {'x': 0}
+			text: _('Cancel')
+			on_release:
+				if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')()
+				root.dismiss()

@@ -79,21 +79,39 @@ from threading import Timer
 # from pynput import keyboard
 # from pynput import mouse
 
+from mlist import SelectableList, ItemComposite
+from bubblemenu import BubbleMenu, Menu, BubbleBehavior
+
+
 Builder.load_file('commons.kv')
 # passed!
+# Import of local modules from import directive in .kv
+# files works only if module is in the app dir!!
 Builder.load_file(os.path.join('kv', 'dynamic.kv'))
-Builder.load_file(os.path.join('kv', 'popup.kv'))
-Builder.load_file(os.path.join('kv', 'widgets.kv'))
-Builder.load_file(os.path.join('kv', 'popups.kv'))
-Builder.load_file(os.path.join('kv', 'enter.kv'))
-Builder.load_file(os.path.join('kv', 'edit.kv')) # layout ko 
-Builder.load_file(os.path.join('kv', 'import.kv')) # layout ko
+#Popups
+Builder.load_file(os.path.join('kv', 'loginpopup.kv'))
+Builder.load_file(os.path.join('kv', 'cipherpopup.kv'))
+Builder.load_file(os.path.join('kv', 'edittagpopup.kv'))
+Builder.load_file(os.path.join('kv', 'infopopup.kv'))
+Builder.load_file(os.path.join('kv', 'messagepopup.kv'))
+Builder.load_file(os.path.join('kv', 'decisionpopup.kv'))
+#Panels building blocks
+Builder.load_file(os.path.join('kv', 'loginpanel.kv'))
+Builder.load_file(os.path.join('kv', 'userpanel.kv'))
+Builder.load_file(os.path.join('kv', 'seedpanel.kv'))
+Builder.load_file(os.path.join('kv', 'autopanel.kv'))
+Builder.load_file(os.path.join('kv', 'itemactionbubble.kv'))
+#Widgets
+Builder.load_file(os.path.join('kv', 'passwordstrenght.kv'))
+Builder.load_file(os.path.join('kv', 'tagspinner.kv'))
 Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
 Builder.load_file(os.path.join('kv', 'changeview.kv'))
-
-# Reimplement because of RecycleList
-Builder.load_file(os.path.join('kv', 'list.kv')) # reimplemet
-Builder.load_file(os.path.join('kv', 'changes.kv')) # reimplemet
+#Screens
+Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
+Builder.load_file(os.path.join('kv', 'listscreenm.kv'))#<-----
+Builder.load_file(os.path.join('kv', 'editscreen.kv'))
+Builder.load_file(os.path.join('kv', 'importscreen.kv'))
+Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
 # passed!
 
 # Screen Names
@@ -122,7 +140,7 @@ class ListScreen(Screen):
     pr_tag = ObjectProperty(None)
     pr_search = ObjectProperty(None)
     pr_expiring = ObjectProperty(None)
-    pr_item_list_wid = ObjectProperty(None)
+    account_list = ObjectProperty(None)
 
 
 class EditScreen(FocusBehavior, Screen):
@@ -153,11 +171,13 @@ class ChangesScreen(Screen):
 
 
 class TagSpinner(Spinner):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
+class AccountItemList(BubbleBehavior, SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(AccountItemList, self).__init__(**kwargs)
 
-class AccountItemList(FloatLayout):
-    pass
 
 class AutoPanel(BoxLayout):
     pr_length = ObjectProperty(None)
@@ -179,22 +199,36 @@ class UserPanel(BoxLayout):
     pr_strenght = ObjectProperty(None)
 
 
-class ChangedItemList(CompoundSelectionBehavior, BoxLayout):
-    pass
+
+class ChangedItemList(SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(ChangedItemList, self).__init__(**kwargs)
+
+class MappingList(SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(MappingList, self).__init__(**kwargs)
+
+from kivy.uix.dropdown import DropDown
+
+class DropDownMenu(DropDown):
+    def __init__(self, *args, **kwargs):
+        super(DropDownMenu, self).__init__(**kwargs)
+    
+
 
 
 class TestApp(App):
-    pr_timer = ''
+    pr_timer = 'Now'
     def build(self):
         sm = ScreenManager()
         self.root = sm
+        sm.add_widget(ListScreen(name=LIST)) # Not passed! Refactor it!
+        sm.add_widget(ChangesScreen(name=CHANGES)) # passed!
+        sm.add_widget(ImportScreen(name=IMPORT)) # passed!
         sm.add_widget(EditScreen(name=EDIT)) # passed!
         sm.add_widget(EnterScreen(name=ENTER)) # passed!
-        sm.add_widget(ImportScreen(name=IMPORT)) # passed!
 
         # Must reimplement without RecycleList and relative classes
-        # sm.add_widget(ListScreen(name=LIST)) # Not passed!
-        # sm.add_widget(ChangesScreen(name=CHANGES)) # Not passed!
         # log 6
         return sm
 

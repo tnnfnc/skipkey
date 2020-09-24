@@ -1,0 +1,56 @@
+#:kivy 1.11
+## ---------------------------------------------------------
+## Open file Popup
+## ---------------------------------------------------------
+<OpenFilePopup>:
+    # Kivi properties
+	filechooser: _wid_filechooser
+	
+	auto_dismiss: False
+	BoxLayout:
+		size: root.size
+		pos: root.pos
+		orientation: "vertical"
+		padding: ui.screen_padding
+		# List or icons
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			height: ui.button_y
+			
+			ToggleButton:
+				text: _('List')
+				state: 'down'
+				group: 'alternate'
+				on_release:
+					_wid_filechooser.view_mode = 'list'			
+			ToggleButton:
+				text: _('Icons')
+				group: 'alternate'
+				on_release:
+					_wid_filechooser.view_mode = 'icon'
+		Label:
+			id: _out_path
+			size_hint: 1, 0.2
+			text: _wid_filechooser.path
+
+		FileChooser:
+			id: _wid_filechooser
+			on_selection: 
+				_inp_file.text = self.selection and self.selection[0] or ''			
+			FileChooserListLayout
+			FileChooserIconLayout
+		OutputField:
+            id: _inp_file
+            size_hint: 1, None
+		BoxLayout:
+			size_hint_y: None
+			height: dp(30)
+			Button:
+				text: _('Cancel')
+				on_release:
+					if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')()
+			Button:
+				text: _('Load')
+				on_release: 
+					if hasattr(root, 'cmd_load'): getattr(root, 'cmd_load')(_wid_filechooser.path, _wid_filechooser.selection)

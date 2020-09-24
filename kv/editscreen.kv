@@ -1,0 +1,222 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# EDIT screen
+#---------------------------------------------------------
+<EditScreen>:
+	# Kivy Properties
+    pr_name: _inp_name
+	pr_url: _inp_url
+	pr_login: _inp_login
+	pr_email: _inp_mail
+	pr_description: _inp_description
+	pr_tag: _spi_tag
+	pr_color: _spi_colors
+	pr_created: _out_date
+	pr_changed: _out_cdate
+	pr_cipherpwd: _out_cipherpwd
+	pr_auto_wid: _wid_auto_tab
+	pr_user_wid: _wid_user_tab
+	pr_tabbedb_wid: _wid_panel
+
+	BoxLayout:
+		orientation: 'vertical'
+		#--------------------------------- Main buttons
+		ActionBar:
+		    # pos_hint: {'top':1}
+			ActionView:
+				use_separator: True
+				ActionPrevious:
+					title: app.pr_timer
+					with_previous: False
+					app_icon: 'data/icons/reload.png'
+					on_release:
+						if hasattr(app, 'timeout'): getattr(app, 'timeout')()
+				
+				# ActionOverflow:
+				
+				ActionButton:
+					important: True
+					icon: 'data/icons/left_arrow.png'
+					text: _('Back')
+					on_release: 
+						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
+				ActionButton:
+					important: True
+					icon: 'data/icons/save.png'
+					text: _('Save')
+					on_release: 
+						if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')()
+				ActionButton:
+					important: True
+					icon: 'data/icons/trash.png'
+					text: _('Delete')
+					on_release:
+						if hasattr(root, 'cmd_delete'): getattr(root, 'cmd_delete')()
+		FrameTitle:
+            id: _lab_account
+            text: _('Edit account')
+		#--------------------------------- Scroll section
+		ScrollView:
+			id: _scr_edit
+			BBoxLayout:
+				orientation: 'vertical'
+				# padding: screen_padding
+				size_hint_y: None
+				height: ui.page_h
+				FrameTitle:
+					id: _lab_account
+					text: _('Account data')
+				BoxFrame:
+					orientation: 'vertical'
+					#---------------------------- Fields
+					GridLayout:
+						cols: 2
+						FieldLabel:
+							id: _lab_name
+							size_hint_x: 0.5
+							text: _('Name')
+						InputField:
+							id: _inp_name
+							hint_text: _('name')
+							on_parent:
+								self.focus = True
+						FieldLabel:
+							id: _lab_web
+							size_hint_x: 0.5
+							text: _('Web site')
+						InputField:
+							id: _inp_url
+							hint_text: _('web site url')
+						FieldLabel:
+							id: _lab_login
+							size_hint_x: 0.5
+							text: _('Login user')
+						InputField:
+							id: _inp_login
+							hint_text: _('login user')
+						FieldLabel:
+							id: _lab_mail
+							size_hint_x: 0.5
+							text: _('e-mail')
+						InputField:
+							id: _inp_mail
+							hint_text: _('e-mail')
+						# ------------------------ Free Text
+						FieldLabel:
+							id: _lab_description
+							size_hint_y: 1
+							size_hint_x: 0.5
+							text: _('Free text')
+						InputField:
+							id: _inp_description
+							hint_text: _('Free text')
+							multiline: True
+							size: (ui.field_bigger_x, 3 * ui.field_y)#field_size_long[0], field_height*3
+				# ------------------------------- Edit screen > Security
+						FieldLabel:
+							id: _lab_date
+							size_hint_x: 0.5
+							text: _('Created')
+						OutputField:
+							id: _out_date
+
+						# Changed on
+						FieldLabel:
+							id: _lab_cdate
+							size_hint_x: 0.5
+							text: _('Changed')
+						OutputField:
+							id: _out_cdate
+						FieldLabel:
+							id: _lab_cipherpwd
+							size_hint_x: 0.5
+							text: _('Cipher Data')
+						OutputField:
+							id: _out_cipherpwd
+				# ------------------------------- Edit screen > Tags and colours
+				FrameTitle:
+					text: _('Tag')
+				BoxFrame:
+					orientation: 'horizontal'
+					size_hint_y: None
+					height: _spi_tag.height * 1.2
+					TagSpinner:
+						id: _spi_tag
+						pos_hint: {'center_y': 0.5}
+						size_hint: None, None
+						size: (ui.spinner_x, ui.spinner_y) #spinner_size
+						on_text:
+							if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: None, 1
+						width: self.minimum_width
+						padding: ui.box_padding
+						SmallButton
+							id: _btn_rename
+							pos_hint: {'center_y': 0.5}
+							text: _('Rename')
+							on_release:
+								if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
+						SmallButton
+							id: _btn_add
+							pos_hint: {'center_y': 0.5}
+							source: 'data/icons/pen.png'
+							text: _('Add')
+							on_release: 
+								if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
+						SmallButton
+							id: _btn_delete
+							pos_hint: {'center_y': 0.5}
+							text: _('Delete')
+							on_release:
+								if hasattr(root, 'cmd_deletetag'): getattr(root, 'cmd_deletetag')(self, _spi_tag)
+				VerticalSpace:
+				TagSpinner:
+					id: _spi_colors
+					size_hint: None, None
+					size: (ui.spinner_x, ui.spinner_y) #spinner_size
+					text: _('Colors')
+					values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
+					on_text:
+						if hasattr(app, 'cmd_text_colors'): getattr(app, 'cmd_text_colors')(item, args)
+				# --------------------Edit screen > Password preferences tabbed panel
+				FrameTitle:
+					id: _lab_pwdtab
+					text: _('Password set')
+				TabbedPanel:
+					id: _wid_panel
+					tab_pos: 'top_left'
+					do_default_tab: False
+					on_current_tab: 
+						if hasattr(root, 'cmd_current_tab'): getattr(root, 'cmd_current_tab')(self)
+
+					TabbedPanelItem:
+						text: _('Auto')
+						
+						GridLayout:
+							cols: 3
+							size_hint_y: None
+							height: 6 * ui.field_y #field_height
+							Widget:
+								size_hint_x: 0.2
+							AutoPanel:
+								id: _wid_auto_tab
+								size_hint_max_x: 2 * ui.field_bigger_x #field_width_long
+							Widget:
+								size_hint_x: 0.2
+						
+					TabbedPanelItem:
+						text: _('User')
+						GridLayout:
+							cols: 3
+							size_hint_y: None
+							height: 6 * ui.field_y #field_height
+							Widget:
+								size_hint_x: 0.2
+							UserPanel:
+								id: _wid_user_tab
+								size_hint_max_x: 2 * ui.field_bigger_x #field_width_long
+							Widget:
+								size_hint_x: 0.2
+						

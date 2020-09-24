@@ -1,0 +1,66 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Login screen
+#---------------------------------------------------------
+<EnterScreen>:
+
+	pr_recentfiles: _spi_recentfiles
+
+    GridLayout:
+        cols: 1
+		# orientation: 'vertical'
+		padding: ui.screen_padding
+		#--------------------------------- Main buttons
+		ActionBar:
+		    # pos_hint: {'top':1}
+			ActionView:
+				use_separator: True
+				ActionPrevious:
+					title: _('Exit')
+					with_previous: False
+					app_icon: 'data/icons/x.png'
+					# previous_icon: ''
+					on_release:
+						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+				# # ActionButton:
+				# 	# icon: 'atlas://data/images/defaulttheme/audio-volume-high'
+				ActionButton:
+					important: True
+					icon: 'data/icons/open.png'
+					text: _('Open')
+					on_release: 
+						if hasattr(root, 'cmd_open'): getattr(root, 'cmd_open')()
+				ActionButton:
+					important: True
+					icon: 'data/icons/new.png'
+					text: _('New')
+					on_release: 
+						if hasattr(root, 'cmd_new'): getattr(root, 'cmd_new')()
+				# ActionButton:
+				# 	important: True
+				# 	icon: 'data/icons/x.png'
+				# 	text: _('Exit')
+				# 	on_release: 
+				# 		if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+                # ActionOverflow:
+                ActionButton:
+					important: True
+					text: _('Clear recents')
+					on_release: 
+						if hasattr(root, 'cmd_clear'): getattr(root, 'cmd_clear')()
+
+		Spinner:
+			id: _spi_recentfiles
+			text: _('Recent files')
+			size_hint: 1, None
+			size: (ui.spinner_x, ui.spinner_y) #spinner_size
+			on_text: 
+				if hasattr(root, 'cmd_recent'): getattr(root, 'cmd_recent')()
+		
+		BoxLayout:
+			orientation: 'horizontal'
+			Image:
+				source: 'data/icons/skip_big.png'
+				pos: self.pos
+				size: self.parent.size	
+				

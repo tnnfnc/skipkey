@@ -1,0 +1,28 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Progress bar with a percentual value
+#---------------------------------------------------------		
+<PercentProgressBar>:
+	orientation: 'horizontal'
+	size_hint: None, None
+	height: dp(50)
+	width: dp(160)
+
+	Label:
+		id: label
+		size_hint_x: None
+		width: dp(45)
+		text: '{hh:.1%}'.format(hh=progressbar.value/progressbar.max)
+		
+	ProgressBar:
+		id: progressbar
+		size_hint_x: 1
+		canvas:
+			BorderImage:
+                border: dp(3), dp(3), dp(3), dp(0)
+                pos: self.x, self.center_y - dp(1.5)
+                size: self.width, dp(4)
+                source: 'data/full.png'
+			Line:
+				points: self.x + self.value/self.max * self.width, self.y + self.height*0.3, self.x + self.value/self.max * self.width, self.y + self.height*0.7
+				width: dp(1.10)

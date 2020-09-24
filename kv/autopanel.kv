@@ -1,0 +1,103 @@
+#:kivy 1.11
+# ------------------------ AUTO PANEL
+<AutoPanel>:
+	# Kivy Properties
+	pr_length: _inp_length
+	pr_letters: _swi_letters
+	pr_symbols: _inp_symbols
+	pr_numbers: _inp_numbers
+	pr_password: _inp_password
+	pr_strenght: _wid_strenght
+	
+    orientation: 'vertical'
+    # Generate password
+    BoxLayout:
+		id: _bx_generate
+        orientation: 'horizontal'
+		# size_hint_y: None
+		# height: _btn_generate.height*1.5
+        SmallButton:
+            id: _btn_generate
+			pos_hint: {'center_y': 0.5}
+            text: _('Generate')
+            on_release:
+                if hasattr(root, 'generate'): getattr(root, 'generate')(length=_inp_length.text, \
+				letters=_swi_letters.active, numbers=_inp_numbers.text, symbols=_inp_symbols.text)
+        OutputField:
+            id: _inp_password
+			size_hint_x: 1
+			# pos_hint: {'center_y': 0.5}
+            text: _('Password hint')
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _bx_generate.width
+    # Password length
+	VerticalSpace:
+    GridLayout:
+        cols: 2
+        FieldLabel:
+            id: _pwdlength
+            text: _('Length')
+        InputField:
+            id: _inp_length
+            hint_text: _('password length')
+			size: ui.field_x, ui.field_y # field_size_small
+            on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]
+			on_parent:
+				self.focus = True
+	GridLayout:
+        cols: 4
+		# Letters
+        FieldLabel:
+            id: _lab_letters
+            text: _('Letters')
+        Switch:
+            id: _swi_letters
+            size_hint: None, None
+            height: ui.button_y #button_size_y
+            active: len(_inp_length.text) > 0
+		Widget:
+		Widget:
+        # Numbers
+        FieldLabel:
+            id: _lab_numbers
+            text: _('Numbers')
+        Switch:
+            id: _swi_numbers
+            size_hint: None, None
+            height: ui.button_y #button_size_y
+			on_active: 
+                if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
+				else: _inp_numbers.text = ''
+        FieldLabel:
+            id: _lab_minnumbers
+            text: _('At least')
+        InputField:
+            id: _inp_numbers
+            hint_text: _('a number')
+			disabled: not _swi_numbers.active
+			size: (ui.field_x, ui.field_y) #field_size_small
+			on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]
+        # Symbols
+        FieldLabel:
+            id: _lab_symbols
+            text: _('Symbols')
+        Switch:
+            id: _swi_symbols
+            size_hint: None, None
+            height: ui.button_y #button_size_y
+			on_active:
+                if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
+				else: _inp_symbols.text = ''
+        FieldLabel:
+            id: _lab_minsymbols
+            text: _('At least')
+        InputField:
+            id: _inp_symbols
+            hint_text: _('a number')
+			disabled: not _swi_symbols.active
+			size: (ui.field_x, ui.field_y) #field_size_small
+			on_text:
+				if not self.text.isdigit(): self.text = self.text[:-1]

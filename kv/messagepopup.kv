@@ -1,0 +1,47 @@
+#:kivy 1.11
+# ---------------------------------------------------------
+# -------------------- MESSAGE POPUP
+# ---------------------------------------------------------
+<MessagePopup>:
+	## Properties
+    pr_message: _lab_message
+	pr_image: _img_image
+	
+    auto_dismiss: False
+    size_hint: 0.9, 0.5
+    orientation: "vertical"
+    # padding: screen_padding
+
+    BoxLayout:
+        orientation: 'vertical'
+		# canvas.before:
+			# BorderImage:
+				## BorderImage behaves like the CSS BorderImage
+				# border: 10, 10, 10, 10
+				# source: 'data/icons/bug.png'
+				# pos: self.pos
+				# size: self.size
+		BoxLayout:
+			orientation: 'horizontal'
+			Image:
+				id: _img_image
+				#source: 'data/icons/bug.png'
+				allow_stretch: True
+				size_hint: None, 1
+				size: dp(30), dp(30)
+			Label:
+				id: _lab_message
+				markup: True
+				font_size: ui.font_big #1.1 * ui.font_norm #font_size
+				text: _('Message')
+				valign: 'center'
+				halign: 'left'
+				text_size: self.size
+				padding_x: dp(10)
+        NavButton:
+            id: _btn_ok
+            pos_hint: {'x': 0.7}
+            text: _('OK')
+            on_release:
+				if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')()
+                root.dismiss()

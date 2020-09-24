@@ -8,6 +8,7 @@ page_w = dp(428)
 # SCREEN & BOX
 screen_padding = (dp(2), dp(2), dp(2), dp(2))
 box_padding = (dp(2), dp(2), dp(2), dp(2))
+box_spacing = (dp(2), dp(2))
 
 # FONT
 font_norm = dp(15)

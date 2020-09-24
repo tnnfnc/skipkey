@@ -29,14 +29,6 @@ def new_item(strict=True, template={}, **args):
 
         Return a dictionary with the predefined keys.
     """
-    # item = dict(template)
-    # if strict:
-    #     for key in args:
-    #         if key in template:
-    #             item[key] = str(args[key])
-    # else:
-    #     for key in args:
-    #         item[key] = str(args[key])
     if template:
         item = dict(template)
     else:
@@ -96,11 +88,13 @@ def add_index(key_list):
     return f
 
 
-def delete_index(item):
+def purge(item):
     '''Return a new item without the index entry.'''
     try:
         item = dict(item)
         del item['index']
+        del item['object_id']
+        
     except KeyError:
         pass
     return item
@@ -161,7 +155,7 @@ def index_of(items, value, key):
     try:
         return [i[key] for i in items].index(value)
     except ValueError:
-        return -1
+        return None
 
 
 def select(items, value, key):
@@ -369,7 +363,7 @@ class SkipKey():
         add_index(self.search_fields)(item)
         index = index_of(self.items, item['name'], 'name')
         # Update
-        if index > -1:
+        if index:
             if history:
                 old = self.items[index]
                 self.add_history(new=item, old=old, action=SkipKey.UPDATE)
@@ -605,7 +599,7 @@ class SkipKey():
         """
         if file and self.session_key and (len(self.history) > 0 or force):
             # try:
-            items = list(map(delete_index, self.items))
+            items = list(map(purge, self.items))
             data = self.cipher_fachade.encrypt(
                 items,
                 cryptod=self.cryptod,
@@ -640,15 +634,13 @@ class SkipKey():
                       'passwd': passwd, 'seed': seed, 'thread': True}
             copy_thread = threading.Thread(target=self.copy, kwargs=kwargs)
             copy_thread.start()
-            # message(_('Copy file'),
-            #         _('File copyed to: %s') % (os.path.basename(file)), 'i')
             return True
 
         # Before copying all password must be encrypted
         # with the new key, and all generated ones must be
         # converted in user typed
         # Should be done in another thread
-        items_copy = list(map(delete_index, self.items[0:]))
+        items_copy = list(map(purge, self.items[0:]))
         # try:
         # Get the seed:
         try:
@@ -687,7 +679,7 @@ class SkipKey():
     def export(self, file):
         items_csv = []
         for i in self.items:
-            item = delete_index(i)
+            item = purge(i)
             if item['auto'] == 'True':
                 item['password'] = self.show(item)
             elif item['auto'] == 'False':
