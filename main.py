@@ -222,11 +222,11 @@ class TestApp(App):
     def build(self):
         sm = ScreenManager()
         self.root = sm
-        sm.add_widget(ListScreen(name=LIST)) # Not passed! Refactor it!
-        sm.add_widget(ChangesScreen(name=CHANGES)) # passed!
         sm.add_widget(ImportScreen(name=IMPORT)) # passed!
+        sm.add_widget(ChangesScreen(name=CHANGES)) # passed!
         sm.add_widget(EditScreen(name=EDIT)) # passed!
         sm.add_widget(EnterScreen(name=ENTER)) # passed!
+        sm.add_widget(ListScreen(name=LIST)) # Not passed! Refactor it!
 
         # Must reimplement without RecycleList and relative classes
         # log 6

@@ -7,36 +7,38 @@
 	
 	BoxLayout:
 		orientation: 'vertical'
+
 		#--------------------------------- Main buttons
-		ActionBar:
-		    # pos_hint: {'top':1}
-			ActionView:
-				use_separator: True
-				ActionPrevious:
-					title: app.pr_timer
-					with_previous: False
-					app_icon: 'data/icons/left_arrow.png'
-					# previous_icon: 'data/icons/left_arrow.png'
-					on_release:
-						if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
-				# ActionOverflow:
-
-				ActionButton:
-					important: True
-					text: _('Import')
-					icon: 'data/icons/import.png'
-					on_release: 
-						if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')()
-
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			height: self.minimum_height
+			IconButton:
+				icon: 'data/icons/left_arrow.png'
+				on_release:
+					if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
+			OptionLabel:
+				text: app.pr_timer
+				halign: 'left'
+			# horizontal spacing
+			BoxLayout:
+				orientation: 'horizontal'
+			IconButton:
+				icon: 'data/icons/import.png'
+				on_release: 
+					if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')()
+		
 		FrameTitle:
 			id: _lab_mapping
 			text: _('Fields mapping')
-			size_hint: 1, None
-			height: self.texture_size[1]
+			size_hint_y: None
+			height: self.size_hint_min_y
 		Label:
 			id: _lab_mapping
-			size_hint: 1, None
-			height: self.texture_size[1]
+			size_hint_y: None
+			text_size: root.width, None
+    		size: self.texture_size
+			halign: 'justify'
 			text: _('Mapping the app keys to the imported file keys or leave blank to skip')
 
 		ScrollView:

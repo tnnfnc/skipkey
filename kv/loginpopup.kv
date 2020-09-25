@@ -9,51 +9,36 @@
     pr_seed_wid: _wid_seed
 
 	auto_dismiss: False
-	size_hint: 0.9, 0.9
-	size_hint_max_x: 2 * ui.field_bigger_x #2*field_width_long
-	BoxLayout:
-		orientation: "vertical"
-		#--------------------------------- Password for data encryption
-		FrameTitle:
-			id: _lab_pwd
-			text: _('Password for data encryption')
-		GridLayout:
-			cols: 3
+	# size_hint: 0.9, 0.9
+	ScrollView:
+		BoxLayout:
+			orientation: "vertical"
 			size_hint_y: None
-			height: 3 * ui.field_y #field_height
-			Widget:
-				size_hint_x: 0.2
+			height: self.minimum_height
+			#--------------------------------- Password for data encryption
+			FrameTitle:
+				id: _lab_pwd
+				text: _('Password for data encryption')
 			LoginPanel:
 				id: _wid_login
-				size_hint_max_x: ui.field_bigger_x #field_width_long
-			Widget:
-				size_hint_x: 0.2
-			#--------------------------------- Seed for password generation
-		FrameTitle:
-			id: _lab_seed
-			text: _('Seed for password generation')
-		GridLayout:
-			cols: 3
-			size_hint_y: None
-			height: 3 * ui.field_y #field_height
-			Widget:
-				size_hint_x: 0.2
+				#--------------------------------- Seed for password generation
+			FrameTitle:
+				id: _lab_seed
+				text: _('Seed for password generation')
 			SeedPanel:
 				id: _wid_seed
-				size_hint_max_x: ui.field_bigger_x #field_width_long
-			Widget:
-				size_hint_x: 0.2
-		#--------------------------------- Main buttons
-		GridLayout:
-			cols: 3
-			Widget:
-			NavButton:
-				id: _btn_exit
-				text: _('Cancel')
-				on_release:
-					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
-			NavButton:
-				id: _btn_file
-				text: _('Enter')
-				on_release: 
-					if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()
+			#--------------------------------- Main buttons
+			StackLayout:
+				orientation: 'rl-bt'
+				size_hint_y: None
+				height: 2*ui.nav_button_y
+				NavButton:
+					id: _btn_exit
+					text: _('Cancel')
+					on_release:
+						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+				NavButton:
+					id: _btn_file
+					text: _('Enter')
+					on_release: 
+						if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()

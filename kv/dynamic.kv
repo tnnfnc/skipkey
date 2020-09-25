@@ -12,19 +12,10 @@
     size_hint: None, None
 	size: ui.nav_button_x, ui.nav_button_y
 ## --------------------	
-<FrameTitle@Label>:
-    # id: _ft
-    text: 'Frame title'
-    bold: True
-    padding: dp(4), dp(8)
-    size_hint_y: None
-    font_size: ui.font_big #title_font_size
-    height: self.texture_size[1] # Adapt the height to the text
-    # text_size: self.width, None  # Allow text for the wole width
-## --------------------	
 <BoxFrame@BoxLayout>:
     orientation: 'vertical'
     spacing: ui.box_spacing
+    padding: dp(4), dp(4)
     canvas:
         Color:
             rgb: ui.frame_color
@@ -37,10 +28,23 @@
     # id: _lb
     text: 'Label text'
     halign: 'left'
-    valign: 'center'
+    valign: 'middle'
     font_size: ui.font_norm #font_size
     text_size: self.size
+    size_hint_min_x: dp(80)
     # size: self.texture_size[0], label_height # Adapt the size to the text
+## --------------------	
+<FrameTitle@FieldLabel>:
+    text: 'Frame title'
+    bold: True
+    halign: 'center'
+    padding: dp(4), dp(4)
+    font_size: ui.font_big #title_font_size
+    size_hint_min_y: ui.frame_title_y + self.padding[1]
+    # size_hint_y: None
+    # Adapt the height to the text
+    # height: self.texture_size[1]
+    # height: self.font_size
 ## --------------------
 <InputField@TextInput+FocusBehavior>:
     # id: _in

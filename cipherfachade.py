@@ -31,7 +31,6 @@ def init_symbols():
         symbols.append(chr(hex))
     return tuple(symbols)
 
-
 # Digit
 def init_numbers():
     """Return a tuple of numbers digit from exadecimal

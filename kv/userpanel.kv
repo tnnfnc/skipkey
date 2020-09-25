@@ -7,14 +7,17 @@
     pr_strenght: _wid_strenght
     
     orientation: 'vertical'
+    size_hint_y: None
+    height: 6 * ui.nav_button_y
     BoxLayout:
         orientation: 'horizontal'
+        size_hint_y: None
+        height: ui.nav_button_y
         FieldLabel:
             id: _lab_pwddisp
             text: _('Display password')
         Switch:
             id: _swi_pwddisp
-            size_hint_x: None
             active: False
     InputField:
         id: _inp_password
@@ -32,6 +35,8 @@
     FieldLabel:
         id: _lab_confirm
         text: _('Confirm')
+        size_hint_y: None
+        height: ui.label_y
     InputField:
         id: _inp_confirm
         password: not _swi_pwddisp.active

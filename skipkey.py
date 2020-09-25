@@ -40,6 +40,7 @@ from dropdownmenu import DropDownMenu
 # from selectablelist import SelectableItemList, ItemComposite, Item
 from mlist import SelectableList, ItemComposite, Selectable, ItemPart
 from recyclelist import ItemAdapter, ItemController, SubItem
+import kvgraphics as ui 
 #
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
@@ -107,7 +108,7 @@ Builder.load_file(os.path.join('kv', 'autopanel.kv'))
 Builder.load_file(os.path.join('kv', 'itemactionbubble.kv'))
 #Screens
 Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
-Builder.load_file(os.path.join('kv', 'listscreenm.kv'))
+Builder.load_file(os.path.join('kv', 'listscreen.kv'))
 Builder.load_file(os.path.join('kv', 'editscreen.kv'))
 Builder.load_file(os.path.join('kv', 'importscreen.kv'))
 Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
@@ -823,7 +824,9 @@ class ListScreen(Screen):
 
     def counter(self):
         """Return the number of displayed item accounts over the total item."""
-        self.ids['_lab_counter'].text = f'{len(self.account_list.children)} / {len(self.app.items)}'
+        # self.ids['_lab_counter'].text = f'{len(self.account_list.children)} / {len(self.app.items)}'
+        self.ids['_lab_account'].text = ('%s: %d') % (_('Personal accounts'), len(self.app.items))
+        self.ids['_lab_counter'].text = f'{len(self.account_list.children)}'
 
     def cmd_info(self):
         """Screen menu command."""
@@ -1436,9 +1439,9 @@ class ImportScreen(Screen):
         if not self.initialized:
             for k, v in self.mapping.items():
                 # item = ItemComposite(items={'target': k})
-                item = ItemComposite()
-                item.add('target', Label(text=k, size_hint=(0.5, 1.0)))
-                item.add('source', TextInput(text=v, size_hint=(0.5, 1.0)))
+                item = ItemComposite(height=ui.field_y, size_hint=(1, None))
+                item.add('target', Label(text=k))
+                item.add('source', TextInput(text=v))
                 self.mapping_list.add(item)
             self.initialized = True
 
@@ -1782,9 +1785,9 @@ class AccountAdapter(ItemComposite):
         self.height = dp(50)
         parts = {
             'name': ItemPart(width=dp(180)),
-            'login': ItemPart(width=dp(180)),
-            'url': ItemPart(width=dp(200)),
-            'elapsed': PercentProgressBar(width=dp(160)),
+            # 'login': ItemPart(width=dp(180)),
+            # 'url': ItemPart(width=dp(200)),
+            'elapsed': PercentProgressBar(width=dp(100)),
         }
         for key, widg in parts.items():
             self.add(key, widg)
@@ -1795,8 +1798,8 @@ class AccountAdapter(ItemComposite):
     def refresh_view_attrs(self, item):
         ''' Catch and handle the view changes '''
         self.items['name'].text = item['name']
-        self.items['login'].text = item['login']
-        self.items['url'].text = item['url']
+        # self.items['login'].text = item['login']
+        # self.items['url'].text = item['url']
         elapsed = model.elapsed(item)
         elapsed = elapsed if elapsed < self.lifetime else self.lifetime
         elapsed = 100 * elapsed/self.lifetime
@@ -1814,7 +1817,6 @@ class AccountItemList(BubbleBehavior, SelectableList):
 
         # Add the bubble menu
         self.add_bubble(ItemActionBubble(
-            # size=(dp(350), dp(60)), size_hint=(None, None),
                                  background_image=os.path.join('data', 'background.png')))
 
 

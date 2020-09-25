@@ -14,8 +14,8 @@
     BoxLayout:
 		id: _bx_generate
         orientation: 'horizontal'
-		# size_hint_y: None
-		# height: _btn_generate.height*1.5
+        size_hint_y: 0.5
+        # height: _inp_password.height
         SmallButton:
             id: _btn_generate
 			pos_hint: {'center_y': 0.5}
@@ -26,78 +26,95 @@
         OutputField:
             id: _inp_password
 			size_hint_x: 1
-			# pos_hint: {'center_y': 0.5}
             text: _('Password hint')
     PasswordStrenght:
         id: _wid_strenght
 		width: _bx_generate.width
-    # Password length
-	VerticalSpace:
-    GridLayout:
-        cols: 2
-        FieldLabel:
-            id: _pwdlength
-            text: _('Length')
-        InputField:
-            id: _inp_length
-            hint_text: _('password length')
-			size: ui.field_x, ui.field_y # field_size_small
-            on_text:
-				if not self.text.isdigit(): self.text = self.text[:-1]
-			on_parent:
-				self.focus = True
-	GridLayout:
-        cols: 4
-		# Letters
-        FieldLabel:
-            id: _lab_letters
-            text: _('Letters')
-        Switch:
-            id: _swi_letters
-            size_hint: None, None
-            height: ui.button_y #button_size_y
-            active: len(_inp_length.text) > 0
-		Widget:
-		Widget:
+
+ #---------------- Password length
+    BoxLayout:
+        orientation: 'vertical'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            FieldLabel:
+                id: _pwdlength
+                text: _('Length')
+                size_hint_x: None
+                width: ui.field_x
+            InputField:
+                id: _inp_length
+                hint_text: _('password length')
+                size: ui.field_x, ui.field_y 
+                on_text:
+                    if not self.text.isdigit(): self.text = self.text[:-1]
+                on_parent:
+                    self.focus = True
+        BoxLayout:
+            orientation: 'horizontal'
+            FieldLabel:
+                id: _lab_letters
+                text: _('Letters')
+                size_hint_x: None
+                width: ui.field_x                
+            Switch:
+                id: _swi_letters
+                size_hint: None, 1
+                height: ui.button_y #button_size_y
+                active: len(_inp_length.text) > 0
         # Numbers
-        FieldLabel:
-            id: _lab_numbers
-            text: _('Numbers')
-        Switch:
-            id: _swi_numbers
-            size_hint: None, None
-            height: ui.button_y #button_size_y
-			on_active: 
-                if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
-				else: _inp_numbers.text = ''
-        FieldLabel:
-            id: _lab_minnumbers
-            text: _('At least')
-        InputField:
-            id: _inp_numbers
-            hint_text: _('a number')
-			disabled: not _swi_numbers.active
-			size: (ui.field_x, ui.field_y) #field_size_small
-			on_text:
-				if not self.text.isdigit(): self.text = self.text[:-1]
+        BoxLayout:
+            orientation: 'horizontal'
+            FieldLabel:
+                id: _lab_numbers
+                text: _('Numbers')
+                size_hint_x: None
+                width: ui.field_x                
+            Switch:
+                id: _swi_numbers
+                size_hint: None, 1
+                height: ui.button_y #button_size_y
+                on_active: 
+                    if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
+                    else: _inp_numbers.text = ''
+            FieldLabel:
+                id: _lab_minnumbers
+                text: _('At least')
+                size_hint_x: None
+                width: ui.field_small_x                
+            InputField:
+                id: _inp_numbers
+                hint_text: _('a number')
+                disabled: not _swi_numbers.active
+                size: (ui.field_x, ui.field_y) #field_size_small
+                on_text:
+                    if not self.text.isdigit(): self.text = self.text[:-1]
         # Symbols
-        FieldLabel:
-            id: _lab_symbols
-            text: _('Symbols')
-        Switch:
-            id: _swi_symbols
-            size_hint: None, None
-            height: ui.button_y #button_size_y
-			on_active:
-                if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
-				else: _inp_symbols.text = ''
-        FieldLabel:
-            id: _lab_minsymbols
-            text: _('At least')
-        InputField:
-            id: _inp_symbols
-            hint_text: _('a number')
-			disabled: not _swi_symbols.active
-			size: (ui.field_x, ui.field_y) #field_size_small
-			on_text:
-				if not self.text.isdigit(): self.text = self.text[:-1]
+        BoxLayout:
+            orientation: 'horizontal'
+            FieldLabel:
+                id: _lab_symbols
+                text: _('Symbols')
+                size_hint_x: None
+                width: ui.field_x                
+            Switch:
+                id: _swi_symbols
+                size_hint: None, 1
+                height: ui.button_y #button_size_y
+                on_active:
+                    if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
+                    else: _inp_symbols.text = ''
+            FieldLabel:
+                id: _lab_minsymbols
+                text: _('At least')
+                size_hint_x: None
+                width: ui.field_small_x                
+            InputField:
+                id: _inp_symbols
+                hint_text: _('a number')
+                disabled: not _swi_symbols.active
+                size: (ui.field_x, ui.field_y) #field_size_small
+                on_text:
+                    if not self.text.isdigit(): self.text = self.text[:-1]
+
+    

@@ -6,15 +6,17 @@
     pr_seed: _inp_seed
 
 	orientation: 'vertical'
+    size_hint_y: None
+    height: 3 * ui.nav_button_y
 	BoxLayout:
 		orientation: 'horizontal'
+        size_hint_y: None
+        height: ui.nav_button_y
 		FieldLabel:
 			id: _lab_seed
-			size_hint_y: 1
 			text: _('Display seed')
 		Switch:
 			id: _swi_seed
-			size_hint_x: None
 			active: False
     InputField:
         id: _inp_seed
