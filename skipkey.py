@@ -52,7 +52,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 2
-MICRO = 0
+MICRO = 1
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -1754,6 +1754,7 @@ class PasswordStrenght(BoxLayout):
 
     def __init__(self, **kwargs):
         super(PasswordStrenght, self).__init__(**kwargs)
+        
 
     def set_strength(self, text):
         """
@@ -1761,7 +1762,17 @@ class PasswordStrenght(BoxLayout):
 
         It evaluates the password strength.
         """
-        self.pr_strenght.value = password.strength(text)
+        value = password.strength(text)
+        self.pr_strenght.value = value
+
+        RGB = [
+            '{0:02X}'.format(int(255 if value < 55 else 255 - value*255/100 if value < 100 else 200)),
+            '{0:02X}'.format(int(value*255/100 if value < 50 else 255 if value < 100 else 0)),
+            '{0:02X}'.format(int(255 if value > 100 else 0))
+        ]
+
+        text = _('Strenght') + ' {:.2%}'.format(self.pr_strenght.value/100)
+        self.ids._lab_strenght.text = f"[color={''.join(RGB)}]{text}[/color]"
 
 
 class PercentProgressBar(BoxLayout):
@@ -1946,8 +1957,10 @@ class ItemActionBubble(Menu):
     def cmd_url(self, *args):
         # System call to browser
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         url = item['url']
         try:
             browser.open(url, new=0, autoraise=True)
@@ -1961,8 +1974,10 @@ class ItemActionBubble(Menu):
         Publish user.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         user = item['login']
         self._publish(app, user)
         return True
@@ -1981,8 +1996,10 @@ class ItemActionBubble(Menu):
         Publish 'user TAB password' and dismiss bubble.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         p = self._password(app)
         login = f'{item["login"]}\t{p}'
         self._publish(app, login)
@@ -1991,8 +2008,10 @@ class ItemActionBubble(Menu):
 
     def _password(self, app):
         try:
-            item = app.items[model.index_of(
-                items=app.items, value=self.name, key='name')]
+            index = model.index_of(items=app.items, value=self.name, key='name')
+            if index == None: 
+                return False
+            item = app.items[index]
             if item['auto'] == 'False':
                 p = app.decrypt(item['password'])
             # Clipboard.copy(self.item.item['login'])
@@ -2028,8 +2047,10 @@ class ItemActionBubble(Menu):
         Leave the screen and enter 'EditScreen'.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         app.root.get_screen(EDIT).set_item(item=item, is_new=False)
         app.root.transition.direction = 'left'
         app.root.current = EDIT

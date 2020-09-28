@@ -342,13 +342,13 @@ class SkipKey():
         Delete an item from the item list.
         """
         index = index_of(self.items, item['name'], 'name')
-        if index > -1:  # Delete
+        if index == None:  # Delete
+            raise ValueError('Item "%s" not found' % (item['name']))
+        else:
             old = self.items.pop(index)
             if history:
                 self.add_history(new=None, old=old, action=SkipKey.DELETE)
             self.items.sort(key=lambda k: str(k['name']).lower())
-        else:
-            raise ValueError('Item "%s" not found' % (item['name']))
         return True
 
     # interface
@@ -362,8 +362,13 @@ class SkipKey():
         """
         add_index(self.search_fields)(item)
         index = index_of(self.items, item['name'], 'name')
-        # Update
-        if index:
+        if index == None: # Append
+            item['created'] = item['changed'] = datetime.now().isoformat(
+                sep=' ', timespec='seconds')
+            self.items.append(item)
+            if history:
+                self.add_history(new=None, old=item, action=SkipKey.APPEND)
+        else: # Update
             if history:
                 old = self.items[index]
                 self.add_history(new=item, old=old, action=SkipKey.UPDATE)
@@ -372,12 +377,6 @@ class SkipKey():
                 item['changed'] = datetime.now().isoformat(
                     sep=' ', timespec='seconds')
             self.items[index] = item
-        else:  # Append
-            item['created'] = item['changed'] = datetime.now().isoformat(
-                sep=' ', timespec='seconds')
-            self.items.append(item)
-            if history:
-                self.add_history(new=None, old=item, action=SkipKey.APPEND)
         self.items.sort(key=lambda k: str(k['name']).lower())
         return True
 

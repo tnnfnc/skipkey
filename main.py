@@ -12,7 +12,7 @@ import csv
 from datetime import datetime
 from datetime import timedelta
 # passed!
-
+import __init__
 import kivy
 from kivy import utils
 from kivy.clock import Clock
@@ -108,7 +108,7 @@ Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
 Builder.load_file(os.path.join('kv', 'changeview.kv'))
 #Screens
 Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
-Builder.load_file(os.path.join('kv', 'listscreenm.kv'))#<-----
+Builder.load_file(os.path.join('kv', 'listscreen.kv'))#<-----
 Builder.load_file(os.path.join('kv', 'editscreen.kv'))
 Builder.load_file(os.path.join('kv', 'importscreen.kv'))
 Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
@@ -222,14 +222,12 @@ class TestApp(App):
     def build(self):
         sm = ScreenManager()
         self.root = sm
-        sm.add_widget(ImportScreen(name=IMPORT)) # passed!
         sm.add_widget(ChangesScreen(name=CHANGES)) # passed!
-        sm.add_widget(EditScreen(name=EDIT)) # passed!
+        sm.add_widget(ImportScreen(name=IMPORT)) # passed!
         sm.add_widget(EnterScreen(name=ENTER)) # passed!
-        sm.add_widget(ListScreen(name=LIST)) # Not passed! Refactor it!
+        sm.add_widget(ListScreen(name=LIST)) # passed!
+        sm.add_widget(EditScreen(name=EDIT)) # passed!
 
-        # Must reimplement without RecycleList and relative classes
-        # log 6
         return sm
 
 
