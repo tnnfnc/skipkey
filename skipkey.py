@@ -52,7 +52,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 2
-MICRO = 1
+MICRO = 2
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -1831,60 +1831,6 @@ class AccountItemList(BubbleBehavior, SelectableList):
                                  background_image=os.path.join('data', 'background.png')))
 
 
-# class AccountAdapter(ItemAdapter):
-#     def __init__(self, **kwargs):
-#         super(AccountAdapter, self).__init__(**kwargs)
-#         self.data = {
-#             'name': SubItem(id='name', width=dp(180)),
-#             'login': SubItem(id='login', width=dp(180)),
-#             'url': SubItem(id='url', width=dp(200)),
-#             'elapsed': PercentProgressBar(id='elapsed', width=dp(160)),
-#         }
-#         for id in self.data:
-#             self.add_widget(self.data[id])
-#         self.lifetime = float(App.get_running_app().config.getdefault(
-#             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
-
-#     def refresh_view_attrs(self, rv, index, data):
-#         ''' Catch and handle the view changes '''
-#         super().refresh_view_attrs(rv, index, data)
-#         self.index = index
-#         self.data['name'].text = self.name  # data['name']
-#         self.data['login'].text = self.login  # data['login']
-#         self.data['url'].text = self.url  # data['url']
-#         elapsed = model.elapsed(data)
-#         elapsed = elapsed if elapsed < self.lifetime else self.lifetime
-#         elapsed = 100 * elapsed/self.lifetime
-#         self.data['elapsed'].ids.progressbar.value = elapsed
-
-
-# class AccountItemList(BubbleMenu):
-#     """
-#     GUI element. Accounts list container.
-#     The list is managed in EditScreen.
-#     """
-
-#     def __init__(self, *args, **kwargs):
-#         super(AccountItemList, self).__init__(**kwargs)
-#         self.controller = ItemController()
-#         self.controller.viewclass = 'AccountAdapter'
-#         self.add_widget(self.controller)
-#         # Add the bubble menu
-#         self.add_bubble(ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
-#                                  background_image=os.path.join('data', 'background.png')))
-
-
-#     @property
-#     def data_model(self):
-#         """Return the RecycleView data model."""
-#         return self.controller.data_model
-
-#     @property
-#     def layout_manager(self):
-#         """Return the RecycleView selectable layout."""
-#         return self.controller.layout_manager
-
-
 class ChangeView(Selectable, BoxLayout):
     """
     Provides a comparison between an 'old' vs  a 'new' object,
@@ -1942,13 +1888,7 @@ class ItemActionBubble(Menu):
         super(ItemActionBubble, self).__init__(**kwargs)
         # Clear clipboard scheduled event
         self.evt_clipboard = None
-        # self.add_widget(BubbleButton(text=_('Url'), on_release=self.cmd_url))
-        # self.add_widget(BubbleButton(text=_('User'), on_release=self.cmd_user))
-        # self.add_widget(BubbleButton(text=_('Password'),
-        #                              on_release=self.cmd_password))
-        # self.add_widget(BubbleButton(
-        #     text=_('Login'), on_release=self.cmd_login))
-        # self.add_widget(BubbleButton(text=_('Edit'), on_release=self.cmd_edit))
+
 
     @property
     def name(self):
@@ -2014,7 +1954,6 @@ class ItemActionBubble(Menu):
             item = app.items[index]
             if item['auto'] == 'False':
                 p = app.decrypt(item['password'])
-            # Clipboard.copy(self.item.item['login'])
             else:
                 p = app.show(item)
             return p
@@ -2038,7 +1977,6 @@ class ItemActionBubble(Menu):
                 app.evt_clipboard.cancel()
             app.evt_clipboard = Clock.schedule_once(
                 lambda dt: Clipboard.copy(' '), pwd_timeout)
-            # app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
         return True
 
     def cmd_edit(self, *args):
