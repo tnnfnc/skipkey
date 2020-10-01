@@ -1,0 +1,50 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Changes screen
+#---------------------------------------------------------
+<ChangesScreen>:
+	# Properties
+    pr_actions: _spi_actions
+    changed_item_list: _changed_item_list
+
+    BoxLayout:
+		orientation: 'vertical'
+		#--------------------------------- Main buttons
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			height: self.minimum_height
+			IconButton:
+				icon: 'data/icons/left_arrow.png'
+				on_release:
+					if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
+			OptionLabel:
+				text: app.pr_timer
+				halign: 'left'
+			# horizontal spacing
+			BoxLayout:
+				orientation: 'horizontal'
+			IconButton:
+				icon:  'data/icons/undo.png'
+				on_release: 
+					if hasattr(root, 'cmd_undo'): getattr(root, 'cmd_undo')()
+
+		FrameTitle:
+            id: _lab_account
+            text: _('Changes')
+			size_hint_y: None
+			height: self.size_hint_min_y
+		Spinner:
+			id: _spi_actions
+			size_hint: 1, None
+			size: (ui.spinner_x, ui.spinner_y)
+			on_text:
+				if hasattr(root, 'cmd_actions'): getattr(root, 'cmd_actions')(self.text)
+				
+		BBoxLayout:
+			orientation: 'vertical'
+			ScrollView:
+				ChangedItemList:
+					id: _changed_item_list
+
+					

@@ -8,6 +8,7 @@ page_w = dp(428)
 # SCREEN & BOX
 screen_padding = (dp(2), dp(2), dp(2), dp(2))
 box_padding = (dp(2), dp(2), dp(2), dp(2))
+box_spacing = (dp(2), dp(2))
 
 # FONT
 font_norm = dp(15)
@@ -21,9 +22,12 @@ label_small_y = 2 * font_small
 label_big_y = 2 * font_big
 label_bigger_y = 2 * font_bigger
 
+# FRAME TITLE
+frame_title_y = label_big_y 
+
 # FIELD WIDTH
 field_x = dp(100)
-field_small_x = dp(50)
+field_small_x = dp(60)
 field_big_x = dp(200)
 field_bigger_x = dp(300)
 

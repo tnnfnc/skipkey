@@ -1,0 +1,50 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Import screen
+#---------------------------------------------------------
+<ImportScreen>:
+    # Kivy Properties
+	
+	BoxLayout:
+		orientation: 'vertical'
+
+		#--------------------------------- Main buttons
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			height: self.minimum_height
+			IconButton:
+				icon: 'data/icons/left_arrow.png'
+				on_release:
+					if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
+			OptionLabel:
+				text: app.pr_timer
+				halign: 'left'
+			# horizontal spacing
+			BoxLayout:
+				orientation: 'horizontal'
+			IconButton:
+				icon: 'data/icons/import.png'
+				on_release: 
+					if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')()
+		
+		FrameTitle:
+			id: _lab_mapping
+			text: _('Fields mapping')
+			size_hint_y: None
+			height: self.size_hint_min_y
+		Label:
+			id: _lab_mapping
+			size_hint_y: None
+			text_size: root.width, None
+    		size: self.texture_size
+			halign: 'justify'
+			text: _('Mapping the app keys to the imported file keys or leave blank to skip')
+
+		ScrollView:
+			MappingList:
+				id: _mapping_list
+
+
+
+						

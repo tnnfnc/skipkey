@@ -1,0 +1,76 @@
+#---------------------------------------------------------
+#-------------------- INFO POPUP
+#---------------------------------------------------------
+<InfoPopup>:
+    # Properties: Login and seed
+	pr_file: _out_file
+	pr_pbkdf: _out_pbkdf
+	pr_algorithm: _out_algorithm
+	pr_mode: _out_mode
+	pr_keysize: _out_keysize
+	pr_iterations: _out_iterations
+
+    auto_dismiss: False
+	ScrollView:
+		BoxLayout:
+			orientation: 'vertical'
+			size_hint_y: None
+			size: self.minimum_size
+			FrameTitle:
+				text: _('Info')
+			BoxLayout:
+				orientation: 'horizontal'
+				size_hint_min_y: ui.field_y
+				FieldLabel:
+					text: _('File')
+					size_hint_x: 0.3
+				OutputField:
+					id: _out_file
+					text: ''
+			FrameTitle:
+				text: _('Security')
+				size_hint_min_y: ui.field_y
+			GridLayout:
+				cols: 2
+				size_hint_min_y: 5 * ui.field_y
+				FieldLabel:
+					text: _('Algorithm')
+					size_hint_x: 0.5
+				OutputField:
+					id: _out_algorithm
+					text: ''
+				FieldLabel:
+					text: _('Chain mode')
+					size_hint_x: 0.5
+				OutputField:
+					id: _out_mode
+					text: ''
+				FieldLabel:
+					text: _('Key size')
+					size_hint_x: 0.5
+				OutputField:
+					id: _out_keysize
+					text: ''
+				FieldLabel:
+					text: _('Key derivator')
+					size_hint_x: 0.5
+				OutputField:
+					id: _out_pbkdf
+					text: ''
+				FieldLabel:
+					text: _('Iterations')
+					size_hint_x: 0.5
+				OutputField:
+					id: _out_iterations
+					text: ''
+						#--------------------------------- Main buttons
+			StackLayout:
+				orientation: 'rl-bt'
+				size_hint_y: None
+				height: 2*ui.nav_button_y
+				NavButton:
+					id: _btn_cancel
+					text: _('Cancel')
+					on_release:
+						if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')()
+						root.dismiss()

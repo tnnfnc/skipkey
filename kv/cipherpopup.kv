@@ -1,0 +1,79 @@
+
+#---------------------------------------------------------
+# CipherPopup Popup
+#---------------------------------------------------------
+<CipherPopup>:
+    # Properties: Login and seed
+    pr_login_wid: _wid_login
+	pr_seed_wid: _wid_seed
+	pr_kderive: _spi_kderive
+	pr_cipher: _spi_cipher
+	pr_iters: _inp_iters
+
+	auto_dismiss: False
+
+	ScrollView:
+		BoxLayout:
+			orientation: "vertical"
+			size_hint_y: None
+			height: self.minimum_height
+	#--------------------------------- Password for data encryption
+			FrameTitle:
+				id: _lab_pwd
+				text: _('Password for data encryption')
+			UserPanel:
+				id: _wid_login
+			#--------------------------------- Seed
+			FrameTitle:
+				id: _lab_seed
+				text: _('Seed for password generation')
+			SeedPanel:
+				id: _wid_seed
+			#--------------------------------- Cipher
+			BoxLayout:
+				orientation: "horizontal"
+				size_hint_min_y: ui.field_y
+				FieldLabel:
+					id: _lab_cipher
+					text: _('Cipher')
+				Spinner:
+					id: _spi_cipher
+					text: root.cipher_algorithms()[0]
+					values:
+						root.cipher_algorithms() 
+			#--------------------------------- Key generation
+			BoxLayout:
+				orientation: "horizontal"
+				size_hint_min_y: ui.field_y
+				FieldLabel:
+					id: _lab_keygen
+					text: _('Key generation')
+				Spinner:
+					id: _spi_kderive
+					text: root.key_derivators()[0]
+					values:
+						root.key_derivators()
+			BoxLayout:
+				orientation: "horizontal"
+				size_hint_min_y: ui.field_y
+				FieldLabel:
+					id: _lab_iters
+					text: _('Iters.')
+				InputField:
+					id: _inp_iters
+					width: ui.field_x # field_width_small
+					text: '100000'
+			#--------------------------------- Main buttons
+			StackLayout:
+				orientation: 'rl-bt'
+				size_hint_min_y: 2*ui.nav_button_y
+				NavButton:
+					id: _btn_exit
+					text: _('Cancel')
+					on_release:
+						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+				NavButton:
+					id: _btn_file
+					text: _('Enter')
+					on_release: 
+						if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()

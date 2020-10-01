@@ -1,0 +1,52 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Login screen
+#---------------------------------------------------------
+<EnterScreen>:
+
+	pr_recentfiles: _spi_recentfiles
+	BoxLayout:
+		orientation: 'vertical'
+		#--------------------------------- Main buttons
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint_y: None
+			height: self.minimum_height
+			IconButton:
+				icon: 'data/icons/x.png'
+				on_release:
+					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+			OptionLabel:
+				text: app.pr_timer
+				halign: 'left'
+			# horizontal spacing
+			BoxLayout:
+				orientation: 'horizontal'
+			IconButton:
+				icon: 'data/icons/open.png'
+				on_release: 
+					if hasattr(root, 'cmd_open'): getattr(root, 'cmd_open')()
+			IconButton:
+				icon: 'data/icons/new.png'
+				on_release: 
+					if hasattr(root, 'cmd_new'): getattr(root, 'cmd_new')()
+			OptionButton:
+				text: _('Clear recents')
+				on_release: 
+					if hasattr(root, 'cmd_clear'): getattr(root, 'cmd_clear')()
+
+		Spinner:
+			id: _spi_recentfiles
+			text: _('Recent files')
+			size_hint: 1, None
+			size: (ui.spinner_x, ui.spinner_y) #spinner_size
+			on_text: 
+				if hasattr(root, 'cmd_recent'): getattr(root, 'cmd_recent')()
+		
+		BoxLayout:
+			orientation: 'horizontal'
+			Image:
+				source: 'data/icons/skip_big.png'
+				pos: self.pos
+				size: self.parent.size	
+				

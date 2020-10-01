@@ -21,6 +21,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.bubble import BubbleButton
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.textinput import TextInput
+from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.app import App
 from kivy import utils
@@ -33,9 +34,13 @@ import password
 import model
 from localize import translate
 from uicontroller import GuiController
-from bubblemenu import BubbleDecorator, BubbleMenu
-from selectablelist import SelectableItemList, ItemComposite, Item
+from bubblemenu import BubbleMenu, Menu, BubbleBehavior
+from dropdownmenu import DropDownMenu
+
+# from selectablelist import SelectableItemList, ItemComposite, Item
+from mlist import SelectableList, ItemComposite, Selectable, ItemPart
 from recyclelist import ItemAdapter, ItemController, SubItem
+import kvgraphics as ui 
 #
 dummy = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dummy)
@@ -46,14 +51,11 @@ sys.path.append(dummy)
 kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
-MINOR = 1
-MICRO = 5
+MINOR = 2
+MICRO = 2
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-# icons_dir = '%s\data\icons' % (current_dir)
-# locale_dir = '%s\locale' % (current_dir)
-# kivy_dir = '%s\kv' % (current_dir)
 current_dir = os.path.dirname(os.path.realpath(__file__))
 icons_dir = os.path.join(current_dir, 'data', 'icons')
 locale_dir = os.path.join(current_dir, 'locale')
@@ -83,7 +85,7 @@ def hh_mm_ss(seconds):
     hh = int(seconds/3600)
     mm = int((seconds % 3600)/60)
     ss = int((seconds % 3600) % 60)
-    out = 'Timeout: {hh:02}:{mm:02}:{ss:02}'.format(hh=hh, mm=mm, ss=ss)
+    out = '{hh:02}:{mm:02}:{ss:02}'.format(hh=hh, mm=mm, ss=ss)
     return out
 
 
@@ -91,14 +93,28 @@ def hh_mm_ss(seconds):
 # files works only if module is in the app dir!!
 Builder.load_file('commons.kv')
 Builder.load_file(os.path.join('kv', 'dynamic.kv'))
-Builder.load_file(os.path.join('kv', 'popup.kv'))
-Builder.load_file(os.path.join('kv', 'widgets.kv'))
-Builder.load_file(os.path.join('kv', 'popups.kv'))
-Builder.load_file(os.path.join('kv', 'enter.kv'))
-Builder.load_file(os.path.join('kv', 'list.kv'))
-Builder.load_file(os.path.join('kv', 'edit.kv'))
-Builder.load_file(os.path.join('kv', 'import.kv'))
-Builder.load_file(os.path.join('kv', 'changes.kv'))
+#Popups
+Builder.load_file(os.path.join('kv', 'loginpopup.kv'))
+Builder.load_file(os.path.join('kv', 'cipherpopup.kv'))
+Builder.load_file(os.path.join('kv', 'edittagpopup.kv'))
+Builder.load_file(os.path.join('kv', 'infopopup.kv'))
+Builder.load_file(os.path.join('kv', 'messagepopup.kv'))
+Builder.load_file(os.path.join('kv', 'decisionpopup.kv'))
+#Panels building blocks
+Builder.load_file(os.path.join('kv', 'loginpanel.kv'))
+Builder.load_file(os.path.join('kv', 'userpanel.kv'))
+Builder.load_file(os.path.join('kv', 'seedpanel.kv'))
+Builder.load_file(os.path.join('kv', 'autopanel.kv'))
+Builder.load_file(os.path.join('kv', 'itemactionbubble.kv'))
+#Screens
+Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
+Builder.load_file(os.path.join('kv', 'listscreen.kv'))
+Builder.load_file(os.path.join('kv', 'editscreen.kv'))
+Builder.load_file(os.path.join('kv', 'importscreen.kv'))
+Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
+#Widgets
+Builder.load_file(os.path.join('kv', 'passwordstrenght.kv'))
+Builder.load_file(os.path.join('kv', 'tagspinner.kv'))
 Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
 Builder.load_file(os.path.join('kv', 'changeview.kv'))
 
@@ -696,7 +712,7 @@ class ListScreen(Screen):
     pr_tag = ObjectProperty(None)
     pr_search = ObjectProperty(None)
     pr_expiring = ObjectProperty(None)
-    pr_item_list_wid = ObjectProperty(None)
+    account_list = ObjectProperty(None)
 
     class Find():
         def __init__(self, pattern=None, sublist=[], *args, **kwargs):
@@ -755,7 +771,18 @@ class ListScreen(Screen):
                         data.append(i)
                 except Exception:
                     continue
-            self.pr_item_list_wid.data_model.data = data
+            
+            self.account_list.clear()
+
+            for item in data:
+                id = item.get('object_id', None)
+                if id:
+                    self.account_list.add_from_cache(id).refresh_view_attrs(item)
+                else:
+                    row = AccountAdapter()
+                    row.refresh_view_attrs(item)
+                    item.setdefault('object_id', self.account_list.add(row))
+
             self.counter()
         else:
             Clock.schedule_once(lambda dt: self.on_enter_expiring(after=True))
@@ -768,9 +795,12 @@ class ListScreen(Screen):
     def build_tags(self):
         """Internal. Extract a list of tag alphabetically
         ordered from the item list."""
-        t = list(set(i['tag'] for i in self.app.items))
-        t.sort(key=str.lower)
-        tags = [TAGS, ] + t
+        tags = [TAGS, ]
+        if self.app.items:
+            t = list(set(i['tag'] for i in self.app.items))
+            t.sort(key=str.lower)
+            tags = tags + t
+
         return tags
 
     def _fill_items(self, items):
@@ -779,13 +809,24 @@ class ListScreen(Screen):
 
         Every item is an account.
         """
-        self.pr_item_list_wid.layout_manager.clear_selection()
-        self.pr_item_list_wid.data_model.data = items
+        self.account_list.clear()
+
+        for item in items:
+            id = item.get('object_id', None)
+            if id:
+                self.account_list.add_from_cache(id).refresh_view_attrs(item)
+            else:
+                row = AccountAdapter()
+                row.refresh_view_attrs(item)
+                item.setdefault('object_id', self.account_list.add(row))
+
         self.counter()
 
     def counter(self):
         """Return the number of displayed item accounts over the total item."""
-        self.ids['_lab_counter'].text = f'{len(self.pr_item_list_wid.data_model.data)} / {len(self.app.items)}'
+        # self.ids['_lab_counter'].text = f'{len(self.account_list.children)} / {len(self.app.items)}'
+        self.ids['_lab_account'].text = ('%s: %d') % (_('Personal accounts'), len(self.app.items))
+        self.ids['_lab_counter'].text = f'{len(self.account_list.children)}'
 
     def cmd_info(self):
         """Screen menu command."""
@@ -856,7 +897,7 @@ class ListScreen(Screen):
         For performance reasons it's better search for sublist.
         """
         if after:
-            data = self.pr_item_list_wid.data_model.data
+            data = self.account_list.children
             if len(self.find.sublist) != len(data):
                 self._fill_items(self.find.sublist)
                 self.counter()
@@ -880,7 +921,7 @@ class ListScreen(Screen):
             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
         return True
 
-    def cmd_add(self, args):
+    def cmd_add(self):
         """Add a new item account. Call 'EditScreen'."""
         # Apply configuration
         app = App.get_running_app()
@@ -902,8 +943,8 @@ class ListScreen(Screen):
         data are going to be lost."""
         app = App.get_running_app()
         if after:
-            self.pr_item_list_wid.data_model.data = []
-            self.pr_item_list_wid.layout_manager.clear_selection()
+            self.account_list.clear()
+            # self.account_list.layout_manager.clear_selection()
             self.pr_tag.text = ''
             app.initialize()
             self.manager.transition.direction = 'right'
@@ -938,6 +979,255 @@ class ListScreen(Screen):
         else:
             self.on_enter_callback = self.on_enter_default
         self.on_enter()
+
+# class ListScreen(Screen):
+#     """GUI element. Main screen with the list of user accounts."""
+#     # Widget hooks
+#     pr_tag = ObjectProperty(None)
+#     pr_search = ObjectProperty(None)
+#     pr_expiring = ObjectProperty(None)
+#     pr_item_list_wid = ObjectProperty(None)
+
+#     class Find():
+#         def __init__(self, pattern=None, sublist=[], *args, **kwargs):
+#             self.sublist = sublist
+#             self.pattern = pattern
+
+#     def __init__(self, **kwargs):
+#         super(ListScreen, self).__init__(**kwargs)
+#         self.app = App.get_running_app()
+#         self.infopopup = None
+#         self.on_enter_callback = self.on_enter_default
+#         self.find = ListScreen.Find()  # Working sublist of items
+#         self.guic = GuiController(self)
+
+#     def on_enter(self):
+#         """Call when enter screen."""
+#         self.on_enter_callback()
+
+#     def on_enter_default(self):
+#         """Call back 'on_enter'. Prepare data to display the list.
+#         Default view."""
+#         if self.pr_tag.disabled:
+#             self.pr_tag.disabled = False
+#             self.pr_search.disabled = False
+#         tags = self.build_tags()
+#         self.pr_tag.values = tags
+#         self.app.root.get_screen(EDIT).pr_tag.values = tags
+
+#         if not self.pr_tag.text:
+#             self.pr_tag.text = self.pr_tag.values[0]
+#         elif self.pr_tag.text != self.pr_tag.values[0]:
+#             self.cmd_tag_selected()
+#         elif self.pr_search.text:
+#             # Refresh list to take into account possible deleted items
+#             self.find = ListScreen.Find()
+#             self.cmd_search()
+#         else:
+#             self._fill_items(self.app.items)
+#         self.counter()
+
+#     def on_enter_expiring(self, after=False):
+#         """Call back 'on_enter'. Prepare data to display the list.
+#         Expiring accounts view."""
+#         if after:
+#             if not self.pr_tag.disabled:
+#                 self.pr_tag.disabled = True
+#                 self.pr_search.disabled = True
+#             pwd_warn = float(self.app.config.getdefault(
+#                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7))
+#             pwd_lifetime = float(self.app.config.getdefault(
+#                 SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
+#             data = []
+#             for i in self.app.items:
+#                 try:
+#                     if model.time_left(i, pwd_lifetime) <= pwd_warn:
+#                         data.append(i)
+#                 except Exception:
+#                     continue
+#             self.pr_item_list_wid.data_model.data = data
+#             self.counter()
+#         else:
+#             Clock.schedule_once(lambda dt: self.on_enter_expiring(after=True))
+#         return True
+
+#     def on_leave(self):
+#         """Call when leave screen. Do nothing."""
+#         pass
+
+#     def build_tags(self):
+#         """Internal. Extract a list of tag alphabetically
+#         ordered from the item list."""
+#         t = list(set(i['tag'] for i in self.app.items))
+#         t.sort(key=str.lower)
+#         tags = [TAGS, ] + t
+#         return tags
+
+#     def _fill_items(self, items):
+#         """
+#         Internal. Fill the item list.
+
+#         Every item is an account.
+#         """
+#         self.pr_item_list_wid.layout_manager.clear_selection()
+#         self.pr_item_list_wid.data_model.data = items
+#         self.counter()
+
+#     def counter(self):
+#         """Return the number of displayed item accounts over the total item."""
+#         self.ids['_lab_counter'].text = f'{len(self.pr_item_list_wid.data_model.data)} / {len(self.app.items)}'
+
+#     def cmd_info(self):
+#         """Screen menu command."""
+#         app = App.get_running_app()
+#         if not self.infopopup:
+#             self.infopopup = InfoPopup()
+#             self.infopopup.title = _('Info')
+#         self.infopopup.set_fields(app.cryptod, file=app.file)
+#         self.infopopup.open()
+
+#     def cmd_copy(self):
+#         """Screen menu command."""
+#         app = App.get_running_app()
+#         popup = SaveFile()
+#         popup.filechooser.rootpath = os.path.dirname(app.file)
+#         popup.title = _('Copy %s to:') % (os.path.basename(app.file))
+#         popup.openCopy()
+
+#     def cmd_import(self):
+#         """Screen menu command."""
+#         # app = App.get_running_app()
+#         popup = ImportFile()
+#         popup.title = _('Import from a CSV file:')
+#         popup.open()
+
+#     def cmd_export(self):
+#         """Screen menu command."""
+#         app = App.get_running_app()
+#         popup = ExportFile()
+#         popup.title = _('Export %s to CSV:') % (os.path.basename(app.file))
+#         popup.open()
+
+#     def cmd_changes(self):
+#         """Screen menu command."""
+#         app = App.get_running_app()
+#         app.root.transition.direction = 'left'
+#         app.root.current = CHANGES
+
+#     def cmd_tag_selected(self, after=False):
+#         """Filter list everytime a tag is selected."""
+#         if self.pr_search.text:
+#             self.pr_search.text = ''
+
+#         if after:
+#             if self.pr_tag.text == TAGS:
+#                 self._fill_items(self.app.items)
+#             else:
+#                 sublst = model.select(
+#                     items=self.app.items, value=self.pr_tag.text, key='tag')
+#                 # sublst.sort(key=lambda x: str.lower(x['name']))
+#                 self._fill_items(sublst)
+#             self.counter()
+#             return True
+#         else:
+#             Clock.schedule_once(
+#                 lambda dt: self.cmd_tag_selected(after=True), 0.1)
+
+#     def clear_search(self):
+#         """Clear the search text field."""
+#         if len(self.pr_search.text) > 0:
+#             self.pr_search.text = ''
+#         self._fill_items(self.app.items)
+
+#     def cmd_search(self, after=False, at_least=1):
+#         """
+#         Search items from the field input text.
+
+#         For performance reasons it's better search for sublist.
+#         """
+#         if after:
+#             data = self.pr_item_list_wid.data_model.data
+#             if len(self.find.sublist) != len(data):
+#                 self._fill_items(self.find.sublist)
+#                 self.counter()
+#         else:
+#             # Start search from at least two characters
+#             if len(self.pr_search.text) > at_least:
+#                 # Search text: add characters -> search on sublist
+#                 if self.find.pattern and str(self.pr_search.text).casefold().startswith(str(self.find.pattern).casefold()):
+#                     sublist = model.search(
+#                         items=self.find.sublist, text=self.pr_search.text)
+#                     # sublist.sort(key=lambda x: str.lower(x['name']))
+#                     self.find = ListScreen.Find(self.pr_search.text, sublist)
+#                 else:
+#                     sublist = model.search(
+#                         items=self.app.items, text=self.pr_search.text)
+#                     self.find = ListScreen.Find(self.pr_search.text, sublist)
+#             else:
+#                 self.find = ListScreen.Find(
+#                     self.pr_search.text, self.app.items)
+
+#             Clock.schedule_once(lambda dt: self.cmd_search(after=True), 0.1)
+#         return True
+
+#     def cmd_add(self, args):
+#         """Add a new item account. Call 'EditScreen'."""
+#         # Apply configuration
+#         app = App.get_running_app()
+#         config = self.app.config
+#         item = model.new_item(template=app.item_template)
+#         item['length'] = str(config.getdefault(
+#             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10))
+#         item['auto'] = str(config.getdefault(
+#             SkipKeyApp.PWDAUTO, SkipKeyApp.PWDLEN, True))
+
+#         self.manager.get_screen(EDIT).set_item(item=item, is_new=True)
+#         self.manager.transition.direction = 'left'
+#         self.manager.current = EDIT
+#         return True
+
+#     def cmd_back(self, after=False):
+#         """Return to login: stop the running mode and return
+#         to login screen. Warns the user that everything is cleared and
+#         data are going to be lost."""
+#         app = App.get_running_app()
+#         if after:
+#             self.pr_item_list_wid.data_model.data = []
+#             self.pr_item_list_wid.layout_manager.clear_selection()
+#             self.pr_tag.text = ''
+#             app.initialize()
+#             self.manager.transition.direction = 'right'
+#             self.manager.current = ENTER
+#             return True
+#         else:
+#             if app.file:
+#                 decision(_('Leave'), _('Exit %s without saving?') % (os.path.basename(app.file)),
+#                          fn_ok=self.cmd_back, ok_kwargs={'after': True})
+#             else:
+#                 self.cmd_back(app=app, after=True)
+#         return False
+
+#     def cmd_save(self):
+#         """Save the current file"""
+#         try:
+#             app = App.get_running_app()
+#             if app.file:
+#                 app.save(app.file)
+#             else:
+#                 raise Exception(_('No file is opened'))
+#         except Exception as e:
+#             message(_('Error'), _('Save file error:\n%s') % (e), 'e')
+#             return False
+#         return True
+
+#     def cmd_expiring(self, widget, state, after=False):
+#         """Toggle the view between the standard account list
+#         and the password expiring list."""
+#         if state == 'down':
+#             self.on_enter_callback = self.on_enter_expiring
+#         else:
+#             self.on_enter_callback = self.on_enter_default
+#         self.on_enter()
 
 
 class EditScreen(FocusBehavior, Screen):
@@ -1113,16 +1403,15 @@ class EditScreen(FocusBehavior, Screen):
         popup.title = ': '.join((instance.text, ))
         popup.openAdd(value='')
 
+class MappingList(SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(MappingList, self).__init__(**kwargs)
 
 class ImportScreen(Screen):
     """
     GUI element. Screen enabling the import of a '.csv' password file
     into the current one."""
     # pr_mapping = ObjectProperty(None)
-
-    class MappingList(SelectableItemList):
-        def __init__(self, *args, **kwargs):
-            super(ImportScreen.MappingList, self).__init__(**kwargs)
 
     def __init__(self, **kwargs):
         super(ImportScreen, self).__init__(**kwargs)
@@ -1141,21 +1430,18 @@ class ImportScreen(Screen):
             'changed': '',
         }
 
-        self.mapping_list = ImportScreen.MappingList()
-        container = self.ids['_grid_container']
-        container.add_widget(self.mapping_list)
+        self.mapping_list = self.ids['_mapping_list']
 
     def on_enter(self, **kwargs):
         """Load a template for mapping the column headers of the input
         file to the headers of the current file."""
         super(ImportScreen, self).on_enter(**kwargs)
-        text = ',\n'.join(
-            [f"('{i}', '{j}')" for i, j in self.mapping.items()])
         if not self.initialized:
             for k, v in self.mapping.items():
-                item = ItemComposite(target=k)
-                item.add('source', TextInput(
-                    text=v, size_hint=(None, 1), width=dp(160)))
+                # item = ItemComposite(items={'target': k})
+                item = ItemComposite(height=ui.field_y, size_hint=(1, None))
+                item.add('target', Label(text=k))
+                item.add('source', TextInput(text=v))
                 self.mapping_list.add(item)
             self.initialized = True
 
@@ -1220,7 +1506,7 @@ class ChangesScreen(Screen):
     At present, once the program is closed changes history is lost."""
     # Widget hooks
     pr_actions = ObjectProperty(None)
-    pr_changed_item_list_wid = ObjectProperty(None)
+    changed_item_list = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         super(ChangesScreen, self).__init__(**kwargs)
@@ -1237,12 +1523,12 @@ class ChangesScreen(Screen):
         - history: list of changes. 
         """
         # Doesn't work with deleted records
-        self.pr_changed_item_list_wid.clear()
+        self.changed_item_list.clear()
 
         try:
             old = model.state_object(
                 history[self.pr_actions.values.index(self.pr_actions.text)])
-        except Exception as e:  # No changes
+        except Exception:  # No changes
             return
 
         try:  # No records found it was deleted
@@ -1252,11 +1538,9 @@ class ChangesScreen(Screen):
             new = old
 
         for key, value in old.items():
-            view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(key, key),
-                              new=new[key],
-                              old=old[key])
-
-            self.pr_changed_item_list_wid.add(view)
+            if key in SkipKeyApp.LABELS:
+                view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(key, key)+':', new=new[key], old=value)
+                self.changed_item_list.add(view)
 
 
     def on_enter(self):
@@ -1278,7 +1562,7 @@ class ChangesScreen(Screen):
 
     def cmd_undo(self, *args):
         """Set the original item and discard the last changed one,
-        deletes it from history. Undo of Undo is, at present, impossible."""
+        deletes it from history. Undo of Undo is, at present, not supported."""
         try:
             pos = self.pr_actions.values.index(self.pr_actions.text)
             if pos < len(self.app.history):
@@ -1470,6 +1754,7 @@ class PasswordStrenght(BoxLayout):
 
     def __init__(self, **kwargs):
         super(PasswordStrenght, self).__init__(**kwargs)
+        
 
     def set_strength(self, text):
         """
@@ -1477,7 +1762,17 @@ class PasswordStrenght(BoxLayout):
 
         It evaluates the password strength.
         """
-        self.pr_strenght.value = password.strength(text)
+        value = password.strength(text)
+        self.pr_strenght.value = value
+
+        RGB = [
+            '{0:02X}'.format(int(255 if value < 55 else 255 - value*255/100 if value < 100 else 200)),
+            '{0:02X}'.format(int(value*255/100 if value < 50 else 255 if value < 100 else 0)),
+            '{0:02X}'.format(int(255 if value > 100 else 0))
+        ]
+
+        text = _('Strenght') + ' {:.2%}'.format(self.pr_strenght.value/100)
+        self.ids._lab_strenght.text = f"[color={''.join(RGB)}]{text}[/color]"
 
 
 class PercentProgressBar(BoxLayout):
@@ -1494,34 +1789,35 @@ class PercentProgressBar(BoxLayout):
         super(PercentProgressBar, self).__init__(**kwargs)
 
 
-class AccountAdapter(ItemAdapter):
+class AccountAdapter(ItemComposite):
     def __init__(self, **kwargs):
         super(AccountAdapter, self).__init__(**kwargs)
-        self.data = {
-            'name': SubItem(id='name', width=dp(180)),
-            'login': SubItem(id='login', width=dp(180)),
-            'url': SubItem(id='url', width=dp(200)),
-            'elapsed': PercentProgressBar(id='elapsed', width=dp(160)),
+        self.size_hint = (1, None)
+        self.height = dp(50)
+        parts = {
+            'name': ItemPart(width=dp(180)),
+            # 'login': ItemPart(width=dp(180)),
+            # 'url': ItemPart(width=dp(200)),
+            'elapsed': PercentProgressBar(width=dp(100)),
         }
-        for id in self.data:
-            self.add_widget(self.data[id])
+        for key, widg in parts.items():
+            self.add(key, widg)
+
         self.lifetime = float(App.get_running_app().config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)) * 30.45
 
-    def refresh_view_attrs(self, rv, index, data):
+    def refresh_view_attrs(self, item):
         ''' Catch and handle the view changes '''
-        super().refresh_view_attrs(rv, index, data)
-        self.index = index
-        self.data['name'].text = self.name  # data['name']
-        self.data['login'].text = self.login  # data['login']
-        self.data['url'].text = self.url  # data['url']
-        elapsed = model.elapsed(data)
+        self.items['name'].text = item['name']
+        # self.items['login'].text = item['login']
+        # self.items['url'].text = item['url']
+        elapsed = model.elapsed(item)
         elapsed = elapsed if elapsed < self.lifetime else self.lifetime
         elapsed = 100 * elapsed/self.lifetime
-        self.data['elapsed'].ids.progressbar.value = elapsed
+        self.items['elapsed'].ids.progressbar.value = elapsed
 
 
-class AccountItemList(BubbleDecorator):
+class AccountItemList(BubbleBehavior, SelectableList):
     """
     GUI element. Accounts list container.
     The list is managed in EditScreen.
@@ -1529,35 +1825,13 @@ class AccountItemList(BubbleDecorator):
 
     def __init__(self, *args, **kwargs):
         super(AccountItemList, self).__init__(**kwargs)
-        self.controller = ItemController()
-        self.controller.viewclass = 'AccountAdapter'
-        self.add_widget(self.controller)
+
         # Add the bubble menu
-        self.add_bubble(ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
+        self.add_bubble(ItemActionBubble(
                                  background_image=os.path.join('data', 'background.png')))
 
-        # self.container = BubbleDecorator()
-        # self.controller = ItemController()
-        # self.controller.viewclass = 'AccountAdapter'
-        # self.container.add_widget(self.controller)
-        # self.add_widget(self.container)
-        # # Add the bubble menu
-        # self.container.add_bubble(
-        #     ItemMenu(size=(dp(350), dp(60)), size_hint=(None, None),
-        #              background_image='data/background.png'))
 
-    @property
-    def data_model(self):
-        """Return the RecycleView data model."""
-        return self.controller.data_model
-
-    @property
-    def layout_manager(self):
-        """Return the RecycleView selectable layout."""
-        return self.controller.layout_manager
-
-
-class ChangeView(Item):
+class ChangeView(Selectable, BoxLayout):
     """
     Provides a comparison between an 'old' vs  a 'new' object,
     emphasizing changes of its content.
@@ -1571,38 +1845,22 @@ class ChangeView(Item):
 
     def __init__(self, **kwargs):
         super(ChangeView, self).__init__()
-        self.rect = Rectangle(size=self.size, pos=self.pos)
-        label = kwargs.get('label', '-')
+        # self.rect = Rectangle(size=self.size, pos=self.pos)
+        self.ids.label.text = kwargs.get('label', '-')
         new = kwargs.get('new', '-')
         old = kwargs.get('old', '-')
         new = new if new else ' '
         old = old if old else ' '
+
         if new != old:
-            new = '[b][color=C63333]%s[/color][/b]' % (new)
-            old = '[b][color=339B33]%s[/color][/b]' % (old)
-            self.ids.label.color = (0, 0, 0, 1)
-            with self.canvas.before:
-                Color(0.9, 0.9, 0.9, 1)
-                self.rect = Rectangle(size=self.size,
-                                      pos=self.pos)
+            new = '[b][color=FF0000]%s[/color][/b]' % (new)
+            old = '[b][color=00FF00]%s[/color][/b]' % (old)
 
-        # listen to size and position changes
-        self.bind(pos=self.update_rect, size=self.update_rect)
-
-        self.ids.label.text = label
         self.ids.new.text = new
         self.ids.old.text = old
-        self.compare()
-
-    def update_rect(self, *args):
-        self.rect.pos = self.pos
-        self.rect.size = self.size
-
-    def compare(self, *args):
-        pass
 
 
-class ChangedItemList(SelectableItemList):
+class ChangedItemList(SelectableList):
     """
     GUI element. Container of changed account items.
     The list is managed in ChangesScreen.
@@ -1612,7 +1870,7 @@ class ChangedItemList(SelectableItemList):
         super(ChangedItemList, self).__init__(**kwargs)
 
 
-class ItemMenu(BubbleMenu):
+class ItemActionBubble(Menu):
     """
     GUI element. Bubble context menu for a selected account item.
 
@@ -1627,22 +1885,22 @@ class ItemMenu(BubbleMenu):
     """
 
     def __init__(self, **kwargs):
-        super(ItemMenu, self).__init__(**kwargs)
+        super(ItemActionBubble, self).__init__(**kwargs)
         # Clear clipboard scheduled event
         self.evt_clipboard = None
-        self.add_widget(BubbleButton(text=_('Url'), on_release=self.cmd_url))
-        self.add_widget(BubbleButton(text=_('User'), on_release=self.cmd_user))
-        self.add_widget(BubbleButton(text=_('Password'),
-                                     on_release=self.cmd_password))
-        self.add_widget(BubbleButton(
-            text=_('Login'), on_release=self.cmd_login))
-        self.add_widget(BubbleButton(text=_('Edit'), on_release=self.cmd_edit))
+
+
+    @property
+    def name(self):
+        return self.widget.items['name'].text
 
     def cmd_url(self, *args):
         # System call to browser
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.widget.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         url = item['url']
         try:
             browser.open(url, new=0, autoraise=True)
@@ -1656,8 +1914,10 @@ class ItemMenu(BubbleMenu):
         Publish user.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.widget.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         user = item['login']
         self._publish(app, user)
         return True
@@ -1676,8 +1936,10 @@ class ItemMenu(BubbleMenu):
         Publish 'user TAB password' and dismiss bubble.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.widget.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         p = self._password(app)
         login = f'{item["login"]}\t{p}'
         self._publish(app, login)
@@ -1686,11 +1948,12 @@ class ItemMenu(BubbleMenu):
 
     def _password(self, app):
         try:
-            item = app.items[model.index_of(
-                items=app.items, value=self.widget.name, key='name')]
+            index = model.index_of(items=app.items, value=self.name, key='name')
+            if index == None: 
+                return False
+            item = app.items[index]
             if item['auto'] == 'False':
                 p = app.decrypt(item['password'])
-            # Clipboard.copy(self.item.item['login'])
             else:
                 p = app.show(item)
             return p
@@ -1714,7 +1977,6 @@ class ItemMenu(BubbleMenu):
                 app.evt_clipboard.cancel()
             app.evt_clipboard = Clock.schedule_once(
                 lambda dt: Clipboard.copy(' '), pwd_timeout)
-            # app.evt_clipboard = Clock.schedule_once(self.cb_clean, timeout)
         return True
 
     def cmd_edit(self, *args):
@@ -1723,8 +1985,10 @@ class ItemMenu(BubbleMenu):
         Leave the screen and enter 'EditScreen'.
         """
         app = App.get_running_app()
-        item = app.items[model.index_of(
-            items=app.items, value=self.widget.name, key='name')]
+        index = model.index_of(items=app.items, value=self.name, key='name')
+        if index == None: 
+            return False
+        item = app.items[index]
         app.root.get_screen(EDIT).set_item(item=item, is_new=False)
         app.root.transition.direction = 'left'
         app.root.current = EDIT
@@ -1742,7 +2006,7 @@ class ItemMenu(BubbleMenu):
         """
         if not self.collide_point(touch.x, touch.y):
             self.reset()
-        return super(ItemMenu, self).on_touch_down(touch)
+        return super(ItemActionBubble, self).on_touch_down(touch)
 
 
 class SkipKeyApp(App, model.SkipKey):
@@ -1768,7 +2032,7 @@ class SkipKeyApp(App, model.SkipKey):
         'email': _('e-mail'),  # @-mail
         'description': _('Free text'),  # Any string
         'tag': _('Tag'),  # Any string
-        'color': _('Color'),  # Basic colors as string
+        #'color': _('Color'),  # Basic colors as string
         'created': _('Created'),  # Date
         'changed': _('Changed'),  # Date
         'auto': _('Auto'),  # True, False=user
@@ -1778,7 +2042,7 @@ class SkipKeyApp(App, model.SkipKey):
         'symbols': _('Symbols'),  # At least [0 length]
         # User encrypted password or salt Base64 encoded
         'password': _('Cipher Data'),
-        'history': ''  # Record history - not yet managed
+        #'history': ''  # Record history - not yet managed
     }
 
     pr_timer = StringProperty('')

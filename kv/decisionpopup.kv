@@ -1,0 +1,43 @@
+#---------------------------------------------------------
+#-------------------- DECISION POPUP
+#---------------------------------------------------------
+<DecisionPopup>:
+	## Properties
+    pr_message: _lab_message
+	
+    auto_dismiss: False
+    size_hint: 1, 0.5
+    orientation: "vertical"
+    # padding: ui.screen_padding
+	ScrollView:
+		BoxLayout:
+			size_hint_y: None
+			height: self.minimum_height	
+			orientation: 'vertical'
+			Label:
+				id: _lab_message
+				text: _('Message')
+				markup: True
+				padding_x: dp(10)
+				size_hint_y: None
+				font_size: ui.font_big #1.1*font_size
+				text_size: self.parent.width, None
+				size: self.texture_size
+				halign: 'justify'
+			
+			#--------------------------------- Main buttons
+			StackLayout:
+				orientation: 'rl-bt'
+				size_hint_min_y: 2*ui.nav_button_y
+				NavButton:
+					id: _btn_ok
+					text: _('OK')
+					on_release:
+						if hasattr(root, 'cmd_ok'): getattr(root, 'cmd_ok')()
+						root.dismiss()
+				NavButton:
+					id: _btn_cancel
+					text: _('Cancel')
+					on_release:
+						if hasattr(root, 'cmd_cancel'): getattr(root, 'cmd_cancel')()
+						root.dismiss()

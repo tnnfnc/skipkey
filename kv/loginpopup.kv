@@ -1,0 +1,44 @@
+#:kivy 1.11
+##-------------------------- POPUP
+#---------------------------------------------------------
+# Login Popup
+#---------------------------------------------------------
+<LoginPopup>:
+    # Properties: Login and seed
+    pr_login_wid: _wid_login
+    pr_seed_wid: _wid_seed
+
+	auto_dismiss: False
+	# size_hint: 0.9, 0.9
+	ScrollView:
+		BoxLayout:
+			orientation: "vertical"
+			size_hint_y: None
+			height: self.minimum_height
+			#--------------------------------- Password for data encryption
+			FrameTitle:
+				id: _lab_pwd
+				text: _('Password for data encryption')
+			LoginPanel:
+				id: _wid_login
+				#--------------------------------- Seed for password generation
+			FrameTitle:
+				id: _lab_seed
+				text: _('Seed for password generation')
+			SeedPanel:
+				id: _wid_seed
+			#--------------------------------- Main buttons
+			StackLayout:
+				orientation: 'rl-bt'
+				size_hint_y: None
+				height: 2*ui.nav_button_y
+				NavButton:
+					id: _btn_exit
+					text: _('Cancel')
+					on_release:
+						if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
+				NavButton:
+					id: _btn_file
+					text: _('Enter')
+					on_release: 
+						if hasattr(root, 'cmd_enter'): getattr(root, 'cmd_enter')()

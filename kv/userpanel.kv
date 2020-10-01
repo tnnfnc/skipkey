@@ -1,0 +1,46 @@
+#:kivy 1.11
+# ----------------------------------- USER PANEL
+<UserPanel>:
+    # Properties
+    pr_password: _inp_password
+	pr_confirm: _inp_confirm
+    pr_strenght: _wid_strenght
+    
+    orientation: 'vertical'
+    size_hint_y: None
+    height: 6 * ui.nav_button_y
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: ui.nav_button_y
+        FieldLabel:
+            id: _lab_pwddisp
+            text: _('Display password')
+        Switch:
+            id: _swi_pwddisp
+            active: False
+    InputField:
+        id: _inp_password
+        hint_text: _('type your password')
+        password: not _swi_pwddisp.active
+        on_text: 
+            if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)
+        on_focus:
+            if self.focus: _inp_confirm.text = ''
+        on_parent:
+            self.focus = True
+    PasswordStrenght:
+        id: _wid_strenght
+        width: _inp_password.width
+    FieldLabel:
+        id: _lab_confirm
+        text: _('Confirm')
+        size_hint_y: None
+        height: ui.label_y
+    InputField:
+        id: _inp_confirm
+        password: not _swi_pwddisp.active
+        hint_text: _('confirm your password')
+        on_text:
+            if not self.text == _inp_password.text: self.foreground_color = [1, 0, 0, 1]
+            else: self.foreground_color = [0, 0, 0, 1]

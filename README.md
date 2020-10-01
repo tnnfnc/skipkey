@@ -24,12 +24,9 @@ or
 
 	$python3>skipkey.py
 
-### App dependencies
+### GUI
 Make sure you have the following python modules installed in your python environment:
 * [kivy](https://kivy.org "Kivy"), graphycal user interface,
-* [cryptography](https://pypi.org/project/cryptography/), cryptographycs functions
-* [pynput](https://github.com/moses-palmer/pynput), mouse and keyboard input and monitor
-
 ## Start screen
 It is the screen you see when start app: on the right corner there are file operations: **open**, **create**, **quit**, **delete recent files**. The list of recently opened files is available clicking on the **recent files** spinner widget.
 ### Settings
@@ -41,7 +38,6 @@ This is the main screen and all app's available actions is addressed from there.
 #### How to use your accounts
 * Find the account you want to login into by writing few letters in the search field,
 * click on the proper item, then a _popup-menu_ will appear pointing to it.
-
 ##### Menu options:
 All these menu options make the corresponding datum available in the memory and ready to be pasted into the target login field.
 There are two option for app settings *Login auto-completion*:
@@ -52,7 +48,6 @@ There are two option for app settings *Login auto-completion*:
     - account user, 
     - account password 
     - full login: 'user' 'tab' 'password'.
-
 ### Copy to
 Menu item: copy the current content to another file. Before copying the user must input a passord and a casual code. The app's current file does not change to the new one. 
 FAQ 'How to change my password and casual code?'
@@ -66,11 +61,15 @@ Menu item: display information about the current file and settings.
 Menu item: this screen provides the list of changes during the current program run. You can select the change and undo, please note that 'undo of undo' is not allowed.
 ## Edit screen
 This is the screen you get when touches the **edit** button in the bubble menu over a specific access item in the *list* screen. Only the name and password fields are mandatory. The *name* is the key of the access item, so if you change it and save, a new identical account item will be created with the new name. To rename an item you must rename it and then delete the previous one.
-
+# More to do
+## Store more than one secret for each access
+Sometimes it's useful to have more than one secret information, generated or user's defined, to be stored inside an access. For example a password and a pin.
+## Installation checker
+First time a file is opened or created an installation check is made and stored inside the file, hashing of installed files. In such a way the user can verify the installation integrity.
 # On Windows systems:
-In order to making skipkey available as an executable on Windows systems it is possible to compile it with [pyinstaller](https://www.pyinstaller.org/):
+In order to making skipkey available as an executable on Windows systems it is possible to compile it with [pyinstaller](https://www.pyinstaller.org/).
 
-Here you are my packaging hint with pyinstaller for avoiding hassles:
+Here you are my packaging hint with pyinstaller to avoiding hassles:
 
 Note:
 If you use [conda](https://www.anaconda.com/) environments or python virtual environments please install pyinstaller into the environment of the app you want to package.
@@ -79,7 +78,6 @@ If you use [conda](https://www.anaconda.com/) environments or python virtual env
 * Open a terminal and change the current directory to the <my_package> 
 * Activate your virtual environment
 * Run `pyinstaller` command from the **virtual environment** including the following options.
-	
 ### Details
 Run the command without line breaks, enclosing values between quotation marks: " ", remember to substitute windows backslash `\` to slash `/` in the following.
 

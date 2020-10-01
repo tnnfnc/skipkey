@@ -29,14 +29,6 @@ def new_item(strict=True, template={}, **args):
 
         Return a dictionary with the predefined keys.
     """
-    # item = dict(template)
-    # if strict:
-    #     for key in args:
-    #         if key in template:
-    #             item[key] = str(args[key])
-    # else:
-    #     for key in args:
-    #         item[key] = str(args[key])
     if template:
         item = dict(template)
     else:
@@ -96,11 +88,13 @@ def add_index(key_list):
     return f
 
 
-def delete_index(item):
+def purge(item):
     '''Return a new item without the index entry.'''
     try:
         item = dict(item)
         del item['index']
+        del item['object_id']
+        
     except KeyError:
         pass
     return item
@@ -161,7 +155,7 @@ def index_of(items, value, key):
     try:
         return [i[key] for i in items].index(value)
     except ValueError:
-        return -1
+        return None
 
 
 def select(items, value, key):
@@ -348,13 +342,13 @@ class SkipKey():
         Delete an item from the item list.
         """
         index = index_of(self.items, item['name'], 'name')
-        if index > -1:  # Delete
+        if index == None:  # Delete
+            raise ValueError('Item "%s" not found' % (item['name']))
+        else:
             old = self.items.pop(index)
             if history:
                 self.add_history(new=None, old=old, action=SkipKey.DELETE)
             self.items.sort(key=lambda k: str(k['name']).lower())
-        else:
-            raise ValueError('Item "%s" not found' % (item['name']))
         return True
 
     # interface
@@ -368,8 +362,13 @@ class SkipKey():
         """
         add_index(self.search_fields)(item)
         index = index_of(self.items, item['name'], 'name')
-        # Update
-        if index > -1:
+        if index == None: # Append
+            item['created'] = item['changed'] = datetime.now().isoformat(
+                sep=' ', timespec='seconds')
+            self.items.append(item)
+            if history:
+                self.add_history(new=None, old=item, action=SkipKey.APPEND)
+        else: # Update
             if history:
                 old = self.items[index]
                 self.add_history(new=item, old=old, action=SkipKey.UPDATE)
@@ -378,12 +377,6 @@ class SkipKey():
                 item['changed'] = datetime.now().isoformat(
                     sep=' ', timespec='seconds')
             self.items[index] = item
-        else:  # Append
-            item['created'] = item['changed'] = datetime.now().isoformat(
-                sep=' ', timespec='seconds')
-            self.items.append(item)
-            if history:
-                self.add_history(new=None, old=item, action=SkipKey.APPEND)
         self.items.sort(key=lambda k: str(k['name']).lower())
         return True
 
@@ -421,9 +414,6 @@ class SkipKey():
         # encoding='utf-8'
         r = bytes(json.dumps(cryptod), encoding='utf-8')
         r = str(base64.b64encode(r), encoding='utf-8')
-        # except Exception as e:
-        #     message(_('Decipher'), *e.args, 'i')
-        #     return None
         return r
 
     # interface
@@ -531,11 +521,7 @@ class SkipKey():
         salt = base64.b64decode(item['password'])
         p = self.cipher_fachade.password(
             seed, salt, self.cryptod['iterations'], pattern)
-        # seed, salt, ITERATIONS, pattern)
         return p
-        # except ValueError as e:
-        #     message(_('Password'), e, 'e')
-        # return False
 
     # interface
     def secure(self, cryptod, passwd, seed):
@@ -605,7 +591,7 @@ class SkipKey():
         """
         if file and self.session_key and (len(self.history) > 0 or force):
             # try:
-            items = list(map(delete_index, self.items))
+            items = list(map(purge, self.items))
             data = self.cipher_fachade.encrypt(
                 items,
                 cryptod=self.cryptod,
@@ -640,15 +626,13 @@ class SkipKey():
                       'passwd': passwd, 'seed': seed, 'thread': True}
             copy_thread = threading.Thread(target=self.copy, kwargs=kwargs)
             copy_thread.start()
-            # message(_('Copy file'),
-            #         _('File copyed to: %s') % (os.path.basename(file)), 'i')
             return True
 
         # Before copying all password must be encrypted
         # with the new key, and all generated ones must be
         # converted in user typed
         # Should be done in another thread
-        items_copy = list(map(delete_index, self.items[0:]))
+        items_copy = list(map(purge, self.items[0:]))
         # try:
         # Get the seed:
         try:
@@ -687,7 +671,7 @@ class SkipKey():
     def export(self, file):
         items_csv = []
         for i in self.items:
-            item = delete_index(i)
+            item = purge(i)
             if item['auto'] == 'True':
                 item['password'] = self.show(item)
             elif item['auto'] == 'False':

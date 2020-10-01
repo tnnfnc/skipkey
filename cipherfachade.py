@@ -31,7 +31,6 @@ def init_symbols():
         symbols.append(chr(hex))
     return tuple(symbols)
 
-
 # Digit
 def init_numbers():
     """Return a tuple of numbers digit from exadecimal
@@ -111,19 +110,6 @@ def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
         Return
     a dictionary with the predefined keys.
     """
-    # template = {
-    #     'algorithm': '',  # algorithms=AES
-    #     'mode': '',  # CBC fixed
-    #     'keysize': '',  # cipher key size in bits
-    #     'pbkdf': '',
-    #     'hash': '',  # SHA256
-    #     'length': '',  # length of the derived key, converted in bits must match keysize
-    #     'iterations': '',
-    #     'salt': '',  # 32 bytes for key derivation
-
-    #     'iv': '',  # initialisation vector al long as cipher's block
-    #     'ciphervalue': ''  # Base64 file encoded
-    # }
     d = dict(cryptopars)
     d['ciphervalue'] = ciphervalue
     d['iv'] = iv
@@ -167,7 +153,7 @@ LETTERS = init_letters()
 
 
 class Pattern():
-    """Define the pattern that a text must be compliant to.
+    """Define the pattern that a token must be compliant to.
     """
 
     def __init__(self, letters, numbers, symbols, length, *args, **kwargs):
@@ -477,15 +463,6 @@ if __name__ is '__main__':
         f"Pattern passed - low symbols: {not Pattern(1, 3, 5, 12).check('ABCD2EFGHIjj,-[]123')}")
 
     b = b'\xa6\xadu09\xab\xc0\xcb[+\x04O\xc7\x9b\x19@0L#\x80\xc4\x8e=b\xbe\xea\xf9\xc3F\xb5\xc1\x12'
-    # h = b.hex()
-    # i = int(b.hex(), base=16)
-    # # j = int(b, base=8)
-    # gliphs = list(LETTERS)
-    # gliphs.extend(list(NUMBERS))
-    # gliphs.extend(list(SYMBOLS))
-
-    # pwd = token(gliphs, b, 12)
-    # print(f"Key conversion passed - {len(pwd)}: {pwd}")
 
     for i in range(0, 4):
         for j in range(0, 5):

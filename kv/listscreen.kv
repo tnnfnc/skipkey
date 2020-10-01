@@ -1,0 +1,132 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# List screen
+#---------------------------------------------------------
+<ListScreen>:
+    pr_tag: _spi_tag
+    pr_search: _inp_search
+	account_list: _account_list
+	pr_expiring: _btn_expiring
+    # BoxLayout:
+	BoxLayout:
+        orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: self.minimum_height
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: self.minimum_height
+                IconButton:
+                    icon: 'data/icons/reload.png'
+                    on_release:
+                        if hasattr(app, 'timeout'): getattr(app, 'timeout')()
+                OptionLabel:
+                    text: app.pr_timer
+                    halign: 'left'
+                # horizontal spacing
+                BoxLayout:
+                    orientation: 'horizontal'
+                IconButton:
+                    # text: _('Back')
+                    icon: 'data/icons/exit.png'
+                    on_release: 
+                        if hasattr(root, 'cmd_back'): getattr(root, 'cmd_back')()
+                IconButton:
+                    # text: _('Save')
+                    icon: 'data/icons/save.png'
+                    on_release: 
+                        if hasattr(root, 'cmd_save'): getattr(root, 'cmd_save')()
+                IconButton:
+                    # text: _('Add')
+                    icon: 'data/icons/plus.png'
+                    on_release: 
+                        if hasattr(root, 'cmd_add'): getattr(root, 'cmd_add')()
+
+                DropDownButton:
+                    id: btn
+                    text: "More"
+                    icon: 'data/icons/more.png'
+                    text_size: dp(100), self.height
+                    size: self.text_size
+                    on_parent: _menu.dismiss()
+                    on_press:
+                        _menu.open(self)
+                    on_focus:
+                        if self.focus == False: _menu.dismiss()
+                DropDownMenu:
+                    id: _menu
+                    auto_dismiss: False
+                    OptionButton:
+                        text: _('Info')
+                        on_release:
+                            if hasattr(root, 'cmd_info'): getattr(root, 'cmd_info')()					
+                    OptionButton:
+                        text: _('Changes')
+                        on_release:
+                            if hasattr(root, 'cmd_changes'): getattr(root, 'cmd_changes')()
+                    OptionButton:
+                        text: _('Copy to...')
+                        on_release:
+                            if hasattr(root, 'cmd_copy'): getattr(root, 'cmd_copy')()
+                    OptionButton:
+                        text: _('Export as...')
+                        on_release:
+                            if hasattr(root, 'cmd_export'): getattr(root, 'cmd_export')()
+                    OptionButton:
+                        text: _('Import from...')
+                        on_release:
+                            if hasattr(root, 'cmd_import'): getattr(root, 'cmd_import')()
+                            
+            #--------------------------------- Search and Tag
+            FrameTitle:
+                id: _lab_account
+                text: _('Personal accounts')
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: ui.field_y
+                #--------------------------------- Tag
+                Spinner:
+                    id: _spi_tag
+                    size_hint: (0.5, 1)
+                    on_text:
+                        if hasattr(root, 'cmd_tag_selected'): getattr(root, 'cmd_tag_selected')()
+                #--------------------------------- Search cockpit - break from here!
+                InputField:
+                    id: _inp_search
+                    size_hint: (0.5, 1)
+                    hint_text: _('find')
+                    on_text: 
+                        if hasattr(root, 'cmd_search'): getattr(root, 'cmd_search')()
+                    on_focus:
+                        _spi_tag.text = _spi_tag.values[0]
+                #--------------------------------- Items counter
+                Label:
+                    id: _lab_counter
+                    size_hint: (0.2, 1)
+                    text: ''
+                    size: self.texture_size 
+            #--------------------------------- Expiring		
+            ToggleButton:
+                id: _btn_expiring
+                size_hint: 1, None
+                size: (ui.button_x, ui.button_y) #small_button_size
+                text: _('Expiring')
+                on_state:
+                    if hasattr(root, 'cmd_expiring'): getattr(root, 'cmd_expiring')(*args)
+        #--------------------------------- List of items
+        BBoxLayout:
+			orientation: 'horizontal'
+			BubbleMenu:
+				ScrollView:
+					AccountItemList:
+						id: _account_list
+        # ScrollView:
+        #     BBoxLayout:
+        #         orientation: 'horizontal'
+		# 	    BubbleMenu:
+		# 			AccountItemList:
+		# 				id: _account_list
+

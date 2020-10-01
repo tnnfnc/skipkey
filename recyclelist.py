@@ -5,15 +5,12 @@ from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.label import Label
 from kivy.properties import BooleanProperty, StringProperty
-# from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
-# from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
 from kivy.graphics.instructions import InstructionGroup
 from kivy.graphics import Color
-# from kivy.graphics import Line
 from kivy.graphics import Rectangle
 from kivy.metrics import dp
 
@@ -93,8 +90,6 @@ class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
         self.touch_multiselect = False
         self.bind(minimum_height=self.setter('height'))
 
-    def on_selected_nodes(self, gird, nodes):
-        pass
 
     def select_node(self, node):
         node.selected = True

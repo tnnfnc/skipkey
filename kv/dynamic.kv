@@ -12,24 +12,15 @@
     size_hint: None, None
 	size: ui.nav_button_x, ui.nav_button_y
 ## --------------------	
-<FrameTitle@Label>:
-    # id: _ft
-    text: 'Frame title'
-    bold: True
-    padding: dp(4), dp(8)
-    size_hint_y: None
-    font_size: ui.font_big #title_font_size
-    height: self.texture_size[1] # Adapt the height to the text
-    # text_size: self.width, None  # Allow text for the wole width
-## --------------------	
 <BoxFrame@BoxLayout>:
     orientation: 'vertical'
-    padding: ui.screen_padding
+    spacing: ui.box_spacing
+    padding: dp(4), dp(4)
     canvas:
         Color:
             rgb: ui.frame_color
         Line:
-            rectangle: self.x, self.y, self.width, self.height
+            rectangle: self.x + 2, self.y + 2, self.width - 2, self.height - 2
             width: 1.2
             joint: 'bevel'
 ## --------------------
@@ -37,10 +28,23 @@
     # id: _lb
     text: 'Label text'
     halign: 'left'
-    valign: 'center'
+    valign: 'middle'
     font_size: ui.font_norm #font_size
     text_size: self.size
+    size_hint_min_x: dp(80)
     # size: self.texture_size[0], label_height # Adapt the size to the text
+## --------------------	
+<FrameTitle@FieldLabel>:
+    text: 'Frame title'
+    bold: True
+    halign: 'center'
+    padding: dp(4), dp(4)
+    font_size: ui.font_big #title_font_size
+    size_hint_min_y: ui.frame_title_y + self.padding[1]
+    # size_hint_y: None
+    # Adapt the height to the text
+    # height: self.texture_size[1]
+    # height: self.font_size
 ## --------------------
 <InputField@TextInput+FocusBehavior>:
     # id: _in
@@ -103,3 +107,52 @@
 		Rectangle:
 			size: self.size
 			source: 'data/background.png'
+
+<ImageButton@Button>:
+    icon: ''
+    canvas:
+        Rectangle:
+            source: self.icon 
+            pos: self.x + self.height * 0.1, self.y + self.height * 0.1
+            size: self.height * 0.8, self.height * 0.8
+
+<IconButton@ImageButton>:
+    icon: ''
+    size_hint: None, None
+    size: ui.nav_button_y, ui.nav_button_y
+    halign: 'right'
+    valign: 'middle'
+    background_normal: 'data/transparent.png'
+    # text_size: self.size
+            
+<DropDownButton@FocusBehavior+ImageButton>:
+    size_hint: None, None
+    height: ui.nav_button_y
+    padding_x: dp(8)
+    halign: 'right'
+    valign: 'middle'
+    background_normal: 'data/black.png'
+            
+<OptionButton@Button>:
+    size_hint: None, None
+    height: ui.nav_button_y
+    halign: 'center'
+    valign: 'middle'
+    padding_x: dp(4)
+    background_normal: 'data/black.png'
+    # width: self.texture_size[0]
+
+<OptionLabel@Label>:
+    size_hint: None, None
+    height: ui.nav_button_y
+    padding_x: dp(4)
+
+
+# <OptionMore@Spinner>:
+#     size_hint: None, None
+#     height: ui.nav_button_y
+#     text: '...'
+#     halign: 'center'
+#     valign: 'center'
+#     padding_x: dp(4)
+#     values: ['...', 'Opt 1', 'Opt 2']

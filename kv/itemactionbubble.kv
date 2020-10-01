@@ -1,0 +1,27 @@
+#:kivy 1.11
+#-------------------- Bubble options: Login - Password - Edit/View
+<ItemActionBubble>:
+	size_hint: (0.5, None)
+	orientation: 'vertical'
+	height: 5 * ui.nav_button_y
+	# size: (dp(320), dp(80))
+	BubbleButton:
+		text: _('url')
+		on_release:
+			if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')()	
+	BubbleButton:
+		text: _('User')
+		on_release:
+			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')()
+	BubbleButton:
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')()
+	BubbleButton:
+		text: _('Login')
+		on_release:
+			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')()
+	BubbleButton:
+		text: _('Edit')
+		on_release: 
+			if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')()
