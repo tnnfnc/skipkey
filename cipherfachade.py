@@ -153,7 +153,7 @@ LETTERS = init_letters()
 
 
 class Pattern():
-    """Define the pattern that a text must be compliant to.
+    """Define the pattern that a token must be compliant to.
     """
 
     def __init__(self, letters, numbers, symbols, length, *args, **kwargs):

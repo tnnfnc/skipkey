@@ -414,9 +414,6 @@ class SkipKey():
         # encoding='utf-8'
         r = bytes(json.dumps(cryptod), encoding='utf-8')
         r = str(base64.b64encode(r), encoding='utf-8')
-        # except Exception as e:
-        #     message(_('Decipher'), *e.args, 'i')
-        #     return None
         return r
 
     # interface
@@ -524,11 +521,7 @@ class SkipKey():
         salt = base64.b64decode(item['password'])
         p = self.cipher_fachade.password(
             seed, salt, self.cryptod['iterations'], pattern)
-        # seed, salt, ITERATIONS, pattern)
         return p
-        # except ValueError as e:
-        #     message(_('Password'), e, 'e')
-        # return False
 
     # interface
     def secure(self, cryptod, passwd, seed):
