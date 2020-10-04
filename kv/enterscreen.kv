@@ -4,7 +4,7 @@
 #---------------------------------------------------------
 <EnterScreen>:
 
-	pr_recentfiles: _spi_recentfiles
+	recentfiles: _spi_recentfiles
 	BoxLayout:
 		orientation: 'vertical'
 		#--------------------------------- Main buttons
@@ -17,7 +17,7 @@
 				on_release:
 					if hasattr(root, 'cmd_exit'): getattr(root, 'cmd_exit')()
 			OptionLabel:
-				text: app.pr_timer
+				text: app.timer
 				halign: 'left'
 			# horizontal spacing
 			BoxLayout:

@@ -302,7 +302,6 @@ class ItemPart(Label):
     def __init__(self, *args, **kwargs):
         super(ItemPart, self).__init__(**kwargs)
         self.size_hint_x = None
-        self.padding_x = dp(4)
 
     def on_touch_down(self, touch):
         '''On touch down it emphasizes the item according

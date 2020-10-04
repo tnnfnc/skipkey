@@ -3,12 +3,11 @@
 #---------------------------------------------------------
 <DecisionPopup>:
 	## Properties
-    pr_message: _lab_message
+    message: _lab_message
 	
     auto_dismiss: False
     size_hint: 1, 0.5
     orientation: "vertical"
-    # padding: ui.screen_padding
 	ScrollView:
 		BoxLayout:
 			size_hint_y: None
@@ -18,7 +17,6 @@
 				id: _lab_message
 				text: _('Message')
 				markup: True
-				padding_x: dp(10)
 				size_hint_y: None
 				font_size: ui.font_big #1.1*font_size
 				text_size: self.parent.width, None

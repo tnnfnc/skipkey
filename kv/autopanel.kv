@@ -2,38 +2,20 @@
 # ------------------------ AUTO PANEL
 <AutoPanel>:
 	# Kivy Properties
-	pr_length: _inp_length
-	pr_letters: _swi_letters
-	pr_symbols: _inp_symbols
-	pr_numbers: _inp_numbers
-	pr_password: _inp_password
-	pr_strenght: _wid_strenght
+	length: _inp_length
+	letters: _swi_letters
+	symbols: _inp_symbols
+	numbers: _inp_numbers
+	password: _inp_password
+	strenght: _wid_strenght
 	
     orientation: 'vertical'
-    # Generate password
-    BoxLayout:
-		id: _bx_generate
-        orientation: 'horizontal'
-        size_hint_y: 0.5
-        # height: _inp_password.height
-        SmallButton:
-            id: _btn_generate
-			pos_hint: {'center_y': 0.5}
-            text: _('Generate')
-            on_release:
-                if hasattr(root, 'generate'): getattr(root, 'generate')(length=_inp_length.text, \
-				letters=_swi_letters.active, numbers=_inp_numbers.text, symbols=_inp_symbols.text)
-        OutputField:
-            id: _inp_password
-			size_hint_x: 1
-            text: _('Password hint')
-    PasswordStrenght:
-        id: _wid_strenght
-		width: _bx_generate.width
-
+    padding: ui.box_padding
  #---------------- Password length
     BoxLayout:
         orientation: 'vertical'
+        size_hint_y: None
+        height: 4 * ui.button_y
 
         BoxLayout:
             orientation: 'horizontal'
@@ -44,8 +26,9 @@
                 width: ui.field_x
             InputField:
                 id: _inp_length
-                hint_text: _('password length')
-                size: ui.field_x, ui.field_y 
+                # hint_text: _('password length')
+                size_hint_x: None
+                width: ui.field_small_x 
                 on_text:
                     if not self.text.isdigit(): self.text = self.text[:-1]
                 on_parent:
@@ -81,11 +64,12 @@
                 id: _lab_minnumbers
                 text: _('At least')
                 size_hint_x: None
-                width: ui.field_small_x                
+                width: ui.field_small_x    
             InputField:
                 id: _inp_numbers
                 hint_text: _('a number')
                 disabled: not _swi_numbers.active
+                size_hint_x: None
                 size: (ui.field_x, ui.field_y) #field_size_small
                 on_text:
                     if not self.text.isdigit(): self.text = self.text[:-1]
@@ -113,8 +97,30 @@
                 id: _inp_symbols
                 hint_text: _('a number')
                 disabled: not _swi_symbols.active
+                size_hint_x: None
                 size: (ui.field_x, ui.field_y) #field_size_small
                 on_text:
                     if not self.text.isdigit(): self.text = self.text[:-1]
 
-    
+    #----------- Generate password
+    BoxLayout:
+		id: _bx_generate
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: _inp_password.height
+        SmallButton:
+            id: _btn_generate
+			# pos_hint: {'center_y': 0.5}
+            text: _('Generate')
+            on_release:
+                if hasattr(root, 'cmd_generate'): getattr(root, 'cmd_generate')()
+        OutputField:
+            id: _inp_password
+			size_hint_x: 1
+            hint_text: _('Password hint')
+            on_text: 
+                if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)            
+    PasswordStrenght:
+        id: _wid_strenght
+		width: _bx_generate.width
+        

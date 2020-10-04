@@ -4,13 +4,13 @@
 # ---------------------------------------------------------
 <MessagePopup>:
 	## Properties
-    pr_message: _lab_message
-	pr_image: _img_image
+    message: _lab_message
+	image: _img_image
 	
     auto_dismiss: False
     size_hint: 1, 0.5
     orientation: "vertical"
-    # padding: ui.screen_padding
+    padding: ui.screen_padding
 	ScrollView:
 		BoxLayout:
 			orientation: 'vertical'
@@ -28,24 +28,12 @@
 					id: _lab_message
 					text: _('Message')
 					markup: True
-					padding_x: dp(10)
 					size_hint_y: None
 					font_size: ui.font_big #1.1*font_size
 					text_size: self.parent.width - _img_image.width, None
 					size: self.texture_size
 					halign: 'justify'
 					valign: 'middle'		
-				
-				# Label:
-				# 	id: _lab_message
-				# 	markup: True
-				# 	padding_x: dp(10)
-				# 	font_size: ui.font_big #1.1 * ui.font_norm #font_size
-				# 	text: _('Message')
-				# 	valign: 'center'
-				# 	halign: 'left'
-				# 	text_size: self.size
-				# 	padding_x: dp(10)
 
 			#--------------------------------- Main buttons
 			StackLayout:

@@ -41,16 +41,12 @@
     padding: dp(4), dp(4)
     font_size: ui.font_big #title_font_size
     size_hint_min_y: ui.frame_title_y + self.padding[1]
-    # size_hint_y: None
-    # Adapt the height to the text
-    # height: self.texture_size[1]
-    # height: self.font_size
 ## --------------------
 <InputField@TextInput+FocusBehavior>:
     # id: _in
     multiline: False
     valign: 'center'
-    hint_text: 'Input field'
+    hint_text: ''
 	pos_hint: {'center_y': 0.5}
     size_hint: 1, None
 	size: (ui.field_bigger_x, ui.field_y) #field_size_long
@@ -81,16 +77,6 @@
             points: self.x, self.y, self.x+self.width,self.y
             width: dp(0.5)
             joint: 'miter'
-## -------------------- Count down
-<TimerLabel@ActionItem+Label>
-	text: app.pr_timer
-	canvas:
-		Color:
-			rgb: frame_color
-		Line:
-			rectangle: self.x, self.y, self.width, self.height
-			width: dp(0.5)
-			joint: 'bevel'
 <BBoxLayout@BoxLayout>:
 	#--------------------- BackGround
 	canvas.before:
@@ -100,14 +86,14 @@
 			size: self.size
 			source: 'data/background.png'
 <BPopup@Popup>:
-	#--------------------- BackGround
+#--------------------- BackGround
 	canvas.before:
 		Color:
 			rgb: .6, .6, .6
 		Rectangle:
 			size: self.size
 			source: 'data/background.png'
-
+#--------------------- Button with an icon   
 <ImageButton@Button>:
     icon: ''
     canvas:
@@ -115,7 +101,7 @@
             source: self.icon 
             pos: self.x + self.height * 0.1, self.y + self.height * 0.1
             size: self.height * 0.8, self.height * 0.8
-
+#--------------------- Transparent Button with icon   
 <IconButton@ImageButton>:
     icon: ''
     size_hint: None, None
@@ -124,11 +110,10 @@
     valign: 'middle'
     background_normal: 'data/transparent.png'
     # text_size: self.size
-            
+#--------------------- Dropdown list control button       
 <DropDownButton@FocusBehavior+ImageButton>:
     size_hint: None, None
     height: ui.nav_button_y
-    padding_x: dp(8)
     halign: 'right'
     valign: 'middle'
     background_normal: 'data/black.png'
@@ -138,21 +123,9 @@
     height: ui.nav_button_y
     halign: 'center'
     valign: 'middle'
-    padding_x: dp(4)
     background_normal: 'data/black.png'
     # width: self.texture_size[0]
 
 <OptionLabel@Label>:
     size_hint: None, None
     height: ui.nav_button_y
-    padding_x: dp(4)
-
-
-# <OptionMore@Spinner>:
-#     size_hint: None, None
-#     height: ui.nav_button_y
-#     text: '...'
-#     halign: 'center'
-#     valign: 'center'
-#     padding_x: dp(4)
-#     values: ['...', 'Opt 1', 'Opt 2']

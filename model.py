@@ -441,7 +441,7 @@ class SkipKey():
         #     message(_('Decipher'), *e.args, 'e')
 
     # interface
-    def generate(self, length, letters, numbers, symbols):
+    def generate(self, **kwargs):
         """
         Generate a password.
         Generate a password and update the strenght.
@@ -464,11 +464,12 @@ class SkipKey():
         ------
         Exception
         """
-        if letters:
-            letters = 1
-        else:
-            letters = 0
+
         try:
+            length =  kwargs.get('length', 0)
+            letters = kwargs.get('letters', 0)
+            numbers = kwargs.get('numbers', 0)
+            symbols = kwargs.get('symbols', 0)
             if letters or numbers or symbols and length:
                 pattern = cipherfachade.Pattern(
                     letters=letters,
@@ -506,16 +507,16 @@ class SkipKey():
         Exception :
             Raises Exceptions
         """
-        # try:
-        if item['letters'] == 'False':
-            letters = 0
-        else:
-            letters = 1
+        length =  item.get('length', 0)
+        letters = item.get('letters', 0)
+        numbers = item.get('numbers', 0)
+        symbols = item.get('symbols', 0)
+
         pattern = cipherfachade.Pattern(
             letters=letters,
-            numbers=item['numbers'],
-            symbols=item['symbols'],
-            length=item['length']
+            numbers=numbers,
+            symbols=symbols,
+            length=length
         )
         seed = self.seedwrapper.unwrap(self.session_seed)
         salt = base64.b64decode(item['password'])

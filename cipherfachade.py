@@ -152,13 +152,127 @@ NUMBERS = init_numbers()
 LETTERS = init_letters()
 
 
+class PatternException(Exception):
+    pass
+
+class Schema():
+
+    SEP = ','
+
+    def __init__(self, schema):
+        """[summary]
+
+        Args:
+            schema ([type]): [description]
+
+        Raises:
+            PatternException: [description]
+        """
+        if schema:
+            if isinstance(schema, dict):
+                self.auto = schema.get('auto', '')
+                self.lenght = schema.get('lenght', '')
+                self.letters = schema.get('letters', '')
+                self.numbers = schema.get('numbers', '')
+                self.symbols = schema.get('symbols', '')
+                self.gliphs = schema.get('gliphs', '')
+            elif isinstance(schema, list) or isinstance(schema, tuple):
+                self.auto = schema[0]
+                self.lenght = schema[1]
+                self.letters = schema[2]
+                self.numbers = schema[3]
+                self.symbols = schema[4]
+                self.gliphs = schema[5]
+            elif isinstance(schema, str):
+                self._pattern = schema
+        else:
+            self._pattern = 'True,0,True,0,0,""'
+
+        if not self.check(self._pattern):
+            raise PatternException(f'Schema not valid: {schema}')
+
+    @staticmethod
+    def check(pattern):
+        if pattern:
+            split = pattern.split(Schema.SEP)
+            try:
+                if str(split[0]) in ('True', 'False') and\
+                    str(split[2]) in ('True', 'False') and\
+                    int(split[1]) > -1 and int(split[3]) > -1 and\
+                    int(split[4]) > -1 and isinstance(split[5], str):
+                    return True
+                return False
+            except Exception:
+                return False
+        return False
+
+    @property
+    def auto(self):
+        return self._pattern.split(self.SEP)[0]
+
+    @property
+    def lenght(self):
+        return self._pattern.split(self.SEP)[1]
+
+    @property
+    def letters(self):
+        return self._pattern.split(self.SEP)[2]
+
+    @property
+    def numbers(self):
+        return self._pattern.split(self.SEP)[3]
+
+    @property
+    def symbols(self):
+        return self._pattern.split(self.SEP)[4]
+
+    @property
+    def gliphs(self):
+        return self._pattern.split(self.SEP)[5]
+
+    @auto.setter
+    def auto(self, value : bool):
+        self._encode(value, 1)
+
+    @lenght.setter
+    def lenght(self, value : int):
+        self._encode(value, 2)
+
+    @letters.setter
+    def letters(self, value : bool):
+        self._encode(value, 3)
+
+    @numbers.setter
+    def numbers(self, value : int):
+        self._encode(value, 4)
+
+    @symbols.setter
+    def symbols(self, value : int):
+        self._encode(value, 5)
+
+    @gliphs.setter
+    def gliphs(self, value : str):
+        self._encode(value, 6)
+
+    def _encode(self, value, maxsplit):
+        split = self._pattern.split(self.SEP, maxsplit)
+        split[maxsplit - 1] = str(value)
+        self._pattern = self.SEP.join(split)
+
+    @property
+    def schema(self):
+        return self._pattern
+
+
 class Pattern():
     """Define the pattern that a token must be compliant to.
     """
 
     def __init__(self, letters, numbers, symbols, length, *args, **kwargs):
-        if letters is None or letters == '':
+        if letters is None or letters == '' or False:
             letters = 0
+        else:
+            letters = 1
         if numbers is None or numbers == '':
             numbers = 0
         if symbols is None or symbols == '':

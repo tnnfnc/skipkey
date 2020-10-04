@@ -22,7 +22,6 @@ Builder.load_string(
 
 <SubItem>:
     size_hint: None, 1
-    padding_x: dp(2)
     # Adapt size to text
     halign: 'left'
     valign: 'center'

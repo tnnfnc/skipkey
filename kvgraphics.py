@@ -7,8 +7,9 @@ page_w = dp(428)
 
 # SCREEN & BOX
 screen_padding = (dp(2), dp(2), dp(2), dp(2))
-box_padding = (dp(2), dp(2), dp(2), dp(2))
-box_spacing = (dp(2), dp(2))
+box_padding = (dp(4), dp(4), dp(4), dp(4))
+right_padding = (dp(4), dp(0))
+box_spacing = (dp(4), dp(4))
 
 # FONT
 font_norm = dp(15)
@@ -50,8 +51,8 @@ small_button_y = field_small_y
 
 
 # SPINNER
-spinner_x = field_big_x
-spinner_y = field_big_y
+spinner_x = dp(160)
+spinner_y = nav_button_y
 
 # COLORS
 frame_color = (68/255.0, 164/255.0, 201/255.0)

@@ -112,6 +112,7 @@ Builder.load_file(os.path.join('kv', 'listscreen.kv'))#<-----
 Builder.load_file(os.path.join('kv', 'editscreen.kv'))
 Builder.load_file(os.path.join('kv', 'importscreen.kv'))
 Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
+Builder.load_file(os.path.join('kv', 'passwordpanel.kv'))
 # passed!
 
 # Screen Names
@@ -132,33 +133,33 @@ import builtins
 builtins.__dict__['_'] = f
 
 class EnterScreen(Screen):
-    pr_recentfiles = ObjectProperty(None)
+    recentfiles = ObjectProperty(None)
 
 
 class ListScreen(Screen):
     # Widget hooks
-    pr_tag = ObjectProperty(None)
-    pr_search = ObjectProperty(None)
-    pr_expiring = ObjectProperty(None)
+    tag = ObjectProperty(None)
+    search = ObjectProperty(None)
+    expiring = ObjectProperty(None)
     account_list = ObjectProperty(None)
 
 
 class EditScreen(FocusBehavior, Screen):
     # Widget hooks
-    pr_name = ObjectProperty(None)
-    pr_tag = ObjectProperty(None)
-    pr_url = ObjectProperty(None)
-    pr_login = ObjectProperty(None)
-    pr_email = ObjectProperty(None)
-    pr_description = ObjectProperty(None)
-    pr_color = ObjectProperty(None)
-    pr_created = ObjectProperty(None)
-    pr_changed = ObjectProperty(None)
-    pr_cipherpwd = ObjectProperty(None)
+    name = ObjectProperty(None)
+    tag = ObjectProperty(None)
+    url = ObjectProperty(None)
+    login = ObjectProperty(None)
+    email = ObjectProperty(None)
+    description = ObjectProperty(None)
+    color = ObjectProperty(None)
+    created = ObjectProperty(None)
+    changed = ObjectProperty(None)
+    cipherpwd = ObjectProperty(None)
     # Classes hooks
-    pr_auto_wid = ObjectProperty(None)
-    pr_user_wid = ObjectProperty(None)
-    pr_tabbedb_wid = ObjectProperty(None)
+    autopanel = ObjectProperty(None)
+    userpanel = ObjectProperty(None)
+    tabs = ObjectProperty(None)
 
 
 class ImportScreen(Screen):
@@ -166,8 +167,8 @@ class ImportScreen(Screen):
 
 
 class ChangesScreen(Screen):
-    pr_actions = ObjectProperty(None)
-    pr_changed_item_list_wid = ObjectProperty(None)
+    actions = ObjectProperty(None)
+    changed_item_list_wid = ObjectProperty(None)
 
 
 class TagSpinner(Spinner):
@@ -180,23 +181,23 @@ class AccountItemList(BubbleBehavior, SelectableList):
 
 
 class AutoPanel(BoxLayout):
-    pr_length = ObjectProperty(None)
-    pr_letters = ObjectProperty(None)
-    pr_symbols = ObjectProperty(None)
-    pr_numbers = ObjectProperty(None)
-    pr_strenght = ObjectProperty(None)
-    pr_password = ObjectProperty(None)
+    length = ObjectProperty(None)
+    letters = ObjectProperty(None)
+    symbols = ObjectProperty(None)
+    numbers = ObjectProperty(None)
+    strenght = ObjectProperty(None)
+    password = ObjectProperty(None)
 
 
 
 class PasswordStrenght(BoxLayout):
-    pr_strenght = ObjectProperty(None)
+    strenght = ObjectProperty(None)
 
 
 class UserPanel(BoxLayout):
-    pr_password = ObjectProperty(None)
-    pr_confirm = ObjectProperty(None)
-    pr_strenght = ObjectProperty(None)
+    password = ObjectProperty(None)
+    confirm = ObjectProperty(None)
+    strenght = ObjectProperty(None)
 
 
 
@@ -218,7 +219,7 @@ class DropDownMenu(DropDown):
 
 
 class TestApp(App):
-    pr_timer = 'Now'
+    timer = 'Now'
     def build(self):
         sm = ScreenManager()
         self.root = sm
@@ -227,7 +228,7 @@ class TestApp(App):
         sm.add_widget(EnterScreen(name=ENTER)) # passed!
         sm.add_widget(ListScreen(name=LIST)) # passed!
         sm.add_widget(EditScreen(name=EDIT)) # passed!
-
+        
         return sm
 
 
