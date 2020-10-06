@@ -30,7 +30,8 @@ def new_item(strict=True, template={}, **args):
         Return a dictionary with the predefined keys.
     """
     if template:
-        item = dict(template)
+        # item = dict(template)
+        item = json.loads(json.dumps(dict(template)))
     else:
         item = {}
     if args:
@@ -99,6 +100,47 @@ def purge(item):
         pass
     return item
 
+def is_equal(a, b):
+    """Return a = b.
+
+    Args:
+
+    - a (dict): access data
+    - b (dict): access data
+
+    Returns:
+
+    bool: True if a = b
+    """
+    isequal = True
+    for k in a:
+        if isinstance(a[k], list):
+            for i in range(0, len(a[k])):
+                if not is_equal(a[k][i], b[k][i]):
+                    isequal = False
+                    break
+        elif a[k] != b[k]:
+            isequal = False
+            break
+    return isequal
+
+
+def password_changed(a, b):
+    """Return true when al least one password of a is different from b.
+
+    Args:
+
+    - a (dict): access data
+    - b (dict): access data
+
+    Returns:
+
+    bool: true when al least one password of a is different from b.
+    """
+    for i in range(0, len(a['secrets'])):
+        if a['secrets'][i]['password'] != b['secrets'][i]['password']:
+            return True
+    return False
 
 def search(items, text):
     """
@@ -231,7 +273,6 @@ def import_csv(file, delimiter='\t', lineterminator='\r\n', mapping=None):
                 for k in mapping.keys():
                     if mapping[k]:
                         d[k] = row[mapping[k]]
-                # d = {k: row[mapping[k]] for k in mapping.keys()}
                 items.append(d)
         else:
             for row in reader:
@@ -241,7 +282,7 @@ def import_csv(file, delimiter='\t', lineterminator='\r\n', mapping=None):
 
 
 def export_csv(file, items, fieldnames=[], delimiter='\t', lineterminator='\r\n'):
-    if len(items) > 0:
+    if len(fieldnames) == 0 and len(items) > 0:
         fieldnames = items[0].keys()
     with open(file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, delimiter=delimiter, lineterminator=lineterminator,
@@ -249,6 +290,7 @@ def export_csv(file, items, fieldnames=[], delimiter='\t', lineterminator='\r\n'
         writer.writeheader()
         log = []
         for item in items:
+            
             try:
                 writer.writerow(item)
             except Exception as e:
@@ -373,7 +415,8 @@ class SkipKey():
                 old = self.items[index]
                 self.add_history(new=item, old=old, action=SkipKey.UPDATE)
             # Update the changed only if password was changed
-            if self.items[index]['password'] != item['password']:
+            # if self.items[index]['password'] != item['password']:
+            if password_changed(self.items[index], item):
                 item['changed'] = datetime.now().isoformat(
                     sep=' ', timespec='seconds')
             self.items[index] = item
@@ -488,13 +531,13 @@ class SkipKey():
             raise ValueError(e)
 
     # interface
-    def show(self, item):
+    def show(self, secret):
         """
         Show a generated password and its strenght.
 
             Parameters
 
-            item : the item.
+            secret : the secret.
 
         ----------
 
@@ -507,10 +550,10 @@ class SkipKey():
         Exception :
             Raises Exceptions
         """
-        length =  item.get('length', 0)
-        letters = item.get('letters', 0)
-        numbers = item.get('numbers', 0)
-        symbols = item.get('symbols', 0)
+        length =  secret.get('length', 0)
+        letters = secret.get('letters', 0)
+        numbers = secret.get('numbers', 0)
+        symbols = secret.get('symbols', 0)
 
         pattern = cipherfachade.Pattern(
             letters=letters,
@@ -519,7 +562,7 @@ class SkipKey():
             length=length
         )
         seed = self.seedwrapper.unwrap(self.session_seed)
-        salt = base64.b64decode(item['password'])
+        salt = base64.b64decode(secret['password'])
         p = self.cipher_fachade.password(
             seed, salt, self.cryptod['iterations'], pattern)
         return p
@@ -643,20 +686,20 @@ class SkipKey():
             seed = local_cf.key_derivation_function(
                 cryptod).derive(seed)
             for item in items_copy:
-                if item['auto'] == 'True':
-                    pwd = self.show(item)
-                    item['auto'] = 'False'
-                    item['length'] = ''
-                    item['letters'] = ''
-                    item['numbers'] = ''
-                    item['symbols'] = ''
-                elif item['auto'] == 'False':
-                    pwd = self.decrypt(item['password'])
-
-                r = local_cf.encrypt(pwd, cryptod, seed)
-                r = bytes(json.dumps(r), encoding='utf-8')
-                r = str(base64.b64encode(r), encoding='utf-8')
-                item['password'] = r
+                for secret in item['secrets']:
+                    if secret['auto'] == 'True':
+                        pwd = self.show(secret)
+                        secret['auto'] = 'False'
+                        secret['length'] = ''
+                        secret['letters'] = ''
+                        secret['numbers'] = ''
+                        secret['symbols'] = ''
+                    elif secret['auto'] == 'False':
+                        pwd = self.decrypt(secret['password'])
+                    r = local_cf.encrypt(pwd, cryptod, seed)
+                    r = bytes(json.dumps(r), encoding='utf-8')
+                    r = str(base64.b64encode(r), encoding='utf-8')
+                    secret['password'] = r
             #
             data = local_cf.encrypt(
                 items_copy, cryptod=cryptod, secret=key)
@@ -671,18 +714,28 @@ class SkipKey():
     # interface
     def export(self, file):
         items_csv = []
-        for i in self.items:
+        for i in self.items[:]:
             item = purge(i)
-            if item['auto'] == 'True':
-                item['password'] = self.show(item)
-            elif item['auto'] == 'False':
-                item['password'] = self.decrypt(item['password'])
-            else:
-                pass
+            for i, secret in enumerate(item['secrets']):
+                if secret.get('password', '') == '':
+                    continue
+                if secret['auto'] == 'True':
+                    secret['password'] = self.show(secret)
+                elif secret['auto'] == 'False':
+                    secret['password'] = self.decrypt(secret['password'])
+                item[f'password_{i}'] = secret['password']
+
+            del item['secrets']
+
             items_csv.append(item)
+
+            # if item['auto'] == 'True':
+            #     item['password'] = self.show(item)
+            # elif item['auto'] == 'False':
+            #     item['password'] = self.decrypt(item['password'])
+            # else:
+            #     pass
+            # items_csv.append(item)
 
         return export_csv(file=file, items=items_csv, delimiter='\t', lineterminator='\r\n')
 
-
-if __name__ == '__main__':
-    pass

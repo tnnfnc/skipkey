@@ -34,7 +34,6 @@ class OpenFilePopup(Popup):
     def is_valid(self, folder, file):
         '''To be implemented in the extending subclass.'''
         return True
-        self.dismiss()
 
 
 class SaveFilePopup(Popup):
@@ -49,10 +48,6 @@ class SaveFilePopup(Popup):
     def cmd_save(self, path, selection):
         '''To be implemented in the extending subclass.'''
         self.dismiss()
-
-    # def save(self, file):
-    #     '''To be implemented in the extending subclass.'''
-    #     self.dismiss()
 
     def cmd_cancel(self):
         '''To be implemented in the extending subclass.'''

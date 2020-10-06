@@ -13,8 +13,10 @@
 	color: _spi_colors
 	created: _out_date
 	changed: _out_cdate
-	# cipherpwd: _out_cipherpwd
-	passwordpanel: _passwordpanel
+	# passwordpanel: _passwordpanel
+	secret_0: _secret_0
+	secret_1: _secret_1
+	secret_2: _secret_2
 
 	BoxLayout:
 		orientation: 'vertical'
@@ -55,14 +57,17 @@
 		#--------------------------------- Scroll section
 		ScrollView:
 			id: _scr_edit
-			BBoxLayout:
+			BoxLayout:
 				orientation: 'vertical'
 				size_hint_y: None
-				height: ui.page_h
+				# height: ui.page_h
+				height: self.minimum_height
 				padding: ui.box_padding
 				#---------------------------- Fields
 				GridLayout:
 					cols: 2
+					size_hint_y: None
+					height: self.minimum_height
 					FieldLabel:
 						id: _lab_name
 						text: _('Name')
@@ -111,70 +116,87 @@
 						text: _('Changed')
 					OutputField:
 						id: _out_cdate
-					# FieldLabel:
-					# 	id: _lab_cipherpwd
-					# 	text: _('Cipher Data')
-					# OutputField:
-					# 	id: _out_cipherpwd
 				# ------------------------------- Edit screen > Tags and colours
-					FieldLabel:
-						# id: _lab_cdate
-						text: _('Colors')
-					TagSpinner:
-						id: _spi_colors
-						size_hint: None, None
-						size: (ui.spinner_x, ui.spinner_y) #spinner_size
-						text: _('Colors')
-						values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
-						on_text:
-							if hasattr(app, 'cmd_text_colors'): getattr(app, 'cmd_text_colors')(item, args)
-					FieldLabel:
-						# id: _lab_cdate
-						text: _('Tag')
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint_y: None
-						height: ui.spinner_y
-						TagSpinner:
-							id: _spi_tag
-							# pos_hint: {'center_y': 0.5}
-							size_hint: None, None
-							size: (ui.spinner_x, ui.spinner_y)
-							on_text:
-								if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
-						ImageButton:
-							id: _btn_rename
-							icon: 'data/icons/replace.png'
-							size_hint: None, None
-							size: _spi_tag.height, _spi_tag.height
-							# text: _('Rename')
-							on_release:
-								if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
-						ImageButton:
-							id: _btn_add
-							icon: 'data/icons/plus.png'
-							size_hint: None, None
-							size: _spi_tag.height, _spi_tag.height							
-							# text: _('Add')
-							on_release: 
-								if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
-						ImageButton:
-							id: _btn_delete
-							icon: 'data/icons/trash.png'
-							size_hint: None, None
-							size: _spi_tag.height, _spi_tag.height							
-							# text: _('Delete')
-							on_release:
-								if hasattr(root, 'cmd_deletetag'): getattr(root, 'cmd_deletetag')(self, _spi_tag)
+				FieldLabel:
+					# id: _lab_cdate
+					text: _('Colors')
+					size_hint: 1, None
+					size: ui.field_size
+					halign: 'center'
+				TagSpinner:
+					id: _spi_colors
+					size_hint: 1, None
+					size: (ui.spinner_x, ui.spinner_y) #spinner_size
+					text: _('Colors')
+					values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
+					on_text:
+						if hasattr(app, 'cmd_text_colors'): getattr(app, 'cmd_text_colors')(item, args)
+				FieldLabel:
+					# id: _lab_cdate
+					text: _('Tag')
+					size_hint: 1, None
+					size: ui.field_size
+					halign: 'center'	
 				BoxLayout:
 					orientation: 'horizontal'
 					size_hint_y: None
-					height: ui.spinner_y * 2
-					BoxLayout:
-						orientation: 'horizontal'
+					height: ui.spinner_y
+					TagSpinner:
+						id: _spi_tag
+						# pos_hint: {'center_y': 0.5}
+						size_hint: 1, None
+						size: (ui.spinner_x, ui.spinner_y)
+						on_text:
+							if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
+					ImageButton:
+						id: _btn_rename
+						icon: 'data/icons/replace.png'
+						size_hint: None, None
+						size: _spi_tag.height, _spi_tag.height
+						# text: _('Rename')
+						on_release:
+							if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
+					ImageButton:
+						id: _btn_add
+						icon: 'data/icons/plus.png'
+						size_hint: None, None
+						size: _spi_tag.height, _spi_tag.height							
+						# text: _('Add')
+						on_release: 
+							if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
+					ImageButton:
+						id: _btn_delete
+						icon: 'data/icons/trash.png'
+						size_hint: None, None
+						size: _spi_tag.height, _spi_tag.height							
+						# text: _('Delete')
+						on_release:
+							if hasattr(root, 'cmd_deletetag'): getattr(root, 'cmd_deletetag')(self, _spi_tag)
 				# --------------------Edit screen > Password preferences tabbed panel
-				PasswordPanel:
-					id: _passwordpanel
+				FieldLabel:
+					# id: _lab_cdate
+					text: _('Password')
+					size_hint: 1, None
+					size: ui.field_size
+					halign: 'center'			
+				Password:
+					id: _secret_0
+					size_hint_y: None
+					height: ui.spinner_y
+					
+				Password:
+					id: _secret_1
+					size_hint_y: None
+					height: ui.spinner_y
+
+				Password:
+					id: _secret_2
+					size_hint_y: None
+					height: ui.spinner_y
+					
+				# --------------------Edit screen > Password preferences tabbed panel
+				# PasswordPanel:
+				# 	id: _passwordpanel
 
 
 

@@ -36,7 +36,7 @@ from uicontroller import GuiController
 from bubblemenu import Menu, BubbleBehavior
 from mlist import SelectableList, ItemComposite, Selectable, ItemPart
 import kvgraphics as ui
-import passwordpanel
+import password
 from dropdownmenu import DropDownMenu
 #
 # dummy = os.path.dirname(os.path.realpath(__file__))
@@ -49,7 +49,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 2
-MICRO = 2
+MICRO = 3
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -110,7 +110,7 @@ commons.import_kivy_rule(os.path.join('kv', 'editscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'importscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'changesscreen.kv'))
 #Widgets
-commons.import_kivy_rule(os.path.join('kv', 'passwordstrenght.kv'))
+# commons.import_kivy_rule(os.path.join('kv', 'passwordstrenght.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'tagspinner.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'percentprogressbar.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'changeview.kv'))
@@ -273,7 +273,7 @@ class ExportFile(SaveFilePopup):
             self.dismiss()
             return True
         except Exception as e:
-            message(_('Export failed: %s') % (str(*e.args)),
+            message(_('Export failed: %s') % (e.args),
                     f'{os.path.basename(file)}', 'e')
         return False
 
@@ -900,7 +900,11 @@ class EditScreen(FocusBehavior, Screen):
     created = ObjectProperty(None)
     changed = ObjectProperty(None)
     # cipherpwd = ObjectProperty(None)
-    passwordpanel = ObjectProperty(None)
+    # passwordpanel = ObjectProperty(None)
+    # Secrets
+    secret_0 = ObjectProperty(None)
+    secret_1 = ObjectProperty(None)
+    secret_2 = ObjectProperty(None)
 
 
     def __init__(self, **kwargs):
@@ -924,9 +928,12 @@ class EditScreen(FocusBehavior, Screen):
         self.color.text = item['color']
         self.created.text = item['created']
         self.changed.text = item['changed']
-        # self.cipherpwd.text = item['password']
         self.history = item['history']
-        self.passwordpanel.set_view_attrs(item)
+        
+        self.secret_0.set_view_attrs(item.get('secrets', [{}, {}, {}])[0])
+        self.secret_1.set_view_attrs(item.get('secrets', [{}, {}, {}])[1])
+        self.secret_2.set_view_attrs(item.get('secrets', [{}, {}, {}])[2])
+
 
     def get_view_attrs(self):
         """Returns screen fields from a dictionary."""
@@ -942,9 +949,16 @@ class EditScreen(FocusBehavior, Screen):
             'color': self.color.text,
             'created': self.created.text,
             'changed': self.changed.text,
-            'hystory': self.history
+            'history': self.history
         })
-        item.update(self.passwordpanel.get_view_attrs())
+        # item.update(self.passwordpanel.get_view_attrs())
+        secrets = [
+            self.secret_0.get_view_attrs(),
+            self.secret_1.get_view_attrs(),
+            self.secret_2.get_view_attrs(),
+        ]
+        item['secrets'] = secrets
+        # item.update(secret_0)
         return item
 
 
@@ -973,9 +987,6 @@ class EditScreen(FocusBehavior, Screen):
 
         if not self.item_check(item):
             return False
-        if self.item == item:
-            message(_('Info'), _('No changes.'), 'i')
-            return True
         # If the item is a new one from the add check name is not in items
         if self.is_new and model.contains(items=app.items, value=item['name'], key='name'):
             message(title=_('Duplicate key'), text=_(
@@ -992,10 +1003,17 @@ class EditScreen(FocusBehavior, Screen):
     def item_check(self, item):
         """Check mandatory fields before saving the account item."""
         log = []
+        # Check for changes
+        if model.is_equal(item, self.item):
+            message(_('Info'), _('No changes.'), 'i')
+            return False
+        # Check for password
+        if all(s['password'] == '' for s in item['secrets']):
+            log.append(_('No password defined'))
+        # Check for key
         if item['name'] == '':
             log.append(_('Name is mandatory'))
-        if item['password'] == '':
-            log.append(_('No password defined'))
+        # Check for email
         if item['email']:
             m = re.search(
                 r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", item['email'])
@@ -1047,11 +1065,13 @@ class ImportScreen(Screen):
             'url': 'url',
             'login': 'login',
             'email': 'email',
-            'password': 'password',
-            'tag': '',
-            'description': '',
-            'created': '',
-            'changed': '',
+            'tag': 'tag',
+            'description': 'description',
+            'created': 'created',
+            'changed': 'changed',
+            'password_0': 'password_0',
+            'password_1': '',
+            'password_2': '',
         }
 
         self.mapping_list = self.ids['_mapping_list']
@@ -1083,18 +1103,21 @@ class ImportScreen(Screen):
         app = App.get_running_app()
         try:
             mapping = {
-                i.data['target'].text: i.data['source'].text for i in self.mapping_list.widget_list}
+                i.items['target'].text: i.items['source'].text for i in self.mapping_list.children}
 
             items = model.import_csv(
                 file=self.file, delimiter='\t', mapping=mapping)
             # Add default keys
             items_ = []
             for item in items:
-                item = model.new_item(template=app.item_template, **item)
-                item['password'] = app.encrypt(item['password'])
-                item['auto'] = 'False'
-                model.normalize(item)
-                items_.append(item)
+                ritem = model.new_item(template=app.item_template, **item)
+                for i, secret in enumerate(ritem['secrets']):
+                    if item.get(f'password_{i}', '') != '':
+                        secret['label'] =  mapping.get(f'password_{i}', 'password')
+                        secret['password'] = app.encrypt(item[f'password_{i}'])
+                        secret['auto'] = 'False'
+                model.normalize(ritem)
+                items_.append(ritem)
         except Exception as e:
             message(_('Error'), _(
                 'Check the syntax:\n%s') % (str(*e.args)), 'w')
@@ -1160,11 +1183,26 @@ class ChangesScreen(Screen):
                 items=self.app.items, key='name', value=old['name'])]
         except Exception:
             new = old
-
+        # Fill the table of changed values
         for key, value in old.items():
-            if key in SkipKeyApp.LABELS:
+            if key == 'secrets':
+                for i in range(0, len(value)):
+                    old_pwd = old['secrets'][i]['password']
+                    new_pwd = new['secrets'][i]['password']
+                    label = new['secrets'][i]['label']
+                    if old_pwd != new_pwd:
+                        old_pwd = '********'
+                        new_pwd = '*********'
+                    elif old_pwd == new_pwd == '':
+                        continue
+                    else:
+                        old_pwd = new_pwd = '********'
+                    view = ChangeView(key=key, label=label+':', new=new_pwd, old=old_pwd)
+                    self.changed_item_list.add(view)
+            else:
                 view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(key, key)+':', new=new[key], old=value)
-                self.changed_item_list.add(view)
+                if key in SkipKeyApp.LABELS:
+                    self.changed_item_list.add(view)
 
 
     def on_enter(self):
@@ -1344,8 +1382,8 @@ class ChangeView(Selectable, BoxLayout):
     def __init__(self, **kwargs):
         super(ChangeView, self).__init__()
         self.ids.label.text = kwargs.get('label', '-')
-        new = kwargs.get('new', '-')
-        old = kwargs.get('old', '-')
+        new = str(kwargs.get('new', '-'))
+        old = str(kwargs.get('old', '-'))
         new = new if new else ' '
         old = old if old else ' '
 
@@ -1385,24 +1423,31 @@ class ItemActionBubble(Menu):
         super(ItemActionBubble, self).__init__(**kwargs)
         # Clear clipboard scheduled event
         self.evt_clipboard = None
+        self.app = App.get_running_app()
+        self.item = None
 
+    def _set_widget(self, widg):
+        Menu._set_widget(self, widg)
+        index = model.index_of(items=self.app.items, value=self.name, key='name')
+        if index != None:
+            self.item = self.app.items[index]
+            self.ids.secret_0.text = self.item['secrets'][0].get('label', '')
+            self.ids.secret_0.disabled = self.item['secrets'][0].get('password', '') == ''
+            self.ids.secret_1.text = self.item['secrets'][1].get('label', '')
+            self.ids.secret_1.disabled = self.item['secrets'][1].get('password', '') == ''
+            self.ids.secret_2.text = self.item['secrets'][2].get('label', '')
+            self.ids.secret_2.disabled = self.item['secrets'][2].get('password', '') == ''
 
     @property
     def name(self):
         return self.widget.items['name'].text
 
     def cmd_url(self, *args):
-        # System call to browser
-        app = App.get_running_app()
-        index = model.index_of(items=app.items, value=self.name, key='name')
-        if index == None: 
-            return False
-        item = app.items[index]
-        url = item['url']
+        url = self.item['url']
         try:
             browser.open(url, new=0, autoraise=True)
         except Exception:
-            self._publish(app, url)
+            self._publish(self.app, url)
 
         return True
 
@@ -1410,50 +1455,38 @@ class ItemActionBubble(Menu):
         """
         Publish user.
         """
-        app = App.get_running_app()
-        index = model.index_of(items=app.items, value=self.name, key='name')
-        if index == None: 
-            return False
-        item = app.items[index]
-        user = item['login']
-        self._publish(app, user)
+        user = self.item['login']
+        self._publish(self.app, user)
         return True
 
     def cmd_password(self, *args):
         """
         Publish password.
         """
-        app = App.get_running_app()
-        p = self._password(app)
-        self._publish(app, p)
+        # app = App.get_running_app()
+        p = self._password(self.app, *args)
+        self._publish(self.app, p)
         return True
 
     def cmd_login(self, *args):
         """
         Publish 'user TAB password' and dismiss bubble.
         """
-        app = App.get_running_app()
-        index = model.index_of(items=app.items, value=self.name, key='name')
-        if index == None: 
-            return False
-        item = app.items[index]
-        p = self._password(app)
-        login = ''.join((item["login"], '\t', p))
-        self._publish(app, login)
+        p = self._password(self.app, 0)
+        login = ''.join((self.item["login"], '\t', p))
+        self._publish(self.app, login)
         self.reset()
         return True
 
-    def _password(self, app):
+    def _password(self, app, *args):
         try:
-            index = model.index_of(items=app.items, value=self.name, key='name')
-            if index == None: 
-                return False
-            item = app.items[index]
-            if item['auto'] == 'False':
-                p = app.decrypt(item['password'])
+            secret = self.item['secrets'][args[0]]
+            if secret['auto'] == 'False':
+                p = app.decrypt(secret['password'])
             else:
-                p = app.show(item)
+                p = app.show(secret)
             return p
+
         except Exception as e:
             message(title=_('Password Error'), text=e.args[0], type='e')
 
@@ -1481,20 +1514,16 @@ class ItemActionBubble(Menu):
         Edit the account item.
         Leave the screen and enter 'EditScreen'.
         """
-        app = App.get_running_app()
-        index = model.index_of(items=app.items, value=self.name, key='name')
-        if index == None: 
-            return False
-        item = app.items[index]
-        app.root.get_screen(EDIT).set_view_attrs(item=item, is_new=False)
-        app.root.transition.direction = 'left'
-        app.root.current = EDIT
+        self.app.root.get_screen(EDIT).set_view_attrs(item=self.item, is_new=False)
+        self.app.root.transition.direction = 'left'
+        self.app.root.current = EDIT
         self.reset()
         return True
 
     def reset(self):
         # Free the selection to enable re-selection
         self.widg = None
+        self.item = None
         self.parent.remove_widget(self)
 
     def on_touch_down(self, touch):
@@ -1824,13 +1853,14 @@ if __name__ == '__main__':
         'color': '',  # Basic colors as string
         'created': '',  # Date
         'changed': '',  # Date
-        'auto': '',  # True, False=user
-        'length': '',  # Integer
-        'letters': '',  # True / False
-        'numbers': '',  # At least [0 length]
-        'symbols': '',  # At least [0 length]
-        'password': '',  # User encrypted password or salt Base64 encoded
+        'secrets': [password.view_attrs(),password.view_attrs(),password.view_attrs()],  # List of secrets
         'history': ''  # Record history - not yet managed
+        # 'auto': '',  # True, False=user
+        # 'length': '',  # Integer
+        # 'letters': '',  # True / False
+        # 'numbers': '',  # At least [0 length]
+        # 'symbols': '',  # At least [0 length]
+        # 'password': '',  # User encrypted password or salt Base64 encoded
     }
 
     SkipKeyApp(search_fields=search_fields, item_template=item_template).run()

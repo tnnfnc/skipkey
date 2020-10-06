@@ -4,7 +4,7 @@
 #---------------------------------------------------------
 <EditScreen>:
 	# Kivy Properties
-    name: _inp_name
+    aname: _inp_name
 	url: _inp_url
 	login: _inp_login
 	email: _inp_mail
@@ -13,10 +13,8 @@
 	color: _spi_colors
 	created: _out_date
 	changed: _out_cdate
-	cipherpwd: _out_cipherpwd
-	autopanel: _wid_auto_tab
-	userpanel: _wid_user_tab
-	tabs: _wid_panel
+	# cipherpwd: _out_cipherpwd
+	passwordpanel: _passwordpanel
 
 	BoxLayout:
 		orientation: 'vertical'
@@ -61,6 +59,7 @@
 				orientation: 'vertical'
 				size_hint_y: None
 				height: ui.page_h
+				padding: ui.box_padding
 				#---------------------------- Fields
 				GridLayout:
 					cols: 2
@@ -112,11 +111,11 @@
 						text: _('Changed')
 					OutputField:
 						id: _out_cdate
-					FieldLabel:
-						id: _lab_cipherpwd
-						text: _('Cipher Data')
-					OutputField:
-						id: _out_cipherpwd
+					# FieldLabel:
+					# 	id: _lab_cipherpwd
+					# 	text: _('Cipher Data')
+					# OutputField:
+					# 	id: _out_cipherpwd
 				# ------------------------------- Edit screen > Tags and colours
 					FieldLabel:
 						# id: _lab_cdate
@@ -132,63 +131,51 @@
 					FieldLabel:
 						# id: _lab_cdate
 						text: _('Tag')
-					TagSpinner:
-						id: _spi_tag
-						pos_hint: {'center_y': 0.5}
-						size_hint: None, None
-						size: (ui.spinner_x, ui.spinner_y)
-						on_text:
-							if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint_y: None
+						height: ui.spinner_y
+						TagSpinner:
+							id: _spi_tag
+							# pos_hint: {'center_y': 0.5}
+							size_hint: None, None
+							size: (ui.spinner_x, ui.spinner_y)
+							on_text:
+								if hasattr(root, 'cmd_selectiontag'): getattr(root, 'cmd_selectiontag')(self)
+						ImageButton:
+							id: _btn_rename
+							icon: 'data/icons/replace.png'
+							size_hint: None, None
+							size: _spi_tag.height, _spi_tag.height
+							# text: _('Rename')
+							on_release:
+								if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
+						ImageButton:
+							id: _btn_add
+							icon: 'data/icons/plus.png'
+							size_hint: None, None
+							size: _spi_tag.height, _spi_tag.height							
+							# text: _('Add')
+							on_release: 
+								if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
+						ImageButton:
+							id: _btn_delete
+							icon: 'data/icons/trash.png'
+							size_hint: None, None
+							size: _spi_tag.height, _spi_tag.height							
+							# text: _('Delete')
+							on_release:
+								if hasattr(root, 'cmd_deletetag'): getattr(root, 'cmd_deletetag')(self, _spi_tag)
 				BoxLayout:
 					orientation: 'horizontal'
 					size_hint_y: None
 					height: ui.spinner_y * 2
 					BoxLayout:
 						orientation: 'horizontal'
-					IconButton:
-						id: _btn_rename
-						icon: 'data/icons/replace.png'
-						# text: _('Rename')
-						on_release:
-							if hasattr(root, 'cmd_renametag'): getattr(root, 'cmd_renametag')(self, _spi_tag)
-					IconButton:
-						id: _btn_add
-						icon: 'data/icons/plus.png'
-						# text: _('Add')
-						on_release: 
-							if hasattr(root, 'cmd_addtag'): getattr(root, 'cmd_addtag')(self, _spi_tag)
-					IconButton:
-						id: _btn_delete
-						icon: 'data/icons/x.png'
-						# text: _('Delete')
-						on_release:
-							if hasattr(root, 'cmd_deletetag'): getattr(root, 'cmd_deletetag')(self, _spi_tag)
-					BoxLayout:
-						orientation: 'horizontal'
 				# --------------------Edit screen > Password preferences tabbed panel
-				FrameTitle:
-					id: _lab_pwdtab
-					text: _('Password set')
-					size_hint_y: None
-					height: self.size_hint_min_y
-				TabbedPanel:
-					id: _wid_panel
-					tab_pos: 'top_left'
-					do_default_tab: False
-					on_current_tab: 
-						if hasattr(root, 'cmd_current_tab'): getattr(root, 'cmd_current_tab')(self)
+				PasswordPanel:
+					id: _passwordpanel
 
-					TabbedPanelItem:
-						text: _('Auto')
-						AutoPanel:
-							id: _wid_auto_tab
-						
-					TabbedPanelItem:
-						text: _('User')
-						UserPanel:
-							id: _wid_user_tab
-							BoxLayout:
-        						orientation: 'horizontal'
 
 
 						

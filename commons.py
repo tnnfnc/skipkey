@@ -16,7 +16,7 @@ _ = translate(domain='skipkey', localedir=locale_dir, languages=['it'])
 
 def import_kivy_rule(files):
     """Import a kivy rule file only if it was not already imported.
-
+        Check for full file name.
     Args:
         files (iterable): kivy rule files
     """
@@ -24,7 +24,7 @@ def import_kivy_rule(files):
         if isinstance(files, str):
             files = (files,)
         for file in files:
-            if file in Builder.files:
+            if os.path.basename(file) in (os.path.os.path.basename(f) for f in Builder.files):
                 continue
             Builder.load_file(file)
 

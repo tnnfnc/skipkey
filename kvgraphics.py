@@ -37,13 +37,19 @@ field_y = label_y
 field_small_y = label_small_y
 field_big_y = label_big_y
 field_bigger_y = label_bigger_y
+field_small_size = (field_x, field_y)
+field_size = (field_small_x, field_y)
+field_big_size = (field_big_x, field_y)
+field_bigger_size = (field_bigger_x, field_y)
 
 # BUTTONS
 button_y = label_y
 button_x = field_x
+button_size = (button_x, button_y)
 
 nav_button_x = button_x
 nav_button_y = 1.5*button_y
+nav_button_size = (nav_button_x, nav_button_y)
 
 # SMALL BUTTON fits label height
 small_button_x = field_small_x
@@ -53,6 +59,7 @@ small_button_y = field_small_y
 # SPINNER
 spinner_x = dp(160)
 spinner_y = nav_button_y
+spinner_size = (spinner_x, spinner_y)
 
 # COLORS
 frame_color = (68/255.0, 164/255.0, 201/255.0)

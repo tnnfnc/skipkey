@@ -269,15 +269,15 @@ class Pattern():
     """
 
     def __init__(self, letters, numbers, symbols, length, *args, **kwargs):
-        if letters is None or letters == '' or False:
+        if letters == 'False' or letters == '':
             letters = 0
         else:
             letters = 1
-        if numbers is None or numbers == '':
+        if numbers == None or numbers == '':
             numbers = 0
-        if symbols is None or symbols == '':
+        if symbols == None or symbols == '':
             symbols = 0
-        if length is None or symbols == '':
+        if length == None or symbols == '':
             length = 0
         # try:
         self.numbers = int(numbers)

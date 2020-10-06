@@ -82,37 +82,37 @@ from threading import Timer
 from mlist import SelectableList, ItemComposite
 from bubblemenu import BubbleMenu, Menu, BubbleBehavior
 
-
-Builder.load_file('commons.kv')
-# passed!
-# Import of local modules from import directive in .kv
-# files works only if module is in the app dir!!
-Builder.load_file(os.path.join('kv', 'dynamic.kv'))
-#Popups
-Builder.load_file(os.path.join('kv', 'loginpopup.kv'))
-Builder.load_file(os.path.join('kv', 'cipherpopup.kv'))
-Builder.load_file(os.path.join('kv', 'edittagpopup.kv'))
-Builder.load_file(os.path.join('kv', 'infopopup.kv'))
-Builder.load_file(os.path.join('kv', 'messagepopup.kv'))
-Builder.load_file(os.path.join('kv', 'decisionpopup.kv'))
-#Panels building blocks
-Builder.load_file(os.path.join('kv', 'loginpanel.kv'))
-Builder.load_file(os.path.join('kv', 'userpanel.kv'))
-Builder.load_file(os.path.join('kv', 'seedpanel.kv'))
-Builder.load_file(os.path.join('kv', 'autopanel.kv'))
-Builder.load_file(os.path.join('kv', 'itemactionbubble.kv'))
-#Widgets
-Builder.load_file(os.path.join('kv', 'passwordstrenght.kv'))
-Builder.load_file(os.path.join('kv', 'tagspinner.kv'))
-Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
-Builder.load_file(os.path.join('kv', 'changeview.kv'))
-#Screens
-Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
-Builder.load_file(os.path.join('kv', 'listscreen.kv'))#<-----
-Builder.load_file(os.path.join('kv', 'editscreen.kv'))
-Builder.load_file(os.path.join('kv', 'importscreen.kv'))
-Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
-Builder.load_file(os.path.join('kv', 'passwordpanel.kv'))
+import skipkey
+# Builder.load_file('commons.kv')
+# # passed!
+# # Import of local modules from import directive in .kv
+# # files works only if module is in the app dir!!
+# Builder.load_file(os.path.join('kv', 'dynamic.kv'))
+# #Popups
+# Builder.load_file(os.path.join('kv', 'loginpopup.kv'))
+# Builder.load_file(os.path.join('kv', 'cipherpopup.kv'))
+# Builder.load_file(os.path.join('kv', 'edittagpopup.kv'))
+# Builder.load_file(os.path.join('kv', 'infopopup.kv'))
+# Builder.load_file(os.path.join('kv', 'messagepopup.kv'))
+# Builder.load_file(os.path.join('kv', 'decisionpopup.kv'))
+# #Panels building blocks
+# Builder.load_file(os.path.join('kv', 'loginpanel.kv'))
+# Builder.load_file(os.path.join('kv', 'userpanel.kv'))
+# Builder.load_file(os.path.join('kv', 'seedpanel.kv'))
+# Builder.load_file(os.path.join('kv', 'autopanel.kv'))
+# Builder.load_file(os.path.join('kv', 'itemactionbubble.kv'))
+# #Widgets
+# Builder.load_file(os.path.join('kv', 'passwordstrenght.kv'))
+# Builder.load_file(os.path.join('kv', 'tagspinner.kv'))
+# Builder.load_file(os.path.join('kv', 'percentprogressbar.kv'))
+# Builder.load_file(os.path.join('kv', 'changeview.kv'))
+# #Screens
+# Builder.load_file(os.path.join('kv', 'enterscreen.kv'))
+# Builder.load_file(os.path.join('kv', 'listscreen.kv'))#<-----
+# Builder.load_file(os.path.join('kv', 'editscreen.kv'))
+# Builder.load_file(os.path.join('kv', 'importscreen.kv'))
+# Builder.load_file(os.path.join('kv', 'changesscreen.kv'))
+# Builder.load_file(os.path.join('kv', 'passwordedit.kv'))
 # passed!
 
 # Screen Names
@@ -223,11 +223,11 @@ class TestApp(App):
     def build(self):
         sm = ScreenManager()
         self.root = sm
+        sm.add_widget(EditScreen(name=EDIT)) # passed!
+        sm.add_widget(ListScreen(name=LIST)) # passed!
         sm.add_widget(ChangesScreen(name=CHANGES)) # passed!
         sm.add_widget(ImportScreen(name=IMPORT)) # passed!
         sm.add_widget(EnterScreen(name=ENTER)) # passed!
-        sm.add_widget(ListScreen(name=LIST)) # passed!
-        sm.add_widget(EditScreen(name=EDIT)) # passed!
         
         return sm
 

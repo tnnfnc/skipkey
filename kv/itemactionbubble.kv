@@ -14,13 +14,24 @@
 		on_release:
 			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')()
 	BubbleButton:
-		text: _('Password')
-		on_release:
-			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')()
-	BubbleButton:
 		text: _('Login')
 		on_release:
 			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')()
+	BubbleButton:
+		id: secret_0
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(0)
+	BubbleButton:
+		id: secret_1
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(1)
+	BubbleButton:
+		id: secret_2
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(2)						
 	BubbleButton:
 		text: _('Edit')
 		on_release: 

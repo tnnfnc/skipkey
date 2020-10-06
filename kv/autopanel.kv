@@ -11,8 +11,10 @@
 	
     orientation: 'vertical'
     padding: ui.box_padding
+    size_hint_min_y: _box_generate.height + _box_params.height + _wid_strenght.height
  #---------------- Password length
     BoxLayout:
+        id: _box_params
         orientation: 'vertical'
         size_hint_y: None
         height: 4 * ui.button_y
@@ -104,7 +106,7 @@
 
     #----------- Generate password
     BoxLayout:
-		id: _bx_generate
+		id: _box_generate
         orientation: 'horizontal'
         size_hint_y: None
         height: _inp_password.height
@@ -122,5 +124,5 @@
                 if hasattr(root, 'cmd_text'): getattr(root, 'cmd_text')(self.text)            
     PasswordStrenght:
         id: _wid_strenght
-		width: _bx_generate.width
+		width: _box_generate.width
         
