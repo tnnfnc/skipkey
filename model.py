@@ -299,6 +299,35 @@ def export_csv(file, items, fieldnames=[], delimiter='\t', lineterminator='\r\n'
 
     return True
 
+def check_date(date):
+    """Check a date against the format:
+    YYYY\<sep\>MM\<sep\>DD and hh\<sep\>mm\<sep\>ss where \<sep\> can
+    be any character.
+
+    Args:
+        date (str): String containing a date.
+
+    Returns:
+        str: a date string in isoformat 'YYYY-MM-DD hh:mm:ss'
+    """
+    pattern = r'(\d{4}.\d{2}.\d{2})+\D*(\d{2}.\d{2}.\d{2})*'
+    match = re.search(pattern, date)
+    rdate = date
+    try:
+        if match.group() and match.group(1):
+            ymd = match.group(1)
+            rdate = ymd[0:4] + '-' + ymd[5:7] + '-' + ymd[8:10]
+            if match.group(2):
+                hms = match.group(2)
+                rdate = rdate + ' ' + hms[0:2] + ':' + hms[3:5] + ':' + hms[6:8]
+            else:
+                rdate = rdate + ' ' + '08:00:00'
+        else: 
+            rdate = datetime.now().isoformat(sep=' ', timespec='seconds')
+    except Exception:
+        rdate = datetime.now().isoformat(sep=' ', timespec='seconds')
+    return rdate
+
 
 def normalize(item):
     if item['email'] == '' and re.search(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", item['login']):
@@ -308,20 +337,28 @@ def normalize(item):
     if item['url'] == '':
         item['url'] = item['name']
     # Check and repair date: 'created', 'changed'
-    d = item['created'].split('/')
-    try:
-        item['created'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
-            d[0], d[1], d[2])
-    except Exception:
-        item['created'] = datetime.now().isoformat(sep=' ', timespec='seconds')
-    try:
-        item['changed'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
-            d[0], d[1], d[2])
-    except Exception:
-        item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
+    item['created'] = check_date(item.get('created', ''))
+    item['changed'] = check_date(item.get('changed', ''))
 
+    # if '/' in item['created']:
+    #     try:
+    #         d = item['created'].split('/')
+    #         item['created'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
+    #             d[0], d[1], d[2])
+    #     except Exception:
+    #         item['created'] = datetime.now().isoformat(sep=' ', timespec='seconds')
+    # elif check_date(item['created']):
+    #     pass
+    # if '/' in item['changed']:
+    #     try:
+    #         d = item['changed'].split('/')
+    #         item['changed'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
+    #             d[0], d[1], d[2])
+    #     except Exception:
+    #         item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
+    # elif '-' in item['changed']:
+    #     pass   
 
-# ITERATIONS = 100000  # key generation from seed
 
 class SkipKey():
     """
@@ -405,8 +442,14 @@ class SkipKey():
         add_index(self.search_fields)(item)
         index = index_of(self.items, item['name'], 'name')
         if index == None: # Append
-            item['created'] = item['changed'] = datetime.now().isoformat(
-                sep=' ', timespec='seconds')
+            item['created'] = check_date(item.get('created', ''))
+            item['changed'] = check_date(item.get('changed', ''))
+            # if item['created'] == '':
+            #     item['created'] = datetime.now().isoformat(
+            #         sep=' ', timespec='seconds')
+            # if item['changed'] == '':
+            #     item['changed'] = datetime.now().isoformat(
+            #         sep=' ', timespec='seconds')
             self.items.append(item)
             if history:
                 self.add_history(new=None, old=item, action=SkipKey.APPEND)

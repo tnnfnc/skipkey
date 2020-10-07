@@ -101,7 +101,7 @@ commons.import_kivy_rule(os.path.join('kv', 'infopopup.kv'))
 #Panels building blocks
 commons.import_kivy_rule(os.path.join('kv', 'loginpanel.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'seedpanel.kv'))
-commons.import_kivy_rule(os.path.join('kv', 'itemactionbubble.kv'))
+commons.import_kivy_rule(os.path.join('kv', 'itemmenu.kv'))
 
 #Screens
 commons.import_kivy_rule(os.path.join('kv', 'enterscreen.kv'))
@@ -899,9 +899,6 @@ class EditScreen(FocusBehavior, Screen):
     color = ObjectProperty(None)
     created = ObjectProperty(None)
     changed = ObjectProperty(None)
-    # cipherpwd = ObjectProperty(None)
-    # passwordpanel = ObjectProperty(None)
-    # Secrets
     secret_0 = ObjectProperty(None)
     secret_1 = ObjectProperty(None)
     secret_2 = ObjectProperty(None)
@@ -929,7 +926,6 @@ class EditScreen(FocusBehavior, Screen):
         self.created.text = item['created']
         self.changed.text = item['changed']
         self.history = item['history']
-        
         self.secret_0.set_view_attrs(item.get('secrets', [{}, {}, {}])[0])
         self.secret_1.set_view_attrs(item.get('secrets', [{}, {}, {}])[1])
         self.secret_2.set_view_attrs(item.get('secrets', [{}, {}, {}])[2])
@@ -951,14 +947,12 @@ class EditScreen(FocusBehavior, Screen):
             'changed': self.changed.text,
             'history': self.history
         })
-        # item.update(self.passwordpanel.get_view_attrs())
         secrets = [
             self.secret_0.get_view_attrs(),
             self.secret_1.get_view_attrs(),
             self.secret_2.get_view_attrs(),
         ]
         item['secrets'] = secrets
-        # item.update(secret_0)
         return item
 
 
@@ -993,7 +987,8 @@ class EditScreen(FocusBehavior, Screen):
                 '"%s" exists. Choose another name') % (item['name']), type='e')
             return False
         try:
-            Clock.schedule_once(lambda dt: app.save_item(item=item), 0)
+            # Clock.schedule_once(lambda dt: app.save_item(item=item), 0)
+            app.save_item(item=item)
             self.manager.transition.direction = 'right'
             self.manager.current = LIST
         except Exception as e:
@@ -1363,8 +1358,7 @@ class AccountItemList(BubbleBehavior, SelectableList):
         super(AccountItemList, self).__init__(**kwargs)
 
         # Add the bubble menu
-        self.add_bubble(ItemActionBubble(
-                                 background_image=os.path.join('data', 'background.png')))
+        self.add_bubble(ItemMenu())
 
 
 class ChangeView(Selectable, BoxLayout):
@@ -1405,7 +1399,7 @@ class ChangedItemList(SelectableList):
         super(ChangedItemList, self).__init__(**kwargs)
 
 
-class ItemActionBubble(Menu):
+class ItemMenu(Menu):
     """
     GUI element. Bubble context menu for a selected account item.
 
@@ -1420,7 +1414,7 @@ class ItemActionBubble(Menu):
     """
 
     def __init__(self, **kwargs):
-        super(ItemActionBubble, self).__init__(**kwargs)
+        super(ItemMenu, self).__init__(**kwargs)
         # Clear clipboard scheduled event
         self.evt_clipboard = None
         self.app = App.get_running_app()
@@ -1431,12 +1425,24 @@ class ItemActionBubble(Menu):
         index = model.index_of(items=self.app.items, value=self.name, key='name')
         if index != None:
             self.item = self.app.items[index]
-            self.ids.secret_0.text = self.item['secrets'][0].get('label', '')
-            self.ids.secret_0.disabled = self.item['secrets'][0].get('password', '') == ''
-            self.ids.secret_1.text = self.item['secrets'][1].get('label', '')
-            self.ids.secret_1.disabled = self.item['secrets'][1].get('password', '') == ''
-            self.ids.secret_2.text = self.item['secrets'][2].get('label', '')
-            self.ids.secret_2.disabled = self.item['secrets'][2].get('password', '') == ''
+            self._init_layout(self.ids.secret_0, 0)
+            self._init_layout(self.ids.secret_1, 1)
+            self._init_layout(self.ids.secret_2, 2)
+            # self.ids.secret_0.text = self.item['secrets'][0].get('label', '')
+            # self.ids.secret_0.disabled = self.item['secrets'][0].get('password', '') == ''
+            # self.ids.secret_1.text = self.item['secrets'][1].get('label', '')
+            # self.ids.secret_1.disabled = self.item['secrets'][1].get('password', '') == ''
+            # self.ids.secret_2.text = self.item['secrets'][2].get('label', '')
+            # self.ids.secret_2.disabled = self.item['secrets'][2].get('password', '') == ''
+    
+    def _init_layout(self, secret, index):
+        secret.text = self.item['secrets'][index].get('label', '')
+        disabled = self.item['secrets'][index].get('password', '') == ''
+        secret.disabled = disabled
+        if disabled:
+            # secret.background_normal='data/transparent.png'
+            secret.background_disabled_normal='data/transparent.png'
+
 
     @property
     def name(self):
@@ -1532,7 +1538,7 @@ class ItemActionBubble(Menu):
         """
         if not self.collide_point(touch.x, touch.y):
             self.reset()
-        return super(ItemActionBubble, self).on_touch_down(touch)
+        return super(ItemMenu, self).on_touch_down(touch)
 
 
 class SkipKeyApp(App, model.SkipKey):

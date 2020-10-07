@@ -1,0 +1,59 @@
+#:kivy 1.11
+#-------------------- Bubble options: Login - Password - Edit/View
+<ItemMenu>:
+	size_hint: (0.5, None)
+	orientation: 'vertical'
+	size_hint_y: None
+	height: ui.nav_button_y + 5 * ui.nav_button_y
+	background_image: 'data/background.png'
+	# height: 5 * ui.nav_button_y
+	# size: (dp(320), dp(80))
+	BoxLayout:
+		orientation: 'horizontal'
+		size_hint_y: None
+		height: ui.nav_button_y
+		IconBubbleAction:
+			# text: _('Open')
+			icon: 'data/icons/go.png'
+			background_normal: 'data/transparent.png'
+			on_release:
+				if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')()
+		IconBubbleAction:
+			# text: _('Edit')
+			icon: 'data/icons/pen.png'
+			background_normal: 'data/transparent.png'
+			on_release: 
+				if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')()				
+	BubbleButton:
+		text: _('Login')
+		# size_hint_y: None
+		height: ui.button_y
+		on_release:
+			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')()
+	BubbleButton:
+		text: _('User')
+		# size_hint_y: None
+		height: ui.button_y			
+		on_release:
+			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')()
+	BubbleButton:
+		id: secret_0
+		text: _('Password')
+		# size_hint_y: None
+		height: ui.button_y			
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(0)
+	BubbleButton:
+		id: secret_1
+		# size_hint_y: None
+		height: ui.button_y			
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(1)
+	BubbleButton:
+		id: secret_2
+		# size_hint_y: None
+		height: ui.button_y			
+		text: _('Password')
+		on_release:
+			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(2)						

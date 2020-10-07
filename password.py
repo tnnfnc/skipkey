@@ -157,11 +157,11 @@ class Password(GridLayout):
         Args:
             attrs (dict): view attributes.
         """
+        self.attrs = attrs
         self.update = False
         text = attrs.get('label', '')
         text = text if text != '' else _('Create password')
         self.ids.password.text = text
-        self.attrs = attrs
         
     def get_view_attrs(self):
         """Get view attributes.
@@ -173,12 +173,13 @@ class Password(GridLayout):
             dict: view data.
         """
         # Edited values
-        if self.update == True and self.popup:
-            rvalue = view_attrs()
-            rvalue.update(self.popup.get_view_attrs())
-            return rvalue
-        else:
-            return self.attrs
+        # if self.update == True and self.popup:
+        #     rvalue = view_attrs()
+        #     rvalue.update(self.popup.get_view_attrs())
+        #     return rvalue
+        # else:
+            # return self.attrs
+        return self.attrs
 
     def cmd_change_pwd(self):
         self.update = True
@@ -187,11 +188,9 @@ class Password(GridLayout):
         self.popup = PasswordPopup()
         self.popup.title = _('Password set')
         self.popup.set_view_attrs(self.attrs)
-        self.popup.call_back = self.on_call_back
+        self.popup.call_back = self.set_view_attrs
         self.popup.open()
 
-    # def cmd_change_pwd(self):
-    #     return self.cmd_set_pwd()
 
     def cmd_delete_pwd(self):
         """Delete the password.
@@ -201,7 +200,10 @@ class Password(GridLayout):
         self.ids.password.text = _('Create password')
 
     def on_call_back(self, *args):
+        """Update internal password view attrs.
+        """
         popup_attrs = args[0].attrs
+        self.attrs.update(popup_attrs)
         self.ids.password.text = popup_attrs['label']
 
 
@@ -438,7 +440,7 @@ class PasswordPopup(Popup):
             # print('cmd_save.get_view_attrs: ', rvalue)
             # Update the text of the caller
             if self.call_back: 
-                self.call_back(self)
+                self.call_back(rvalue)
             self.dismiss()
 
     def cmd_cancel(self):
