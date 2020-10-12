@@ -59,6 +59,7 @@
                 id: _swi_numbers
                 size_hint: None, 1
                 height: ui.button_y #button_size_y
+                active: len(_inp_numbers.text) > 0
                 on_active: 
                     if self.active and _inp_length.text: _inp_numbers.text = '{0:.0f}'.format(int(_inp_length.text)*0.11)
                     else: _inp_numbers.text = ''
@@ -87,6 +88,7 @@
                 id: _swi_symbols
                 size_hint: None, 1
                 height: ui.button_y #button_size_y
+                active: len(_inp_symbols.text) > 0
                 on_active:
                     if self.active and _inp_length.text: _inp_symbols.text = '{0:.0f}'.format(int(_inp_length.text)*0.30)
                     else: _inp_symbols.text = ''

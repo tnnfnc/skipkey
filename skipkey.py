@@ -2,6 +2,7 @@
 """
 import base64
 import json
+from logging import raiseExceptions
 import re
 import os
 import sys
@@ -49,7 +50,7 @@ kivy.require('1.11.0')  # Current kivy version
 
 MAJOR = 1
 MINOR = 2
-MICRO = 3
+MICRO = 4
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -268,13 +269,15 @@ class ExportFile(SaveFilePopup):
         if isinstance(file, list):
             f = file[0]
         try:
-            App.get_running_app().export(file=f)
-            message(_('Export successful'), f'{os.path.basename(file)}', 'i')
-            self.dismiss()
+            log = App.get_running_app().export(file=f)
+            if log:
+                message(_('Export warning'), '\n'.join(log) , 'w')
+            else:
+                message(_('Export successful'), f'{os.path.basename(file)}', 'i')
+                self.dismiss()
             return True
         except Exception as e:
-            message(_('Export failed: %s') % (e.args),
-                    f'{os.path.basename(file)}', 'e')
+            message(_('Export failed: %s') % (f'{os.path.basename(file)}'),e, 'e')
         return False
 
 
@@ -833,7 +836,7 @@ class ListScreen(Screen):
         # Apply configuration
         app = App.get_running_app()
         config = self.app.config
-        item = model.new_item(template=app.item_template)
+        item = model.new_item()
         item['length'] = str(config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLEN, 10))
         item['auto'] = str(config.getdefault(
@@ -934,7 +937,7 @@ class EditScreen(FocusBehavior, Screen):
     def get_view_attrs(self):
         """Returns screen fields from a dictionary."""
         app = App.get_running_app()
-        item = model.new_item(template=app.item_template)
+        item = model.new_item()
         item.update({
             'name': self.aname.text,
             'login': self.login.text,
@@ -1096,27 +1099,15 @@ class ImportScreen(Screen):
         New records are normalized by adding calculated values in place of
         missing information. Nevertheless errors may occurs."""
         app = App.get_running_app()
-        try:
-            mapping = {
-                i.items['target'].text: i.items['source'].text for i in self.mapping_list.children}
+        mapping = {i.items['target'].text: i.items['source'].text for i in self.mapping_list.children}
 
-            items = model.import_csv(
-                file=self.file, delimiter='\t', mapping=mapping)
-            # Add default keys
-            items_ = []
-            for item in items:
-                ritem = model.new_item(template=app.item_template, **item)
-                for i, secret in enumerate(ritem['secrets']):
-                    if item.get(f'password_{i}', '') != '':
-                        secret['label'] =  mapping.get(f'password_{i}', 'password')
-                        secret['password'] = app.encrypt(item[f'password_{i}'])
-                        secret['auto'] = 'False'
-                model.normalize(ritem)
-                items_.append(ritem)
+        try:
+            items_ = app.import_csv(file=self.file, mapping=mapping)
         except Exception as e:
             message(_('Error'), _(
                 'Check the syntax:\n%s') % (str(*e.args)), 'w')
             return False
+
         if len(items_) > 0:
             # Check and manage double input!
             duplicated = imported = 0
@@ -1128,6 +1119,7 @@ class ImportScreen(Screen):
                 else:
                     imported += 1
                 app.save_item(item, history=True)
+
             app.root.transition.direction = 'right'
             app.root.current = LIST
             message(title=_('Import report'),
@@ -1328,8 +1320,9 @@ class AccountAdapter(ItemComposite):
         parts = {
             'name': ItemPart(width=dp(180)),
             # 'login': ItemPart(width=dp(180)),
-            # 'url': ItemPart(width=dp(200)),
-            'elapsed': PercentProgressBar(width=dp(100)),
+            'url': ItemPart(width=dp(200)),
+            'tag': ItemPart(width=dp(100)),
+            'elapsed': PercentProgressBar(width=dp(120)),
         }
         for key, widg in parts.items():
             self.add(key, widg)
@@ -1341,7 +1334,8 @@ class AccountAdapter(ItemComposite):
         ''' Catch and handle the view changes '''
         self.items['name'].text = item['name']
         # self.items['login'].text = item['login']
-        # self.items['url'].text = item['url']
+        self.items['url'].text = item['url']
+        self.items['tag'].text = item['tag']
         elapsed = model.elapsed(item)
         elapsed = elapsed if elapsed < self.lifetime else self.lifetime
         elapsed = 100 * elapsed/self.lifetime
@@ -1849,24 +1843,4 @@ if __name__ == '__main__':
                      'url',
                      'email')
 
-    item_template = {
-        'name': '',  # new name
-        'url': '',  # Check valid url
-        'login': '',  # Any string
-        'email': '',  # @-mail
-        'description': '',  # Any string
-        'tag': '',  # Any string
-        'color': '',  # Basic colors as string
-        'created': '',  # Date
-        'changed': '',  # Date
-        'secrets': [password.view_attrs(),password.view_attrs(),password.view_attrs()],  # List of secrets
-        'history': ''  # Record history - not yet managed
-        # 'auto': '',  # True, False=user
-        # 'length': '',  # Integer
-        # 'letters': '',  # True / False
-        # 'numbers': '',  # At least [0 length]
-        # 'symbols': '',  # At least [0 length]
-        # 'password': '',  # User encrypted password or salt Base64 encoded
-    }
-
-    SkipKeyApp(search_fields=search_fields, item_template=item_template).run()
+    SkipKeyApp(search_fields=search_fields).run()

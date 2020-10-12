@@ -12,8 +12,48 @@ import csv
 import re
 from datetime import datetime, timedelta
 
+secret = {
+    'label': '',
+    'auto': 'True',
+    'length': '',
+    'letters': '',
+    'symbols': '',
+    'numbers': '',
+    'password': ''}
 
-def new_item(strict=True, template={}, **args):
+item_template = {
+    'name': '',  # new name
+    'url': '',  # Check valid url
+    'login': '',  # Any string
+    'email': '',  # @-mail
+    'description': '',  # Any string
+    'tag': '',  # Any string
+    'color': '',  # Basic colors as string
+    'created': '',  # Date
+    'changed': '',  # Date
+    'secrets': [secret, secret, secret],  # List of secrets
+    'history': ''  # Record history - not yet managed
+}
+
+export_fieldnames =  [
+    'name',
+    'url',
+    'login',
+    'email',
+    'description',
+    'tag',
+    'color',
+    'created',
+    'changed',
+    'password_0',
+    'password_1',
+    'password_2',
+    'history'
+]
+
+json_item_tmp = json.dumps(item_template)
+
+def new_item(strict=True, template=json_item_tmp):
     """Item builder.
     Return a dictionary from the provided template.
 
@@ -30,18 +70,27 @@ def new_item(strict=True, template={}, **args):
         Return a dictionary with the predefined keys.
     """
     if template:
-        # item = dict(template)
-        item = json.loads(json.dumps(dict(template)))
+        item = json.loads(template)
     else:
         item = {}
-    if args:
-        for key in args:
-            if strict and key in item:
-                item[key] = str(args[key])
-            elif not strict:
-                item[key] = str(args[key])
     return item
 
+def copy(item):
+    """Deep copy
+
+    Args:
+        item (dict): source data
+
+    Returns:
+        dict: a data deep copy
+    """
+    acopy = new_item()
+    secrets = acopy['secrets']
+    acopy.update(item)
+    for i, secret in enumerate(item['secrets']):
+        secrets[i].update(secret)
+    acopy['secrets'] = secrets
+    return acopy
 
 def time_left(item, lifetime):
     """Return the password validity time left from today, assuming a lifetime.
@@ -92,7 +141,7 @@ def add_index(key_list):
 def purge(item):
     '''Return a new item without the index entry.'''
     try:
-        item = dict(item)
+        item = copy(item)
         del item['index']
         del item['object_id']
         
@@ -266,7 +315,15 @@ def import_csv(file, delimiter='\t', lineterminator='\r\n', mapping=None):
     items = []
     with open(file, newline='') as csvfile:
         reader = csv.DictReader(
-            csvfile, delimiter='\t', lineterminator=lineterminator, quoting=csv.QUOTE_NONE)
+            csvfile, delimiter='\t', 
+            lineterminator=lineterminator, 
+            strict=True, 
+            # quoting=csv.QUOTE_NONE,
+            #
+            quotechar='',
+            quoting=csv.QUOTE_NONE,
+            doublequote=False,
+            escapechar=None)
         if mapping:
             for row in reader:
                 d = {}
@@ -283,21 +340,27 @@ def import_csv(file, delimiter='\t', lineterminator='\r\n', mapping=None):
 
 def export_csv(file, items, fieldnames=[], delimiter='\t', lineterminator='\r\n'):
     if len(fieldnames) == 0 and len(items) > 0:
-        fieldnames = items[0].keys()
+        raise Exception('field names are not specified')
     with open(file, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, delimiter=delimiter, lineterminator=lineterminator,
-                                quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames, escapechar=None)
+        # writer = csv.DictWriter(csvfile, delimiter=delimiter, lineterminator=lineterminator,
+        #                         quoting=csv.QUOTE_MINIMAL, fieldnames=fieldnames, escapechar=None)
+        writer = csv.DictWriter(csvfile, 
+                                delimiter=delimiter, 
+                                fieldnames=fieldnames,
+                                quotechar='',
+                                quoting=csv.QUOTE_NONE,
+                                doublequote=False,
+                                escapechar=None)
         writer.writeheader()
         log = []
         for item in items:
-            
             try:
                 writer.writerow(item)
             except Exception as e:
                 log.append('Error:{} at {}'.format(e.args, item))
                 raise
 
-    return True
+    return log
 
 def check_date(date):
     """Check a date against the format:
@@ -339,25 +402,8 @@ def normalize(item):
     # Check and repair date: 'created', 'changed'
     item['created'] = check_date(item.get('created', ''))
     item['changed'] = check_date(item.get('changed', ''))
+    return True
 
-    # if '/' in item['created']:
-    #     try:
-    #         d = item['created'].split('/')
-    #         item['created'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
-    #             d[0], d[1], d[2])
-    #     except Exception:
-    #         item['created'] = datetime.now().isoformat(sep=' ', timespec='seconds')
-    # elif check_date(item['created']):
-    #     pass
-    # if '/' in item['changed']:
-    #     try:
-    #         d = item['changed'].split('/')
-    #         item['changed'] = '{:0>2s}-{:0>2s}-{:0>2s} 08:00:00'.format(
-    #             d[0], d[1], d[2])
-    #     except Exception:
-    #         item['changed'] = datetime.now().isoformat(sep=' ', timespec='seconds')
-    # elif '-' in item['changed']:
-    #     pass   
 
 
 class SkipKey():
@@ -368,7 +414,7 @@ class SkipKey():
     UPDATE = 'update'
     APPEND = 'append'
 
-    def __init__(self, search_fields, item_template, **kwargs):
+    def __init__(self, search_fields, **kwargs):
         # Data model - interface
         self.items = []
         # Mementos Data model - interface
@@ -389,8 +435,6 @@ class SkipKey():
         self.cryptod = None
         # Search in the content of keys
         self.search_fields = search_fields
-        # Item template
-        self.item_template = item_template
 
        # interface
 
@@ -728,6 +772,7 @@ class SkipKey():
                 cryptod).derive(passwd)
             seed = local_cf.key_derivation_function(
                 cryptod).derive(seed)
+            pwd = ''
             for item in items_copy:
                 for secret in item['secrets']:
                     if secret['auto'] == 'True':
@@ -749,7 +794,6 @@ class SkipKey():
             local_cf = None
             with open(file, mode='w') as f:
                 json.dump(data, f)
-            # self.update_recent_files(file)
         except Exception as e:
             raise Exception(e)
         return True
@@ -769,16 +813,39 @@ class SkipKey():
                 item[f'password_{i}'] = secret['password']
 
             del item['secrets']
-
+            if '\n' in item['description']:
+                item['description'].replace('\r\n', ' ')
+                item['description'].replace('\n', ' ')
             items_csv.append(item)
+        #
+        
+        log = export_csv(file=file, items=items_csv, 
+                         fieldnames=export_fieldnames, 
+                         delimiter='\t', lineterminator='\r\n')
+        return log
 
-            # if item['auto'] == 'True':
-            #     item['password'] = self.show(item)
-            # elif item['auto'] == 'False':
-            #     item['password'] = self.decrypt(item['password'])
-            # else:
-            #     pass
-            # items_csv.append(item)
 
-        return export_csv(file=file, items=items_csv, delimiter='\t', lineterminator='\r\n')
-
+    # interface
+    def import_csv(self, file, mapping):
+        """Import the '.csv' into current file. Once the mapping is applied,
+        new accounts are formed and appended to the current list.
+        New records are normalized by adding calculated values in place of
+        missing information. Nevertheless errors may occurs."""
+        try:
+            items = import_csv(file=file, delimiter='\t', mapping=mapping)
+            # Add default keys
+            items_ = []
+            for item in items:
+                ritem = new_item()
+                ritem.update(item)
+                for i, secret in enumerate(ritem['secrets']):
+                    if item.get(f'password_{i}', '') != '':
+                        secret['label'] =  mapping.get(f'password_{i}', 'password')
+                        secret['password'] = self.encrypt(item[f'password_{i}'])
+                        secret['auto'] = 'False'
+                        del ritem[f'password_{i}']
+                normalize(ritem)
+                items_.append(ritem)
+        except Exception:
+            raise
+        return items_

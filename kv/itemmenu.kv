@@ -14,7 +14,7 @@
 		height: ui.nav_button_y
 		IconBubbleAction:
 			# text: _('Open')
-			icon: 'data/icons/go.png'
+			icon: 'data/icons/www2.png'
 			background_normal: 'data/transparent.png'
 			on_release:
 				if hasattr(root, 'cmd_url'): getattr(root, 'cmd_url')()
@@ -24,33 +24,33 @@
 			background_normal: 'data/transparent.png'
 			on_release: 
 				if hasattr(root, 'cmd_edit'): getattr(root, 'cmd_edit')()				
-	BubbleButton:
+	Button:
 		text: _('Login')
 		# size_hint_y: None
 		height: ui.button_y
 		on_release:
 			if hasattr(root, 'cmd_login'): getattr(root, 'cmd_login')()
-	BubbleButton:
+	Button:
 		text: _('User')
 		# size_hint_y: None
 		height: ui.button_y			
 		on_release:
 			if hasattr(root, 'cmd_user'): getattr(root, 'cmd_user')()
-	BubbleButton:
+	Button:
 		id: secret_0
 		text: _('Password')
 		# size_hint_y: None
 		height: ui.button_y			
 		on_release:
 			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(0)
-	BubbleButton:
+	Button:
 		id: secret_1
 		# size_hint_y: None
 		height: ui.button_y			
 		text: _('Password')
 		on_release:
 			if hasattr(root, 'cmd_password'): getattr(root, 'cmd_password')(1)
-	BubbleButton:
+	Button:
 		id: secret_2
 		# size_hint_y: None
 		height: ui.button_y			

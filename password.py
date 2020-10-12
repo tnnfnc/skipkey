@@ -8,8 +8,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from uicontroller import GuiController
+from kivy.clock import Clock
 from kivy.app import App
-import password
 
 import commons
 
@@ -40,7 +40,6 @@ def view_attrs():
         'symbols': '',
         'numbers': '',
         'password': ''})
-import re
 
 
 def projector(d):
@@ -131,7 +130,7 @@ class PasswordStrenght(BoxLayout):
 
         It evaluates the password strength.
         """
-        value = password.strength(text)
+        value = strength(text)
         self.strenght.value = value
 
         RGB = [
@@ -205,7 +204,6 @@ class Password(GridLayout):
         popup_attrs = args[0].attrs
         self.attrs.update(popup_attrs)
         self.ids.password.text = popup_attrs['label']
-
 
 
 class UserPanel(BoxLayout):
@@ -310,6 +308,10 @@ class AutoPanel(BoxLayout):
             self.password.text = App.get_running_app().show(attrs)
             self.salt = attrs.get('password', '')
         except Exception:
+            app = App.get_running_app()
+            length = str(app.config.getdefault(
+                app.SETTINGS, app.PWDLEN, 10))
+            self.length.text =  length
             self.password.text =  ''
             self.salt = None
 
@@ -348,7 +350,9 @@ class AutoPanel(BoxLayout):
             self.salt = str(base64.b64encode(salt), encoding='utf-8')
         except ValueError as e:
             message(_('Password'), *e.args, 'e')
-from kivy.clock import Clock
+
+
+
 class PasswordPanel(BoxLayout):
     """
     GUI element. Panel for user login.
@@ -380,9 +384,6 @@ class PasswordPanel(BoxLayout):
 
         Clock.schedule_once(lambda dt: self.tabs.switch_to(tab, do_scroll=False), 0)
 
-        # self.tabs.switch_to(tab, do_scroll=False)
-        # self.tabs.current_tab = tab.content
-
 
     def get_view_attrs(self):
         """Return user input from the active tab.
@@ -399,9 +400,7 @@ class PasswordPanel(BoxLayout):
         # User panel active
         elif self.tabs.current_tab is self.tabs.tab_list[0] and self.userpanel.changed():
             rvalue.update(self.userpanel.get_view_attrs())
-        #            
         rvalue.update({'label': self.ids.label.text})
-        print('PasswordPanel.get_view_attrs: ', rvalue)
         return rvalue
 
     def changed(self):
@@ -436,8 +435,10 @@ class PasswordPopup(Popup):
         if self.passwordpanel.changed():
             rvalue = view_attrs()
             rvalue.update(self.passwordpanel.get_view_attrs())
+            if rvalue['label'] == '':
+                message(_('Password label'), _('A password label is required'), 'e')
+                return
             self.attrs = rvalue
-            # print('cmd_save.get_view_attrs: ', rvalue)
             # Update the text of the caller
             if self.call_back: 
                 self.call_back(rvalue)
