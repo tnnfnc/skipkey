@@ -1,10 +1,10 @@
 [
     {
-        "type": "numeric",
-        "title": "Timeout",
-        "desc": "Set the number of minutes after which application deactivates.",
+        "type": "string",
+        "title": "Password default labels",
+        "desc": "Set one to three password labels, default value is password. Example: password, PIN, token",
         "section": "Settings",
-        "key": "deftimeout"
+        "key": "pwdlabels"
     },
     {
         "type": "numeric",
@@ -12,13 +12,6 @@
         "desc": "Set the number of seconds after which the secret info are deleted from the device memory clipboard.",
         "section": "Settings",
         "key": "defsecrettimeout"
-    },
-    {
-        "type": "bool",
-        "title": "Login auto-completion",
-        "desc": "Enable the autocompletion: the system fills user and password filelds by double clicking on the user fileld. If disabled user and password are simply copied to the clipboard, ready for paste.",
-        "section": "Settings",
-        "key": "defautocompletion"
     },
     {
         "type": "numeric",
@@ -43,16 +36,23 @@
     },
     {
         "type": "numeric",
+        "title": "Timeout",
+        "desc": "Set the number of minutes after which application deactivates.",
+        "section": "Settings",
+        "key": "deftimeout"
+    },
+    {
+        "type": "bool",
+        "title": "Login Input mode",
+        "desc": "Change the mode that this app fills user and password fields. Available modes are: double clicking on the input fields or pressing 'Ctrl+V'. Default mode is pressing 'Ctrl+V'",
+        "section": "Settings",
+        "key": "defautocompletion"
+    },
+    {
+        "type": "numeric",
         "title": "Expire warning",
         "desc": "Set the number of days to be warned about password expiration.",
         "section": "Settings",
         "key": "defwarn"
-    },
-    {
-        "type": "bool",
-        "title": "Enable logging",
-        "desc": "Enable the activity logging",
-        "section": "Settings",
-        "key": "deflog"
     }
 ]

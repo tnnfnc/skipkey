@@ -26,4 +26,4 @@ item_template = {
     'history': ''  # Record history - not yet managed
 }
 
-SkipKeyApp(search_fields=search_fields, item_template=item_template).run()
+SkipKeyApp(search_fields=search_fields).run()

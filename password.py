@@ -57,6 +57,16 @@ def projector(d):
 
 
 def strength(password):
+    """Calculate the strenght of a password.
+
+    Args:
+
+        password (string): password
+
+    Returns:
+
+        integer: the password strength
+    """
     p = password
     l = len(password)
     n = 0
@@ -148,7 +158,8 @@ class Password(GridLayout):
         super(Password, self).__init__(**kwargs)
         self.guic = GuiController(self)
         self.attrs = {}
-        self.update = False
+        self.default_label = ''
+        
 
     def set_view_attrs(self, attrs):
         """Update the view attributes.
@@ -157,7 +168,6 @@ class Password(GridLayout):
             attrs (dict): view attributes.
         """
         self.attrs = attrs
-        self.update = False
         text = attrs.get('label', '')
         text = text if text != '' else _('Create password')
         self.ids.password.text = text
@@ -171,21 +181,15 @@ class Password(GridLayout):
 
             dict: view data.
         """
-        # Edited values
-        # if self.update == True and self.popup:
-        #     rvalue = view_attrs()
-        #     rvalue.update(self.popup.get_view_attrs())
-        #     return rvalue
-        # else:
-            # return self.attrs
         return self.attrs
 
     def cmd_change_pwd(self):
-        self.update = True
         # Keep an instance of PasswordPopup with
         # current editing values
         self.popup = PasswordPopup()
-        self.popup.title = _('Password set')
+        self.popup.title = _('Edit Password')# + ': ' + self.attrs['name']
+        if self.default_label and self.attrs['label'] == '':
+            self.attrs['label'] = self.default_label
         self.popup.set_view_attrs(self.attrs)
         self.popup.call_back = self.set_view_attrs
         self.popup.open()

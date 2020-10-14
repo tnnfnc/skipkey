@@ -14,7 +14,6 @@ from kivy.core.clipboard import Clipboard
 from kivy.metrics import dp
 from kivy.properties import StringProperty
 from kivy.properties import ObjectProperty
-from kivy.lang.builder import Builder
 from kivy.uix.spinner import Spinner
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.popup import Popup
@@ -24,9 +23,9 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.behaviors.focus import FocusBehavior
-#----------------------------
+# ----------------------------
 import commons
-#----------------------------
+# ----------------------------
 from typewritethread import TypewriteThread
 from filemanager import OpenFilePopup, SaveFilePopup
 import cipherfachade
@@ -39,10 +38,6 @@ from mlist import SelectableList, ItemComposite, Selectable, ItemPart
 import kvgraphics as ui
 import password
 from dropdownmenu import DropDownMenu
-#
-# dummy = os.path.dirname(os.path.realpath(__file__))
-# sys.path.append(dummy)
-
 # =============================================================================
 # Kivy config
 # =============================================================================
@@ -54,8 +49,6 @@ MICRO = 4
 RELEASE = True
 __version__ = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-
-# kivy.resources.resource_add_path(current_dir)
 
 # Screen Names
 ENTER = 'Enter'
@@ -90,27 +83,26 @@ def hh_mm_ss(seconds):
 
 # Import of local modules from import directive in .kv
 # files works only if module is in the app dir!!
-# Builder.load_file(os.path.join('kv', 'userpanel.kv'))
-# Builder.load_file(os.path.join('kv', 'autopanel.kv'))
 
-#Popups
+
+# Popups
 commons.import_kivy_rule(os.path.join('kv', 'loginpopup.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'cipherpopup.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'edittagpopup.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'infopopup.kv'))
 
-#Panels building blocks
+# Panels building blocks
 commons.import_kivy_rule(os.path.join('kv', 'loginpanel.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'seedpanel.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'itemmenu.kv'))
 
-#Screens
+# Screens
 commons.import_kivy_rule(os.path.join('kv', 'enterscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'listscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'editscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'importscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'changesscreen.kv'))
-#Widgets
+# Widgets
 # commons.import_kivy_rule(os.path.join('kv', 'passwordstrenght.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'tagspinner.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'percentprogressbar.kv'))
@@ -271,13 +263,15 @@ class ExportFile(SaveFilePopup):
         try:
             log = App.get_running_app().export(file=f)
             if log:
-                message(_('Export warning'), '\n'.join(log) , 'w')
+                message(_('Export warning'), '\n'.join(log), 'w')
             else:
-                message(_('Export successful'), f'{os.path.basename(file)}', 'i')
+                message(_('Export successful'),
+                        f'{os.path.basename(file)}', 'i')
                 self.dismiss()
             return True
         except Exception as e:
-            message(_('Export failed: %s') % (f'{os.path.basename(file)}'),e, 'e')
+            message(_('Export failed: %s') %
+                    (f'{os.path.basename(file)}'), e, 'e')
         return False
 
 
@@ -541,7 +535,7 @@ class EditTagPopup(Popup):
                               value=tag, key='tag', casefold=True):
                 message(tag,
                         ('Action failed because: %s is already used.') % (tag),
-                       'w')
+                        'w')
                 return False
         # Rename a tag
         elif self.mode == 0:  # and self.value:
@@ -681,13 +675,14 @@ class ListScreen(Screen):
                         data.append(i)
                 except Exception:
                     continue
-            
+
             self.account_list.clear()
 
             for item in data:
                 id = item.get('object_id', None)
                 if id:
-                    self.account_list.add_from_cache(id).refresh_view_attrs(item)
+                    self.account_list.add_from_cache(
+                        id).refresh_view_attrs(item)
                 else:
                     row = AccountAdapter()
                     row.refresh_view_attrs(item)
@@ -735,7 +730,8 @@ class ListScreen(Screen):
     def counter(self):
         """Return the number of displayed item accounts over the total item."""
         # self.ids['_lab_counter'].text = f'{len(self.account_list.children)} / {len(self.app.items)}'
-        self.ids['_lab_account'].text = ('%s: %d') % (_('Personal accounts'), len(self.app.items))
+        self.ids['_lab_account'].text = ('%s: %d') % (
+            _('Personal accounts'), len(self.app.items))
         self.ids['_lab_counter'].text = f'{len(self.account_list.children)}'
 
     def cmd_info(self):
@@ -899,13 +895,12 @@ class EditScreen(FocusBehavior, Screen):
     login = ObjectProperty(None)
     email = ObjectProperty(None)
     description = ObjectProperty(None)
-    color = ObjectProperty(None)
+    # color = ObjectProperty(None)
     created = ObjectProperty(None)
     changed = ObjectProperty(None)
     secret_0 = ObjectProperty(None)
     secret_1 = ObjectProperty(None)
     secret_2 = ObjectProperty(None)
-
 
     def __init__(self, **kwargs):
         super(EditScreen, self).__init__(**kwargs)
@@ -925,18 +920,22 @@ class EditScreen(FocusBehavior, Screen):
         self.email.text = item['email']
         self.description.text = item['description']
         self.tag.text = item['tag']
-        self.color.text = item['color']
+        # self.color.text = item['color']
         self.created.text = item['created']
         self.changed.text = item['changed']
         self.history = item['history']
-        self.secret_0.set_view_attrs(item.get('secrets', [{}, {}, {}])[0])
-        self.secret_1.set_view_attrs(item.get('secrets', [{}, {}, {}])[1])
-        self.secret_2.set_view_attrs(item.get('secrets', [{}, {}, {}])[2])
+        # Defaults
+        labels = App.get_running_app().config.getdefault(
+            SkipKeyApp.SETTINGS, SkipKeyApp.PWDLABELS, '')
+        labels = [label.strip() for label in labels.split(',')]        
+        for i, secret in enumerate(item['secrets']):
+            if secret['label'] == '' and labels[i]:
+                 setattr(getattr(self, f'secret_{i}'), 'default_label', labels[i])
+            getattr(getattr(self, f'secret_{i}'), 'set_view_attrs')(secret)
 
 
     def get_view_attrs(self):
         """Returns screen fields from a dictionary."""
-        app = App.get_running_app()
         item = model.new_item()
         item.update({
             'name': self.aname.text,
@@ -945,19 +944,15 @@ class EditScreen(FocusBehavior, Screen):
             'email': self.email.text,
             'description': self.description.text,
             'tag': '' if self.tag.text == TAGS else self.tag.text,
-            'color': self.color.text,
+            # 'color': self.color.text,
             'created': self.created.text,
             'changed': self.changed.text,
             'history': self.history
         })
-        secrets = [
-            self.secret_0.get_view_attrs(),
-            self.secret_1.get_view_attrs(),
-            self.secret_2.get_view_attrs(),
-        ]
+        secrets = [getattr(getattr(self, f'secret_{i}'),
+                           'get_view_attrs')() for i in range(0, len(item['secrets']))]
         item['secrets'] = secrets
         return item
-
 
     def cmd_back(self):
         """Discard all changes, return to list screen."""
@@ -1023,7 +1018,6 @@ class EditScreen(FocusBehavior, Screen):
             return False
         return True
 
-
     def cmd_renametag(self, instance, spinner):
         """Rename the current tag and updates all items accordingly
         to the renamed tag. """
@@ -1043,9 +1037,11 @@ class EditScreen(FocusBehavior, Screen):
         popup.title = ': '.join((instance.text, ))
         popup.openAdd(value='')
 
+
 class MappingList(SelectableList):
     def __init__(self, *args, **kwargs):
         super(MappingList, self).__init__(**kwargs)
+
 
 class ImportScreen(Screen):
     """
@@ -1099,7 +1095,8 @@ class ImportScreen(Screen):
         New records are normalized by adding calculated values in place of
         missing information. Nevertheless errors may occurs."""
         app = App.get_running_app()
-        mapping = {i.items['target'].text: i.items['source'].text for i in self.mapping_list.children}
+        mapping = {
+            i.items['target'].text: i.items['source'].text for i in self.mapping_list.children}
 
         try:
             items_ = app.import_csv(file=self.file, mapping=mapping)
@@ -1184,13 +1181,14 @@ class ChangesScreen(Screen):
                         continue
                     else:
                         old_pwd = new_pwd = '********'
-                    view = ChangeView(key=key, label=label+':', new=new_pwd, old=old_pwd)
+                    view = ChangeView(key=key, label=label +
+                                      ':', new=new_pwd, old=old_pwd)
                     self.changed_item_list.add(view)
             else:
-                view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(key, key)+':', new=new[key], old=value)
+                view = ChangeView(key=key, label=SkipKeyApp.LABELS.get(
+                    key, key)+':', new=new[key], old=value)
                 if key in SkipKeyApp.LABELS:
                     self.changed_item_list.add(view)
-
 
     def on_enter(self):
         """Screen initialization."""
@@ -1308,6 +1306,7 @@ class PercentProgressBar(BoxLayout):
         percentage: the percentage.
     """
     id = StringProperty('')
+
     def __init__(self, **kwargs):
         super(PercentProgressBar, self).__init__(**kwargs)
 
@@ -1416,7 +1415,8 @@ class ItemMenu(Menu):
 
     def _set_widget(self, widg):
         Menu._set_widget(self, widg)
-        index = model.index_of(items=self.app.items, value=self.name, key='name')
+        index = model.index_of(items=self.app.items,
+                               value=self.name, key='name')
         if index != None:
             self.item = self.app.items[index]
             self._init_layout(self.ids.secret_0, 0)
@@ -1428,15 +1428,14 @@ class ItemMenu(Menu):
             # self.ids.secret_1.disabled = self.item['secrets'][1].get('password', '') == ''
             # self.ids.secret_2.text = self.item['secrets'][2].get('label', '')
             # self.ids.secret_2.disabled = self.item['secrets'][2].get('password', '') == ''
-    
+
     def _init_layout(self, secret, index):
         secret.text = self.item['secrets'][index].get('label', '')
         disabled = self.item['secrets'][index].get('password', '') == ''
         secret.disabled = disabled
         if disabled:
             # secret.background_normal='data/transparent.png'
-            secret.background_disabled_normal='data/transparent.png'
-
+            secret.background_disabled_normal = 'data/transparent.png'
 
     @property
     def name(self):
@@ -1514,7 +1513,8 @@ class ItemMenu(Menu):
         Edit the account item.
         Leave the screen and enter 'EditScreen'.
         """
-        self.app.root.get_screen(EDIT).set_view_attrs(item=self.item, is_new=False)
+        self.app.root.get_screen(EDIT).set_view_attrs(
+            item=self.item, is_new=False)
         self.app.root.transition.direction = 'left'
         self.app.root.current = EDIT
         self.reset()
@@ -1550,6 +1550,7 @@ class SkipKeyApp(App, model.SkipKey):
     PWDLIFETIME = 'deflifetime'
     PWDWARN = 'defwarn'
     LOG = 'deflog'
+    PWDLABELS = 'pwdlabels'
     # Translations
     LABELS = {
         'name': _('Name'),  # new name
@@ -1558,7 +1559,7 @@ class SkipKeyApp(App, model.SkipKey):
         'email': _('e-mail'),  # @-mail
         'description': _('Free text'),  # Any string
         'tag': _('Tag'),  # Any string
-        #'color': _('Color'),  # Basic colors as string
+        # 'color': _('Color'),  # Basic colors as string
         'created': _('Created'),  # Date
         'changed': _('Changed'),  # Date
         'auto': _('Auto'),  # True, False=user
@@ -1568,7 +1569,7 @@ class SkipKeyApp(App, model.SkipKey):
         'symbols': _('Symbols'),  # At least [0 length]
         # User encrypted password or salt Base64 encoded
         'password': _('Cipher Data'),
-        #'history': ''  # Record history - not yet managed
+        # 'history': ''  # Record history - not yet managed
     }
 
     timer = StringProperty('')
@@ -1615,8 +1616,10 @@ class SkipKeyApp(App, model.SkipKey):
         # JSON template is needed ONLY to create the panel
         path = os.path.dirname(os.path.realpath(__file__))
         # with open(f'{path}\settings.json') as f:
+        # with open(os.path.join(path, 'settings.json')) as f:
+        #     s = json.dumps(eval(f.read()))
         with open(os.path.join(path, 'settings.json')) as f:
-            s = json.dumps(eval(f.read()))
+            s = f.read()
         settings.add_json_panel(SkipKeyApp.SETTINGS, self.config, data=s)
 
     # App
@@ -1633,6 +1636,8 @@ class SkipKeyApp(App, model.SkipKey):
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDLIFETIME, 6)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.PWDWARN, 7)
         config.setdefault(SkipKeyApp.SETTINGS, SkipKeyApp.LOG, 0)
+        config.setdefault(SkipKeyApp.SETTINGS,
+                          SkipKeyApp.PWDLABELS, 'password, PIN, token')
         config.adddefaultsection(SkipKeyApp.RECENT_FILES)
 
     # App

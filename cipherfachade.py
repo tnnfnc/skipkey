@@ -19,39 +19,62 @@ def _(x):
 
 
 def init_symbols():
-    """Return a tuple of symbols characters from exadecimal
-    ranges [0x21-0x2f], [0x3a-0x40], [0x5b-0x5f]."""
-    symbols = []
+    """Return a tuple of symbols:
+    ! # $ % & ( ) , + * - = . : ; ? @ [ ] ^ _
+    """
+    # '"', no
+    # "'", no
+    # '/', no
+    # '<', no
+    # '>', no
+    # '\', no
     # Symbols
-    for hex in range(int('21', base=16), int('30', base=16)):
-        symbols.append(chr(hex))
-    for hex in range(int('3a', base=16), int('41', base=16)):
-        symbols.append(chr(hex))
-    for hex in range(int('5b', base=16), int('60', base=16)):
-        symbols.append(chr(hex))
-    return tuple(symbols)
+    # for hex in range(int('21', base=16), int('30', base=16)):
+    #     symbols.append(chr(hex))
+    # for hex in range(int('3a', base=16), int('41', base=16)):
+    #     symbols.append(chr(hex))
+    # for hex in range(int('5b', base=16), int('60', base=16)):
+    #     symbols.append(chr(hex))
+
+    #  "`", maybe
+    #  '~', maybe
+    return ('!', '#', '$', '%', '&', '(', ')', ',', '+', '*', '-',
+            '=', '.', ':', ';', '?', '@', '[', ']', '^', '_')
 
 # Digit
+
+
 def init_numbers():
     """Return a tuple of numbers digit from exadecimal
     ranges [0x30-0x39]."""
-    numbers = []
-    for hex in range(int('30', base=16), int('3a', base=16)):
-        numbers.append(chr(hex))
-    return tuple(numbers)
+    # for hex in range(int('30', base=16), int('3a', base=16)):
+    #     numbers.append(chr(hex))
+    # return tuple(numbers)
+    return ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
 # Upper
 def init_letters():
     """Return a tuple of lowercase and uppercase letters
     from exadecimal ranges [0x41-0x5a], [0x61-0x7a]."""
-    letters = []
-    for hex in range(int('41', base=16), int('5b', base=16)):
-        letters.append(chr(hex))
-    # Lower
-    for hex in range(int('61', base=16), int('7b', base=16)):
-        letters.append(chr(hex))
-    return tuple(letters)
+    # letters = []
+    # for hex in range(int('41', base=16), int('5b', base=16)):
+    #     letters.append(chr(hex))
+    # # Lower
+    # for hex in range(int('61', base=16), int('7b', base=16)):
+    #     letters.append(chr(hex))
+    # return tuple(letters)
+    return ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+            'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+            's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',
+            'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z')
+
+
+SYMBOLS = init_symbols()
+NUMBERS = init_numbers()
+LETTERS = init_letters()
 
 
 def get_cryptografy_parameters(**kwargs):
@@ -73,24 +96,6 @@ def get_cryptografy_parameters(**kwargs):
         for k in kwargs:
             d[k] = kwargs[k]
     return d
-
-
-# def encrypt_by_key(cryptod, password, seed, items, key):
-#     '''Encrypt in place the content of items witk the key specified'''
-#     try:
-#         local_cf = CipherFachade()
-#         # key = local_cf.key_derivation_function(
-#         #     cryptod).derive(password)
-#         seed = local_cf.key_derivation_function(
-#             cryptod).derive(seed)
-#         for item in items:
-#             r = local_cf.encrypt(item[key], cryptod, seed)
-#             r = bytes(json.dumps(r), encoding='utf-8')
-#             r = str(base64.b64encode(r), encoding='utf-8')
-#             item[key] = r
-#         return items
-#     except Exception as e:
-#         return None
 
 
 def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
@@ -147,13 +152,9 @@ def key_derivators():
             }
 
 
-SYMBOLS = init_symbols()
-NUMBERS = init_numbers()
-LETTERS = init_letters()
-
-
 class PatternException(Exception):
     pass
+
 
 class Schema():
 
@@ -197,9 +198,9 @@ class Schema():
             split = pattern.split(Schema.SEP)
             try:
                 if str(split[0]) in ('True', 'False') and\
-                    str(split[2]) in ('True', 'False') and\
-                    int(split[1]) > -1 and int(split[3]) > -1 and\
-                    int(split[4]) > -1 and isinstance(split[5], str):
+                        str(split[2]) in ('True', 'False') and\
+                        int(split[1]) > -1 and int(split[3]) > -1 and\
+                        int(split[4]) > -1 and isinstance(split[5], str):
                     return True
                 return False
             except Exception:
@@ -231,27 +232,27 @@ class Schema():
         return self._pattern.split(self.SEP)[5]
 
     @auto.setter
-    def auto(self, value : bool):
+    def auto(self, value: bool):
         self._encode(value, 1)
 
     @lenght.setter
-    def lenght(self, value : int):
+    def lenght(self, value: int):
         self._encode(value, 2)
 
     @letters.setter
-    def letters(self, value : bool):
+    def letters(self, value: bool):
         self._encode(value, 3)
 
     @numbers.setter
-    def numbers(self, value : int):
+    def numbers(self, value: int):
         self._encode(value, 4)
 
     @symbols.setter
-    def symbols(self, value : int):
+    def symbols(self, value: int):
         self._encode(value, 5)
 
     @gliphs.setter
-    def gliphs(self, value : str):
+    def gliphs(self, value: str):
         self._encode(value, 6)
 
     def _encode(self, value, maxsplit):

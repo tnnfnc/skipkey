@@ -12,28 +12,7 @@ import csv
 import re
 from datetime import datetime, timedelta
 
-secret = {
-    'label': '',
-    'auto': 'True',
-    'length': '',
-    'letters': '',
-    'symbols': '',
-    'numbers': '',
-    'password': ''}
 
-item_template = {
-    'name': '',  # new name
-    'url': '',  # Check valid url
-    'login': '',  # Any string
-    'email': '',  # @-mail
-    'description': '',  # Any string
-    'tag': '',  # Any string
-    'color': '',  # Basic colors as string
-    'created': '',  # Date
-    'changed': '',  # Date
-    'secrets': [secret, secret, secret],  # List of secrets
-    'history': ''  # Record history - not yet managed
-}
 
 export_fieldnames =  [
     'name',
@@ -51,9 +30,9 @@ export_fieldnames =  [
     'history'
 ]
 
-json_item_tmp = json.dumps(item_template)
+# json_item_tmp = json.dumps(item_template)
 
-def new_item(strict=True, template=json_item_tmp):
+def new_item(strict=True):
     """Item builder.
     Return a dictionary from the provided template.
 
@@ -69,11 +48,34 @@ def new_item(strict=True, template=json_item_tmp):
 
         Return a dictionary with the predefined keys.
     """
-    if template:
-        item = json.loads(template)
-    else:
-        item = {}
-    return item
+    secret = {
+    'label': '',
+    'auto': 'True',
+    'length': '',
+    'letters': '',
+    'symbols': '',
+    'numbers': '',
+    'password': ''}
+
+    item_template = {
+        'name': '',  # new name
+        'url': '',  # Check valid url
+        'login': '',  # Any string
+        'email': '',  # @-mail
+        'description': '',  # Any string
+        'tag': '',  # Any string
+        'color': '',  # Basic colors as string
+        'created': '',  # Date
+        'changed': '',  # Date
+        'secrets': [dict(secret), dict(secret), dict(secret)],  # List of secrets
+        'history': ''  # Record history - not yet managed
+    }
+    return dict(item_template)
+    # if template:
+    #     item = json.loads(template)
+    # else:
+    #     item = {}
+    # return item
 
 def copy(item):
     """Deep copy
@@ -139,7 +141,16 @@ def add_index(key_list):
 
 
 def purge(item):
-    '''Return a new item without the index entry.'''
+    """Return a new item purged of the internal data.
+
+    The purge also performs a deep copy of the item.
+
+    Args:
+        item (dict): account item.
+
+    Returns:
+        dict: account item.
+    """
     try:
         item = copy(item)
         del item['index']
@@ -350,7 +361,7 @@ def export_csv(file, items, fieldnames=[], delimiter='\t', lineterminator='\r\n'
                                 quotechar='',
                                 quoting=csv.QUOTE_NONE,
                                 doublequote=False,
-                                escapechar=None)
+                                escapechar='`')
         writer.writeheader()
         log = []
         for item in items:
@@ -813,9 +824,7 @@ class SkipKey():
                 item[f'password_{i}'] = secret['password']
 
             del item['secrets']
-            if '\n' in item['description']:
-                item['description'].replace('\r\n', ' ')
-                item['description'].replace('\n', ' ')
+            item['description'] = item['description'].replace('\r', '').replace('\n', ' ').replace('\t', '    ')
             items_csv.append(item)
         #
         

@@ -10,7 +10,7 @@
 	email: _inp_mail
 	description: _inp_description
 	tag: _spi_tag
-	color: _spi_colors
+	# color: _spi_colors
 	created: _out_date
 	changed: _out_cdate
 	# passwordpanel: _passwordpanel
@@ -117,20 +117,20 @@
 					OutputField:
 						id: _out_cdate
 				# ------------------------------- Edit screen > Tags and colours
-				FieldLabel:
-					# id: _lab_cdate
-					text: _('Colors')
-					size_hint: 1, None
-					size: ui.field_size
-					halign: 'center'
-				TagSpinner:
-					id: _spi_colors
-					size_hint: 1, None
-					size: (ui.spinner_x, ui.spinner_y) #spinner_size
-					text: _('Colors')
-					values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
-					on_text:
-						if hasattr(app, 'cmd_text_colors'): getattr(app, 'cmd_text_colors')(item, args)
+				# FieldLabel:
+				# 	# id: _lab_cdate
+				# 	text: _('Colors')
+				# 	size_hint: 1, None
+				# 	size: ui.field_size
+				# 	halign: 'center'
+				# TagSpinner:
+				# 	id: _spi_colors
+				# 	size_hint: 1, None
+				# 	size: (ui.spinner_x, ui.spinner_y) #spinner_size
+				# 	text: _('Colors')
+				# 	values: _('White'), _('Red'), _('Green'), _('Blue'), _('Yellow')
+				# 	on_text:
+				# 		if hasattr(app, 'cmd_text_colors'): getattr(app, 'cmd_text_colors')(item, args)
 				FieldLabel:
 					# id: _lab_cdate
 					text: _('Tag')

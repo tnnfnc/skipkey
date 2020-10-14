@@ -46,10 +46,9 @@
 
                 DropDownButton:
                     id: btn
-                    text: "More"
                     icon: 'data/icons/more.png'
-                    text_size: dp(100), self.height
-                    size: self.text_size
+                    size_hint_x: None
+                    width: ui.field_x
                     on_parent: _menu.dismiss()
                     on_press:
                         _menu.open(self)
