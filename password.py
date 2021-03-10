@@ -20,17 +20,18 @@ commons.import_kivy_rule((
     os.path.join('kv', 'password.kv'),
     os.path.join('kv', 'passwordpopup.kv'),
     os.path.join('kv', 'passwordstrenght.kv')
-    ))
+))
 # Translation pacify lynt
 _ = commons._
 message = commons.message
 
-def view_attrs():
-    """View data.
+
+def new_attrs():
+    """Data dictionary managed by views.
 
     Returns:
 
-    - dict: a dictionary of all data from the view.
+    - dict: a dictionary of all data from the views.
     """
     return dict({
         'label': '',
@@ -40,20 +41,6 @@ def view_attrs():
         'symbols': '',
         'numbers': '',
         'password': ''})
-
-
-def projector(d):
-    """Delete all keys from a dctionary but those contained in keys.
-
-    Args:
-        a (dict): a dictionary
-        keys (iterable): allowed keys.
-    """
-    for k in d:
-        if k in view_attrs():
-            continue
-        del d[k]
-    return d
 
 
 def strength(password):
@@ -132,7 +119,6 @@ class PasswordStrenght(BoxLayout):
 
     def __init__(self, **kwargs):
         super(PasswordStrenght, self).__init__(**kwargs)
-        
 
     def set_strength(self, text):
         """
@@ -144,8 +130,10 @@ class PasswordStrenght(BoxLayout):
         self.strenght.value = value
 
         RGB = [
-            '{0:02X}'.format(int(255 if value < 55 else 255 - value*255/100 if value < 100 else 200)),
-            '{0:02X}'.format(int(value*255/100 if value < 50 else 255 if value < 100 else 0)),
+            '{0:02X}'.format(int(255 if value < 55 else 255 -
+                                 value*255/100 if value < 100 else 200)),
+            '{0:02X}'.format(int(value*255/100 if value <
+                                 50 else 255 if value < 100 else 0)),
             '{0:02X}'.format(int(255 if value > 100 else 0))
         ]
 
@@ -159,7 +147,6 @@ class Password(GridLayout):
         self.guic = GuiController(self)
         self.attrs = {}
         self.default_label = ''
-        
 
     def set_view_attrs(self, attrs):
         """Update the view attributes.
@@ -171,7 +158,7 @@ class Password(GridLayout):
         text = attrs.get('label', '')
         text = text if text != '' else _('Create password')
         self.ids.password.text = text
-        
+
     def get_view_attrs(self):
         """Get view attributes.
 
@@ -187,19 +174,18 @@ class Password(GridLayout):
         # Keep an instance of PasswordPopup with
         # current editing values
         self.popup = PasswordPopup()
-        self.popup.title = _('Edit Password')# + ': ' + self.attrs['name']
+        self.popup.title = _('Edit Password')  # + ': ' + self.attrs['name']
         if self.default_label and self.attrs['label'] == '':
             self.attrs['label'] = self.default_label
         self.popup.set_view_attrs(self.attrs)
         self.popup.call_back = self.set_view_attrs
         self.popup.open()
 
-
     def cmd_delete_pwd(self):
         """Delete the password.
         """
         self.update = False
-        self.attrs = view_attrs()
+        self.attrs = new_attrs()
         self.ids.password.text = _('Create password')
 
     def on_call_back(self, *args):
@@ -234,28 +220,28 @@ class UserPanel(BoxLayout):
         """
         Update the view fields. 
         """
-        
-        try: 
+
+        try:
             password = attrs.get('password', '')
-            if password: 
+            if password:
                 self.password.text = App.get_running_app().decrypt(password)
             else:
                 self.password.text = password
             self.confirm.text = self.password.text
         except Exception:
             self.confirm.text = self.password.text = ''
-        
+
     def get_view_attrs(self):
         """Return user input from the active tab.
 
         Returns:
-        
+
         - dict: a dictionary from user input.
         """
         try:
-            rvalue = view_attrs()
+            rvalue = new_attrs()
             app = App.get_running_app()
-            rvalue.update({'auto': 'False', 
+            rvalue.update({'auto': 'False',
                            'password': app.encrypt(self.password.text)})
             return rvalue
         except Exception as e:
@@ -269,6 +255,7 @@ class UserPanel(BoxLayout):
         if self.password.text and self.confirm.text:
             return self.password.text != '' and self.password.text == self.confirm.text
         return False
+
 
 class AutoPanel(BoxLayout):
     """
@@ -297,7 +284,7 @@ class AutoPanel(BoxLayout):
         Callback for TextInput on_text event.
         """
         self.strenght.set_strength(text)
-        
+
     def set_view_attrs(self, attrs):
         """
         Initialize the input fields from currently edited account item.
@@ -309,24 +296,24 @@ class AutoPanel(BoxLayout):
         # self.strenght.set_strength('')
         # In the case of password failure or initial
         try:
-            self.password.text = App.get_running_app().show(attrs)
+            self.password.text = App.get_running_app().regenerate(attrs)
             self.salt = attrs.get('password', '')
         except Exception:
             app = App.get_running_app()
             length = str(app.config.getdefault(
                 app.SETTINGS, app.PWDLEN, 10))
-            self.length.text =  length
-            self.password.text =  ''
+            self.length.text = length
+            self.password.text = ''
             self.salt = None
 
     def get_view_attrs(self):
         """Return user input from the active tab.
 
         Returns:
-        
+
         - dict: a dictionary from user input.
         """
-        rvalue = view_attrs()
+        rvalue = new_attrs()
         rvalue.update({
             'auto': 'True',
             'length': self.length.text,
@@ -356,7 +343,6 @@ class AutoPanel(BoxLayout):
             message(_('Password'), *e.args, 'e')
 
 
-
 class PasswordPanel(BoxLayout):
     """
     GUI element. Panel for user login.
@@ -373,11 +359,11 @@ class PasswordPanel(BoxLayout):
     def set_view_attrs(self, attrs):
         '''Update panels'''
         # Refresh
-        self.autopanel.set_view_attrs(view_attrs())
-        self.userpanel.set_view_attrs(view_attrs())
+        self.autopanel.set_view_attrs(new_attrs())
+        self.userpanel.set_view_attrs(new_attrs())
         self.ids.label.text = attrs.get('label', '')
         # Update views
-        n_attrs = view_attrs()
+        n_attrs = new_attrs()
         n_attrs.update(attrs)
         if n_attrs['auto'] == 'True':
             self.autopanel.set_view_attrs(n_attrs)
@@ -386,17 +372,17 @@ class PasswordPanel(BoxLayout):
             self.userpanel.set_view_attrs(n_attrs)
             tab = self.tabs.tab_list[0]
 
-        Clock.schedule_once(lambda dt: self.tabs.switch_to(tab, do_scroll=False), 0)
-
+        Clock.schedule_once(
+            lambda dt: self.tabs.switch_to(tab, do_scroll=False), 0)
 
     def get_view_attrs(self):
         """Return user input from the active tab.
 
         Returns:
-        
+
         - dict: a dictionary from user input.
         """
-        rvalue = view_attrs()
+        rvalue = new_attrs()
         # 0 UserPanel, 1 AutoPanel
         # Auto panel active
         if self.tabs.current_tab is self.tabs.tab_list[1] and self.autopanel.changed():
@@ -412,6 +398,7 @@ class PasswordPanel(BoxLayout):
         Return if the pasword has been changed.
         """
         return self.userpanel.changed() or self.autopanel.changed()
+
 
 class PasswordPopup(Popup):
 
@@ -437,14 +424,15 @@ class PasswordPopup(Popup):
         """Save the password
         """
         if self.passwordpanel.changed():
-            rvalue = view_attrs()
+            rvalue = new_attrs()
             rvalue.update(self.passwordpanel.get_view_attrs())
             if rvalue['label'] == '':
-                message(_('Password label'), _('A password label is required'), 'e')
+                message(_('Password label'), _(
+                    'A password label is required'), 'e')
                 return
             self.attrs = rvalue
             # Update the text of the caller
-            if self.call_back: 
+            if self.call_back:
                 self.call_back(rvalue)
             self.dismiss()
 
@@ -452,4 +440,3 @@ class PasswordPopup(Popup):
         """Cancel without saving.
         """
         self.dismiss()
-

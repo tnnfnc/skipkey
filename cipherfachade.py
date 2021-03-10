@@ -11,10 +11,13 @@ import json
 import gzip as gzip
 import base64
 
-# Translations
+
+RANDOM_BYTES = 32
 
 
 def _(x):
+    """Translation mask
+    """
     return x
 
 
@@ -28,14 +31,6 @@ def init_symbols():
     # '<', no
     # '>', no
     # '\', no
-    # Symbols
-    # for hex in range(int('21', base=16), int('30', base=16)):
-    #     symbols.append(chr(hex))
-    # for hex in range(int('3a', base=16), int('41', base=16)):
-    #     symbols.append(chr(hex))
-    # for hex in range(int('5b', base=16), int('60', base=16)):
-    #     symbols.append(chr(hex))
-
     #  "`", maybe
     #  '~', maybe
     return ('!', '#', '$', '%', '&', '(', ')', ',', '+', '*', '-',
@@ -47,9 +42,6 @@ def init_symbols():
 def init_numbers():
     """Return a tuple of numbers digit from exadecimal
     ranges [0x30-0x39]."""
-    # for hex in range(int('30', base=16), int('3a', base=16)):
-    #     numbers.append(chr(hex))
-    # return tuple(numbers)
     return ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 
@@ -57,13 +49,6 @@ def init_numbers():
 def init_letters():
     """Return a tuple of lowercase and uppercase letters
     from exadecimal ranges [0x41-0x5a], [0x61-0x7a]."""
-    # letters = []
-    # for hex in range(int('41', base=16), int('5b', base=16)):
-    #     letters.append(chr(hex))
-    # # Lower
-    # for hex in range(int('61', base=16), int('7b', base=16)):
-    #     letters.append(chr(hex))
-    # return tuple(letters)
     return ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
             'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
             's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -77,7 +62,7 @@ NUMBERS = init_numbers()
 LETTERS = init_letters()
 
 
-def get_cryptografy_parameters(**kwargs):
+def init_crypto_args(**kwargs):
     """Return a dictionary of default cryptographic parameters.
 
     Existing keys are updated from optional kwargs.
@@ -91,38 +76,8 @@ def get_cryptografy_parameters(**kwargs):
          'hash': 'SHA256',
          'length': int(256/8),
          'iterations': 100,
-         'salt': str(base64.b64encode(os.urandom(32)), encoding='utf-8')}
-    if kwargs:
-        for k in kwargs:
-            d[k] = kwargs[k]
-    return d
-
-
-def cipherdata(cryptopars, ciphervalue='', iv='', **kwargs):
-    """
-    Cryptographic envelop containing key derivation materials.
-
-    Return a dictionary with the predefined keys.
-    If ''**args'' is passed the new keys are added to the predefined.
-
-    ----------
-        Parameters
-    strict : Default ''True'' only predefined keys are returned.
-
-    **args : Key-value pairs for custom further infos
-
-    -------
-        Return
-    a dictionary with the predefined keys.
-    """
-    d = dict(cryptopars)
-    d['ciphervalue'] = ciphervalue
-    d['iv'] = iv
-    # Add further custom data
-    if kwargs:
-        for key in kwargs:
-            d[key] = str(kwargs[key])
-    return d
+         'salt': str(base64.b64encode(os.urandom(RANDOM_BYTES)), encoding='utf-8')}
+    return {**d, **kwargs}
 
 
 def cipher_algorithms():
@@ -157,7 +112,14 @@ class PatternException(Exception):
 
 
 class Schema():
+    """[summary]
 
+    Raises:
+        PatternException: [description]
+
+    Returns:
+        [type]: [description]
+    """
     SEP = ','
 
     def __init__(self, schema):
@@ -270,21 +232,10 @@ class Pattern():
     """
 
     def __init__(self, letters, numbers, symbols, length, *args, **kwargs):
-        if letters == 'False' or letters == '':
-            letters = 0
-        else:
-            letters = 1
-        if numbers == None or numbers == '':
-            numbers = 0
-        if symbols == None or symbols == '':
-            symbols = 0
-        if length == None or symbols == '':
-            length = 0
-        # try:
-        self.numbers = int(numbers)
-        self.symbols = int(symbols)
-        self.letters = int(letters)
-        self._length = int(length)
+        self.numbers = self._convert(numbers)
+        self.symbols = self._convert(symbols)
+        self.letters = self._convert(letters)
+        self._length = self._convert(length)
 
         self._gliphs = []
         if self.letters > 0:
@@ -295,6 +246,13 @@ class Pattern():
             self._gliphs.extend(SYMBOLS)
         if self.numbers + self.letters + self.symbols == 0:
             raise ValueError(_('Inconsistent pattern of zeros gliphs'))
+
+    def _convert(self, s):
+        if s == None or s == '' or str(s) == 'False':
+            s = 0
+        elif str(s) == 'True':
+            s = 1
+        return int(s)
 
     @property
     def gliphs(self):
@@ -325,14 +283,30 @@ class Pattern():
 
     def token(self, key):
         """Transform a bytes sequence to a token compliant to the pattern."""
+        if len(key) < 1:
+            raise PatternException(_('Password length must be at least 2'))
+
         n = int(key.hex(), base=16)
         d = len(self.gliphs)
         p = []
-        while True:
-            p.append(self.gliphs[n % d])
-            n = int(n/d)
-            if n < d or len(p) == self.length:
+
+        p.append(self.gliphs[n % d])
+        while len(p) < self.length:
+            n = int(n/d) if int(n/d) > 0 else n
+            if n < d:
+                p.append(self.gliphs[n])
                 break
+            else:
+                p.append(self.gliphs[n % d])
+
+        if len(p) != self.length:
+            raise PatternException()
+
+        # while True:
+        #     p.append(self.gliphs[n % d])
+        #     n = int(n/d)
+        #     if n < d or len(p) == self.length:
+        #         break
         return ''.join(p)
 
 
@@ -340,12 +314,10 @@ class KeyWrapper():
     ''' Wrap the secret key.
         Keep the wrapped secret and the wrapping key separated.'''
 
-    def __init__(self):
-        pass
-
     def wrap(self, secret):
         '''Wrap the key and save the further parameters'''
-        _wrapkey = os.urandom(16)
+        # _wrapkey = os.urandom(16)
+        _wrapkey = os.urandom(RANDOM_BYTES)
         self._wrappedkey = keywrap.aes_key_wrap_with_padding(
             _wrapkey, secret, default_backend())
         return _wrapkey
@@ -365,10 +337,17 @@ class CipherFachade():
 
     @staticmethod
     def parse(obj):
-        '''Parse an encrypted object to crypto-dictionary format'''
+        """Parse a JSON string containing an encrypted content to a dictionary format.
+
+        Args:
+            obj (str): JSON string containing an encrypted content.
+        Returns:
+            dict: a dictionary containing an encrypted content.
+        """
         data = json.loads(obj)
-        cryptopars = get_cryptografy_parameters(**data)
-        return cipherdata(cryptopars, **data)
+        cryptopars = init_crypto_args(**data)
+        return cryptopars
+        # return cipherdata(cryptopars, **data)
 
     def _algorithm(self, secret, name='AES'):
         if not name:
@@ -386,7 +365,19 @@ class CipherFachade():
             return algorithms.AES(secret)
 
     def encrypt(self, obj, cryptod, secret):
-        '''Encrypt a python object to crypto-dictionary format'''
+        """Encrypt a python object to a dictionary format.
+
+        Args:
+            obj (Object): the content to be encrypted.
+            cryptod (dict): criptographic arguments.
+            secret (bytes): secret key.
+
+        Raises:
+            ValueError: generic encryption error.
+
+        Returns:
+            dict: encrypted content dictionary.
+        """
         # Items to json string
         try:
             # Compress content
@@ -415,8 +406,18 @@ class CipherFachade():
             raise ValueError('Encrypting failure!') from ve
 
     def decrypt(self, cryptod, secret):
-        '''Decrypt the content from crypto-dictionary format
-        to python plain object'''
+        """Decrypt the content from a dictionary format to a JSON string.
+
+        Args:
+            cryptod (dict): encrypted content
+            secret (bytes array): secret key
+
+        Raises:
+            ValueError: Generic decryption error.
+
+        Returns:
+            str: a JSON string.
+        """
         try:
             # From json to python crypto dict
             data = base64.b64decode(
@@ -476,7 +477,7 @@ class CipherFachade():
             raise ValueError('Invalid argument!')
 
     def secret(self, key, iterations, pattern):
-        '''Return a readable password generated from a secret
+        '''Return a string password generated from a secret
         key and a pattern.
 
         A password of n characters requires a length of (n - 1) bytes.
@@ -492,7 +493,7 @@ class CipherFachade():
 
         pwd = ''
         while not pattern.check(pwd):
-            salt = os.urandom(32)
+            salt = os.urandom(RANDOM_BYTES)
             pbkdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=pattern.length - 1,
@@ -518,9 +519,9 @@ class CipherFachade():
         return pwd
 
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     '''Prepare a key'''
-    cryptopars = get_cryptografy_parameters(
+    cryptopars = init_crypto_args(
         algorithm='AES',
         mode='CBC',
         iv='',
@@ -529,20 +530,15 @@ if __name__ is '__main__':
         hash='SHA256',
         length=int(256/8),
         iterations=100,
-        salt=str(base64.b64encode(os.urandom(32)), encoding='utf-8'),
+        salt=str(base64.b64encode(os.urandom(RANDOM_BYTES)), encoding='utf-8'),
         ciphervalue='')
-
-    cd = cipherdata(cryptopars,
-                    iv='',
-                    ciphervalue=''
-                    )
 
     items = [a for a in range(0, 100)]
 
     cf = CipherFachade()
-    pbkdf = cf.key_derivation_function(cd)
+    pbkdf = cf.key_derivation_function(cryptopars)
     sc = pbkdf.derive(b'my passphrase')
-    pbkdf = cf.key_derivation_function(cd)
+    pbkdf = cf.key_derivation_function(cryptopars)
     print(
         f"Test key generation verifification: {pbkdf.verify(b'my passphrase', sc)==None}")
 
@@ -553,7 +549,7 @@ if __name__ is '__main__':
 
     key = kw.unwrap(wrappingkey)
     print(f"Test key wrapping: {key==sc}")
-    c = cf.encrypt(obj=items, cryptod=cd, secret=key)
+    c = cf.encrypt(obj=items, cryptod=cryptopars, secret=key)
     jc = json.dumps(c)
     cd1 = cf.parse(jc)
     # Recover key from crypto-dictionary

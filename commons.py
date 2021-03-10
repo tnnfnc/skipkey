@@ -43,19 +43,24 @@ class MessagePopup(Popup):
 
     def show(self, title='', text='', type='i'):
         text = utils.escape_markup(f'{text}')
+        color = []
         if type == 'e':
-            text = ''.join(('[b][color=ff0000]', text, '[/color][/b]'))
-            self.image.source = os.path.join('data', 'icons', 'bug.png')
+            _color = [1,0,0,1]
+            text = ''.join(('[color=ff0000]', text, '[/color]'))
+            self.image.source = os.path.join('data', 'icons', 'info_error.png')
         elif type == 'w':
-            text = ''.join(('[b][color=ffff00]', text, '[/color][/b]'))
-            self.image.source = os.path.join('data', 'icons', 'pen.png')
+            _color = [1,1,0,1]
+            text = ''.join(('[color=ffff00]', text, '[/color]'))
+            self.image.source = os.path.join('data', 'icons', 'info_warning.png')
         elif type == 'i':
-            text = ''.join(('[b][color=00ff00]', text, '[/color][/b]'))
-            self.image.source = os.path.join('data', 'icons', 'ok.png')
+            _color = [0,1,0,1]
+            text = ''.join(('[color=00ff00]', text, '[/color]'))
+            self.image.source = os.path.join('data', 'icons', 'info_ok.png')
         else:
             pass
 
         self.title = title
+        self.title_color = _color
         self.message.text = text
         self.open()
 
@@ -82,7 +87,6 @@ class DecisionPopup(Popup):
         self.fn_canc = fn_canc
         self.canc_kwargs = canc_kwargs
         self.ok_kwargs = ok_kwargs
-
         self.open()
 
     def cmd_ok(self):

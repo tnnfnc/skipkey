@@ -3,6 +3,9 @@
 import base64
 import json
 from logging import raiseExceptions
+
+from kivy.uix.modalview import ModalView
+# from progress_splash import ProgressWheel
 import re
 import os
 import sys
@@ -36,8 +39,9 @@ from uicontroller import GuiController
 from bubblemenu import Menu, BubbleBehavior
 from mlist import SelectableList, ItemComposite, Selectable, ItemPart
 import kvgraphics as ui
-import password
+from blinker import Blinker
 from dropdownmenu import DropDownMenu
+from password import Password
 # =============================================================================
 # Kivy config
 # =============================================================================
@@ -56,6 +60,7 @@ LIST = 'List'
 EDIT = 'Edit'
 CHANGES = 'changes'
 IMPORT = 'import'
+LOCK = 'lock'
 # App
 ICON = 'skip.png'
 TAGS = ('...')  # Default for all tags
@@ -102,6 +107,7 @@ commons.import_kivy_rule(os.path.join('kv', 'listscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'editscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'importscreen.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'changesscreen.kv'))
+commons.import_kivy_rule(os.path.join('kv', 'lockscreen.kv'))
 # Widgets
 # commons.import_kivy_rule(os.path.join('kv', 'passwordstrenght.kv'))
 commons.import_kivy_rule(os.path.join('kv', 'tagspinner.kv'))
@@ -186,7 +192,7 @@ class SaveFile(SaveFilePopup):
 
     def cmd_save(self, path, selection):
         """
-        Save the file: worns when it exsts.
+        Save the file: worns when it exists.
         """
         if selection:
             if not os.path.dirname(selection):
@@ -255,19 +261,18 @@ class ExportFile(SaveFilePopup):
     def do_save(self, file):
         """
         Export the current file to '.csv' password file.
-        It calls 'SkipKeyApp.export()'.
         """
         f = file
         if isinstance(file, list):
             f = file[0]
         try:
-            log = App.get_running_app().export(file=f)
-            if log:
-                message(_('Export warning'), '\n'.join(log), 'w')
-            else:
-                message(_('Export successful'),
-                        f'{os.path.basename(file)}', 'i')
-                self.dismiss()
+            App.get_running_app().export_csv(file=f)
+            self.dismiss()
+            # if log:
+            #     message(_('Export warning'), '\n'.join(log), 'w')
+            # else:
+            #     message(_('Export successful'),
+            #             f'{os.path.basename(file)}', 'i')
             return True
         except Exception as e:
             message(_('Export failed: %s') %
@@ -305,7 +310,8 @@ class LoginPopup(FocusBehavior, Popup):
             s = bytes(self.seed_wid.seed.text, encoding='utf-8')
 
             try:
-                app.open(file=self.file, passwd=p, seed=s)
+                app.open(file=self.file, passwd=p, seed=s, thread=False)
+                app.pop_log()
                 app.root.transition.direction = 'left'
                 app.root.current = LIST
                 self.reset()
@@ -318,7 +324,6 @@ class LoginPopup(FocusBehavior, Popup):
                 message(_('Open File: %s') %
                         (os.path.basename(self.file)), e, 'e')
                 app.unsecure()
-            #
         else:
             message(_('Login warning'), _('Fill password and seed'), 'w')
             return False
@@ -333,7 +338,6 @@ class LoginPopup(FocusBehavior, Popup):
     def reset(self):
         """Reset user input."""
         self.login_wid.password.text = ''
-        # self.login.confirm.text = ''
         self.seed_wid.seed.text = ''
 
 
@@ -372,31 +376,27 @@ class CipherPopup(Popup):
         app = App.get_running_app()
         try:
             app.secure(cryptod, passwd, seed)
-            app.save(file=self.file, force=True)
+            app.save(file=self.file, force=True, thread=False)
+            app.pop_log()
             app.file = self.file
             self.dismiss()
             app.root.transition.direction = 'left'
             app.root.current = LIST
-        except Exception as e:
+        except Exception as err:
+            message(title=_('Save File: %s') % (os.path.basename(self.file)),
+                    text=_('Exception:\n%s') % (str(err)), type='e')
             app.unsecure()
-            message(title=_('Save File: %s') % (os.path.basename(self.file)),
-                    text=_('Exception:\n%s') % (e.args[0]), type='e')
-        else:
-            message(title=_('Save File: %s') % (os.path.basename(self.file)),
-                    text=_('File saved'), type='i')
 
     def _copy(self, cryptod, passwd, seed):
         try:
             app = App.get_running_app()
-            app.copy(file=self.file, cryptod=cryptod, passwd=passwd, seed=seed)
+            app.copy(file=self.file, cryptod=cryptod,
+                     passwd=passwd, seed=seed, thread=True)
             self.dismiss()
             app.root.transition.direction = 'left'
             app.root.current = LIST
         except Exception as e:
             message(_('File Copy Error'), e, 'e')
-        else:
-            message(title=_('Copy file: %s') % (os.path.basename(self.file)),
-                    text=_('File copy successful'), type='i')
 
     def cmd_enter(self):
         """Set the security and enter the list screen."""
@@ -407,7 +407,7 @@ class CipherPopup(Popup):
             # Build security:
             if self.kderive.text and self.cipher.text and self.iters.text:
 
-                params = cipherfachade.get_cryptografy_parameters(
+                params = cipherfachade.init_crypto_args(
                     algorithm=self.cipher.text,
                     pbkdf=self.kderive.text,
                     iterations=int(self.iters.text))
@@ -544,11 +544,11 @@ class EditTagPopup(Popup):
             return False
 
         app.root.get_screen(EDIT).tag.text = tag
-        #
-        for item in model.iterator(items=app.items, key='tag', value=self.value):
-            item_old = item.copy()
-            item['tag'] = tag
-            app.add_history(new=item, old=item_old, action='update')
+        for item in app.items:
+            if item['tag'].lower() == self.value.lower():
+                item_old = item.copy()
+                item['tag'] = tag
+                app.add_history(new=item, old=item_old, action='update')
         return self.cmd_cancel(None)
 
 
@@ -619,6 +619,10 @@ class ListScreen(Screen):
     account_list = ObjectProperty(None)
 
     class Find():
+        """
+        Helper class to store the list of filtered items, and the string used for filtering.
+        """
+
         def __init__(self, pattern=None, sublist=[], *args, **kwargs):
             self.sublist = sublist
             self.pattern = pattern
@@ -641,14 +645,14 @@ class ListScreen(Screen):
         if self.tag.disabled:
             self.tag.disabled = False
             self.search.disabled = False
-        tags = self.build_tags()
+        tags = self.build_tags()  # Fill tags dropdown
         self.tag.values = tags
         self.app.root.get_screen(EDIT).tag.values = tags
 
         if not self.tag.text:
             self.tag.text = self.tag.values[0]
         elif self.tag.text != self.tag.values[0]:
-            self.cmd_tag_selected()
+            self.cmd_tag_selected()  # Filter by the selected tag
         elif self.search.text:
             # Refresh list to take into account possible deleted items
             self.find = ListScreen.Find()
@@ -671,7 +675,7 @@ class ListScreen(Screen):
             data = []
             for i in self.app.items:
                 try:
-                    if model.time_left(i, pwd_lifetime) <= pwd_warn:
+                    if model.days_left(i, pwd_lifetime) <= pwd_warn:
                         data.append(i)
                 except Exception:
                     continue
@@ -724,7 +728,6 @@ class ListScreen(Screen):
                 row = AccountAdapter()
                 row.refresh_view_attrs(item)
                 item.setdefault('object_id', self.account_list.add(row))
-
         self.counter()
 
     def counter(self):
@@ -780,7 +783,7 @@ class ListScreen(Screen):
             if self.tag.text == TAGS:
                 self._fill_items(self.app.items)
             else:
-                sublst = model.select(
+                sublst = model.sublist(
                     items=self.app.items, value=self.tag.text, key='tag')
                 # sublst.sort(key=lambda x: str.lower(x['name']))
                 self._fill_items(sublst)
@@ -886,6 +889,22 @@ class ListScreen(Screen):
             self.on_enter_callback = self.on_enter_default
         self.on_enter()
 
+    def cmd_display_log(self, widget):
+        """Display applicaion log.
+
+        Args:
+            widget ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        app = App.get_running_app()
+        log = app.peak_log()
+        if log:
+            message(title=log.get('title', ''), text=log.get(
+                'text', ''), type=log.get('type', 'i'))
+            app.pop_log()
+
 
 class EditScreen(FocusBehavior, Screen):
     """GUI element. Account editing screen."""
@@ -927,12 +946,12 @@ class EditScreen(FocusBehavior, Screen):
         # Defaults
         labels = App.get_running_app().config.getdefault(
             SkipKeyApp.SETTINGS, SkipKeyApp.PWDLABELS, '')
-        labels = [label.strip() for label in labels.split(',')]        
+        labels = [label.strip() for label in labels.split(',')]
         for i, secret in enumerate(item['secrets']):
             if secret['label'] == '' and labels[i]:
-                 setattr(getattr(self, f'secret_{i}'), 'default_label', labels[i])
+                setattr(getattr(self, f'secret_{i}'),
+                        'default_label', labels[i])
             getattr(getattr(self, f'secret_{i}'), 'set_view_attrs')(secret)
-
 
     def get_view_attrs(self):
         """Returns screen fields from a dictionary."""
@@ -997,7 +1016,7 @@ class EditScreen(FocusBehavior, Screen):
         """Check mandatory fields before saving the account item."""
         log = []
         # Check for changes
-        if model.is_equal(item, self.item):
+        if model.equal(item, self.item):
             message(_('Info'), _('No changes.'), 'i')
             return False
         # Check for password
@@ -1036,11 +1055,6 @@ class EditScreen(FocusBehavior, Screen):
         popup = EditTagPopup()
         popup.title = ': '.join((instance.text, ))
         popup.openAdd(value='')
-
-
-class MappingList(SelectableList):
-    def __init__(self, *args, **kwargs):
-        super(MappingList, self).__init__(**kwargs)
 
 
 class ImportScreen(Screen):
@@ -1157,7 +1171,7 @@ class ChangesScreen(Screen):
         self.changed_item_list.clear()
 
         try:
-            old = model.state_object(
+            old = model.item_state_body(
                 history[self.actions.values.index(self.actions.text)])
         except Exception:  # No changes
             return
@@ -1214,7 +1228,7 @@ class ChangesScreen(Screen):
             pos = self.actions.values.index(self.actions.text)
             if pos < len(self.app.history):
                 state = self.app.history.pop(pos)
-                item = model.state_object(state)  # ['body']
+                item = model.item_state_body(state)  # ['body']
                 if state['action'] == model.SkipKey.APPEND:
                     self.app.delete_item(item, history=False)
                 else:
@@ -1230,6 +1244,63 @@ class ChangesScreen(Screen):
 
     def cmd_actions(self, text):
         self._fill_fields(self.app.history)
+
+
+class LockScreen(Screen):
+    """GUI element. App lock screen."""
+    MAX = 5
+    def __init__(self, **kwargs):
+        super(LockScreen, self).__init__(**kwargs)
+        self._reset()
+        self.attempts = 0
+        
+
+    def _lock(self):
+        button = self.ids.get('_button')
+        if button:
+            if self.locked:
+                button.icon = 'data/icons/lock.png'
+            else:
+                button.icon = 'data/icons/unlock.png'
+
+    def _reset(self):
+        self.locked = False
+        self.key = ''
+        self.ids.get('_key').text = ''
+        self.attempts = 0
+
+    def on_enter(self, *args):
+        self._reset()
+        self._lock()
+        return super().on_enter(*args)
+
+    def on_leave(self, *args):
+        self._reset()
+        self._lock()
+        return super().on_leave(*args)
+
+    def cmd_lock(self):
+        key = self.ids.get('_key')
+        app = App.get_running_app()
+        if self.locked:
+            if key.text == self.key:
+                app.root.transition.direction = 'up'
+                app.root.current = LIST
+            else:
+                key.text = ''
+                self.attempts += 1
+                if self.attempts == LockScreen.MAX:
+                    app.stop()
+        else:
+            self.key = key.text
+            key.text = ''
+            self.locked = True
+            self._lock()
+
+
+class MappingList(SelectableList):
+    def __init__(self, *args, **kwargs):
+        super(MappingList, self).__init__(**kwargs)
 
 
 class TagSpinner(Spinner):
@@ -1335,7 +1406,7 @@ class AccountAdapter(ItemComposite):
         # self.items['login'].text = item['login']
         self.items['url'].text = item['url']
         self.items['tag'].text = item['tag']
-        elapsed = model.elapsed(item)
+        elapsed = model.elapsed_days(item)
         elapsed = elapsed if elapsed < self.lifetime else self.lifetime
         elapsed = 100 * elapsed/self.lifetime
         self.items['elapsed'].ids.progressbar.value = elapsed
@@ -1422,12 +1493,6 @@ class ItemMenu(Menu):
             self._init_layout(self.ids.secret_0, 0)
             self._init_layout(self.ids.secret_1, 1)
             self._init_layout(self.ids.secret_2, 2)
-            # self.ids.secret_0.text = self.item['secrets'][0].get('label', '')
-            # self.ids.secret_0.disabled = self.item['secrets'][0].get('password', '') == ''
-            # self.ids.secret_1.text = self.item['secrets'][1].get('label', '')
-            # self.ids.secret_1.disabled = self.item['secrets'][1].get('password', '') == ''
-            # self.ids.secret_2.text = self.item['secrets'][2].get('label', '')
-            # self.ids.secret_2.disabled = self.item['secrets'][2].get('password', '') == ''
 
     def _init_layout(self, secret, index):
         secret.text = self.item['secrets'][index].get('label', '')
@@ -1483,7 +1548,7 @@ class ItemMenu(Menu):
             if secret['auto'] == 'False':
                 p = app.decrypt(secret['password'])
             else:
-                p = app.show(secret)
+                p = app.regenerate(secret)
             return p
 
         except Exception as e:
@@ -1571,8 +1636,14 @@ class SkipKeyApp(App, model.SkipKey):
         'password': _('Cipher Data'),
         # 'history': ''  # Record history - not yet managed
     }
+    BLINK_OK_ICON = 'data/icons/info_ok.png'
+    BLINK_WARN_ICON = 'data/icons/info_warning.png'
+    BLINK_ERROR_ICON = 'data/icons/info_error.png'
+    BLINK_OFF_ICON = 'data/icons/info_blank.png'
 
     timer = StringProperty('')
+    # Log available
+    blinking_icon = StringProperty('data/icons/info_blank.png')
     use_kivy_settings = True
 
     def __init__(self, *args, **kwargs):
@@ -1590,6 +1661,7 @@ class SkipKeyApp(App, model.SkipKey):
         self.count_down = 0
 
     # App
+
     def build(self):
         self.title = 'SkipKey %s' % (__version__)
         # path = os.path.dirname(os.path.realpath(__file__))
@@ -1605,6 +1677,7 @@ class SkipKeyApp(App, model.SkipKey):
         sm.add_widget(EditScreen(name=EDIT))
         sm.add_widget(ImportScreen(name=IMPORT))
         sm.add_widget(ChangesScreen(name=CHANGES))
+        sm.add_widget(LockScreen(name=LOCK))
         # look&feel manager
         self.guic = GuiController(sm)
         return sm
@@ -1671,7 +1744,11 @@ class SkipKeyApp(App, model.SkipKey):
         application has finished running (i.e. the window is about
         to be closed).
         """
-        self.save(file=self.file)
+        try:
+            self.save(file=self.file, thread=False)
+            self.pop_log()
+        except Exception as err:
+            message(title='', text=str(err), type='e')
         return super().on_stop()
 
     # App
@@ -1743,64 +1820,66 @@ class SkipKeyApp(App, model.SkipKey):
                 lambda dt: self.timeout(after=True), 1)
         return True
 
+    def async_notify(self):
+        log = self.peak_log()
+        if log:
+            etype = log.get('type', 'w')
+            if etype == 'i':
+                _icon = SkipKeyApp.BLINK_OK_ICON
+            elif etype == 'w':
+                _icon = SkipKeyApp.BLINK_WARN_ICON
+            elif etype == 'e':
+                _icon = SkipKeyApp.BLINK_ERROR_ICON
+            else:
+                _icon = SkipKeyApp.BLINK_WARN_ICON
+            try:
+                if hasattr(self, 'blinker'):
+                    self.blinker.reset()
+                else:
+                    self.blinker = Blinker(
+                        owner=self, attr_name='blinking_icon', flash_count=3)
+                    self.blinker.set_attr_value_on_off(
+                        on=_icon, off=SkipKeyApp.BLINK_OFF_ICON)
+                self.blinker.blink(0.7)
+            except Exception as err:
+                message(title='Exception', text='Exception: %d' %
+                        (str(err)), type='e')
+
+        # update the screen
+        # if self.root.current == LIST:
+        #     if self.splash:
+        #         self.splash.dismiss()
+        #         del self.splash
+
+        #     screen = self.root.get_screen(LIST)
+        #     screen.on_enter()
+        #     screen.canvas.ask_update()
+
+    def pop_log(self):
+        self.blinker.reset() if hasattr(self, 'blinker') else None
+        return super().pop_log()
+
+    # App
+
     # interface
-    def open(self, file, passwd, seed):
+    def open(self, file, passwd, seed, thread=True):
         """
         Open the file and prepare the records. Raises excepions."""
         self.update_recent_files(file)
-        return super().open(file, passwd, seed)
-
-    # interface
-    def delete_item(self, item, history=True):
-        """
-        Delete an item from the item list.
-        """
-        return super().delete_item(item, history)
-
-    # interface
-    def save_item(self, item, history=True):
-        """
-        Add a new item or update an existing one.
-        """
-        return super().save_item(item, history)
-
-    # interface
-    def add_history(self, new, old, action=''):
-        """
-        Add an object to the history of changes
-        """
-        return super().add_history(new, old, action)
-
-    # interface
-    def encrypt(self, text):
-        """
-        Encrypt a text using the security algorithm and seed.
-        """
-        return super().encrypt(text)
-
-    # interface
-    def decrypt(self, text):
-        """
-        Decrypt a text using the security algorithm and seed.
-        """
-        return super().decrypt(text)
-
-    # interface
-    def generate(self, **kwargs):
-        """
-        Generate a password.
-        """
-        return super().generate(**kwargs)
+        return super().open(file, passwd, seed, thread)
+        # if thread:
+        #     wheel = ProgressWheel()
+        #     wheel.set_sequential_images(['data/icons/progress_1.png', 'data/icons/progress_2.png',
+        #                                  'data/icons/progress_3.png', 'data/icons/progress_4.png',
+        #                                  'data/icons/progress_5.png'])
+        #     splash = ModalView(size_hint=(None, None), size=(100, 100))
+        #     self.splash = splash
+        #     splash.add_widget(wheel)
+        #     wheel.startAnimation(0.07)
+        #     splash.open()
 
     # interface
 
-    def show(self, item):
-        """
-        Show a generated password.
-        """
-        return super().show(item)
-
-    # interface
     def secure(self, cryptod, passwd, seed):
         """
         Turn the security on (call once)."""
@@ -1820,24 +1899,9 @@ class SkipKeyApp(App, model.SkipKey):
             self.evt_timeout.cancel()
         return super().initialize()
 
-    # interface
-    def save(self, file, force=False):
-        """
-        Save items into a file.
-        """
-        return super().save(file, force)
-
-    # interface
-    def copy(self, file, cryptod, passwd, seed, thread=False):
-        """
-        Save items into a file with new password and random seed.
-        """
-        self.update_recent_files(file)
-        return super().copy(file, cryptod, passwd, seed, thread)
-
-    # interface
-    def export(self, file):
-        return super().export(file)
+    def lock(self):
+        self.root.transition.direction = 'down'
+        self.root.current = LOCK
 
 
 if __name__ == '__main__':

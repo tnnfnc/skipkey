@@ -1,12 +1,41 @@
-"""
-SelectableList
-========
+'''
+mlist
+====
 
-The :class: `SelectableList` implements a container a list of widget.
-The :class: `Item` is the basic item widget for the list.
+Provide a list of selectable items organized into a list. Any item can be
+cached into the WidgetCache and reused to save the time needed to create
+it again.
 
-    -:class: `ItemComposite` provides an in-line `ItemPart` structure,
-"""
+The class `SelectableList` implements a container for a list of widget,
+it inherits from CompoundSelectionBehavior to managing selection and BoxLayout.
+When an item is added the SelectableList acts as a CompoundSelectionBehavior and manages
+the selected items:
+    select_node(self, item): called when any items is selected.
+    deselect_node(self, item): called when any items is deselected.
+SelectableList can be extended to implement a bubble menu. The bubble menu
+is showed when select_node is called and closed when deselect_node is called.
+Implementing a bubble menu requires the SelectableList be contained in a FloatLayout.
+
+the class `Selectable` is the base class implementing a selectable item
+for the 'SelectableList'. Extend this class for adding your widget to the
+Selectable Item List. The SelectableList is passed to Selectable as the
+CompoundSelectionBehavior instance to manage the selected nodes. 
+
+The class `WidgetCache` is the helper class to enable items caching.
+
+The class `OneTextLine` inherits from Label and Selectable.
+
+The class `ItemComposite` inherits from GridLayout and Selectable,
+provides an in-line `ItemPart` structure, items is added from left to right.
+Passing a dictionary to the ItemComposite creates adjacent labels whose widths 
+can be set by providing a dictionary of key - width values.
+
+The calss `ItemPart` inherits from Label and is an helper for `ItemComposite`.
+
+Created on Sat Jul 20 15:35:21 2019
+
+@author: Franco
+'''
 import kivy
 from kivy.app import App
 from kivy.lang.builder import Builder
@@ -21,10 +50,10 @@ from kivy.graphics import Rectangle
 from kivy.graphics import InstructionGroup
 from kivy.metrics import dp
 # Current kivy version
-kivy.require('1.11.0')  
+kivy.require('1.11.0')
 
 Builder.load_string(
-"""
+    """
 <SelectableList>:
     orientation: 'vertical'
     # spacing: (dp(10), dp(10))
@@ -59,6 +88,7 @@ Builder.load_string(
     size: self.texture_size    
 """)
 
+
 def selection(widget, select=False):
     """Emphasizes the widget adding a clear transparent background.
 
@@ -78,6 +108,7 @@ def selection(widget, select=False):
             widget.canvas.remove_group('sel')
         else:
             pass  # Nothing to do here!
+
 
 class WidgetCache():
     def __init__(self):
@@ -110,16 +141,19 @@ class WidgetCache():
         """
         return self.cache.get(key, None)
 
+
 class SelectableList(CompoundSelectionBehavior, BoxLayout):
     """
     The widget works as a container for a list of widget_list.
+    Methods:
+        select_node: called when any items is selected.
+        deselect_node: called when any items is deselected.
     """
 
     def __init__(self, **kwargs):
         '''Mask is a dict key-width, if width is None or '' no width is set'''
         super(SelectableList, self).__init__(**kwargs)
         self.cache = WidgetCache()
-
 
     @property
     def widgets(self):
@@ -135,10 +169,10 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
         """Add items to the list. Return a cache id.
 
         Args:
-            item ([type]): [description]
+            item ([type]): the item
 
         Returns:
-            [type]: [description]
+            int: the widged id used to recall from the cache.
         """
         self.height += item.height
         item.selection_behavior = self
@@ -162,16 +196,58 @@ class SelectableList(CompoundSelectionBehavior, BoxLayout):
         return self.clear_widgets()
 
     def select_node(self, node):
+        """Extend CompoundSelectionBehavior.select_node()
+
+        Args:
+            node (Widget): the current selected widget
+
+        Returns:
+            [type]: [description]
+        """
         selection(node, True)
         if hasattr(self, 'show_bubble'):
             self.show_bubble(node)
         return super(SelectableList, self).select_node(node)
 
     def deselect_node(self, node):
+        """Extend CompoundSelectionBehavior.deselect_node()
+
+        Args:
+            node (Widget): the current selected widget
+
+        Returns:
+            [type]: [description]
+        """
         selection(node, False)
         if hasattr(self, 'hide_bubble'):
             self.hide_bubble(node)
         return super(SelectableList, self).deselect_node(node)
+
+    # def hide_bubble(self, node):
+    #     """Hide the bubble menu.
+    #     Extend this class and implement this method.
+
+    #     Args:
+    #         node (Widget): the widget passed to the bubble menu on it.
+
+    #     Returns:
+    #         self: return self
+    #     """
+    #     pass
+    #     return self
+
+    # def show_bubble(self, node):
+    #     """Show the bubble menu.
+    #     Extend this class and implement this method.
+
+    #     Args:
+    #         node (Widget): the widget passed to the bubble menu on it.
+
+    #     Returns:
+    #         self: return self
+    #     """
+    #     pass
+    #     return self
 
 
 class Selectable():
@@ -237,6 +313,7 @@ class Selectable():
             items (dict): key-value pairs with new values.
         """
         return self
+
 
 class OneTextLine(Label, Selectable):
     def __init__(self, **kwargs):
@@ -316,6 +393,3 @@ class ItemPart(Label):
 
 if __name__ == '__main__':
     pass
-    
-
-

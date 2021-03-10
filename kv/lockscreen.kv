@@ -1,0 +1,27 @@
+#:kivy 1.11
+#---------------------------------------------------------
+# Changes screen
+#---------------------------------------------------------
+<LockScreen>:
+	# Properties
+	size_hint: 1, 1
+	FloatLayout:
+		BBoxLayout:
+			orientation: 'vertical'
+			pos_hint: {'y': .5}
+			InputField:
+				id: _key
+				size_hint_x: None
+				pos_hint: {'center_x': 0.5}
+				hint_text: _('type your password')
+				password: True
+			# BoxLayout:
+			# 	orientation: 'horizontal'
+			IconButton:
+				id: _button
+				pos_hint: {'center_x': 0.5}
+				icon: 'data/icons/lock.png'
+				size: dp(100), dp(100)
+				on_release:
+					if hasattr(root, 'cmd_lock'): getattr(root, 'cmd_lock')()
+					

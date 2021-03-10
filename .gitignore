@@ -33,7 +33,7 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
+.spec
 
 # Installer logs
 pip-log.txt
@@ -51,11 +51,11 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-test/
+#test/
 
 # Translations
-*.mo
-*.pot
+#*.mo
+#*.pot
 
 # Django stuff:
 *.log
@@ -127,7 +127,7 @@ dmypy.json
 
 # Skipkey local configuration
 skipkey.ini
-test/
+.test/
 
 # buildozer (packager for Android)
 .buildozer/

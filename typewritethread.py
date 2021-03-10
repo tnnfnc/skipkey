@@ -1,4 +1,13 @@
 from threading import Thread, Timer
+from pynput._util.win32 import (
+    INPUT,
+    INPUT_union,
+    KEYBDINPUT,
+    KeyTranslator,
+    ListenerMixin,
+    SendInput,
+    SystemHook,
+    VkKeyScan)
 from pynput import keyboard, mouse
 import time
 
@@ -92,5 +101,5 @@ if __name__ == '__main__':
     time.sleep(2)
     daemon.interrupt()
     print(daemon)
-    # daemon.join()
+    daemon.join()
     print('All done!')

@@ -1,0 +1,606 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2021-03-09 11:30+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp1252\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: cipherfachade.py:97
+msgid "Advanced Encryption Standard"
+msgstr ""
+
+#: cipherfachade.py:98
+msgid "Camellia is a block cipher approved for use by CRYPTREC and ISO/IEC."
+msgstr ""
+
+#: cipherfachade.py:99
+msgid "CAST5 (also known as CAST-128) is a block cipher approved for use in the Canadian government."
+msgstr ""
+
+#: cipherfachade.py:100
+msgid "SEED is a block cipher developed by the Korea Information Security Agency (KISA)."
+msgstr ""
+
+#: cipherfachade.py:105
+msgid "Password Based Key Derivation Function 2, is typically used for deriving a cryptographic key from a password."
+msgstr ""
+
+#: cipherfachade.py:106
+msgid "HMAC-based Extract-and-Expand Key Derivation Function, is suitable for deriving keys of a fixed size."
+msgstr ""
+
+#: cipherfachade.py:248
+msgid "Inconsistent pattern of zeros gliphs"
+msgstr ""
+
+#: cipherfachade.py:287
+msgid "Password length must be at least 2"
+msgstr ""
+
+#: model.py:491 skipkey.py:335 skipkey.py:339
+msgid "Open File: %s"
+msgstr ""
+
+#: model.py:492 model.py:769 model.py:843 skipkey.py:401
+msgid ""
+"Exception:\n"
+"%s"
+msgstr ""
+
+#: model.py:764 model.py:768 skipkey.py:400
+msgid "Save File: %s"
+msgstr ""
+
+#: model.py:765 model.py:840
+msgid "File saved"
+msgstr ""
+
+#: model.py:839 model.py:842
+msgid "Copy file: %s"
+msgstr ""
+
+#: model.py:896
+msgid "Export warning"
+msgstr ""
+
+#: model.py:898
+msgid "Export successful"
+msgstr ""
+
+#: model.py:899
+msgid "File saved as: %s"
+msgstr ""
+
+#: password.py:152 skipkey_kv_messages.py:152
+msgid "Strenght"
+msgstr ""
+
+#: password.py:172 password.py:203
+msgid "Create password"
+msgstr ""
+
+#: password.py:190
+msgid "Edit Password"
+msgstr ""
+
+#: password.py:262 skipkey.py:1517
+msgid "Password Error"
+msgstr ""
+
+#: password.py:356 skipkey_kv_messages.py:83 skipkey_kv_messages.py:109
+#: skipkey_kv_messages.py:110 skipkey_kv_messages.py:111
+#: skipkey_kv_messages.py:145
+msgid "Password"
+msgstr ""
+
+#: password.py:443
+msgid "A password label is required"
+msgstr ""
+
+#: password.py:443
+msgid "Password label"
+msgstr ""
+
+#: skipkey.py:150 skipkey.py:591
+msgid "Login to: %s"
+msgstr ""
+
+#: skipkey.py:221 skipkey.py:271
+msgid ""
+"%s exists:\n"
+"overwrite?"
+msgstr ""
+
+#: skipkey.py:294
+msgid "Export failed: %s"
+msgstr ""
+
+#: skipkey.py:323
+msgid "The file %s does not exists"
+msgstr ""
+
+#: skipkey.py:343 skipkey.py:438
+msgid "Fill password and seed"
+msgstr ""
+
+#: skipkey.py:343 skipkey.py:438
+msgid "Login warning"
+msgstr ""
+
+#: skipkey.py:413
+msgid "File Copy Error"
+msgstr ""
+
+#: skipkey.py:433
+msgid "Please choose an algorithm"
+msgstr ""
+
+#: skipkey.py:433
+msgid "Security setup"
+msgstr ""
+
+#: skipkey.py:540
+msgid "Action failed because: %s is already used."
+msgstr ""
+
+#: skipkey.py:595
+msgid "%s not found"
+msgstr ""
+
+#: skipkey.py:595 skipkey_kv_messages.py:90
+msgid "Recent files"
+msgstr ""
+
+#: skipkey.py:603
+msgid "New file: %s"
+msgstr ""
+
+#: skipkey.py:610 skipkey_kv_messages.py:105
+msgid "Open"
+msgstr ""
+
+#: skipkey.py:751 skipkey_kv_messages.py:121
+msgid "Personal accounts"
+msgstr ""
+
+#: skipkey.py:759 skipkey.py:1034 skipkey_kv_messages.py:95
+#: skipkey_kv_messages.py:116
+msgid "Info"
+msgstr ""
+
+#: skipkey.py:768
+msgid "Copy %s to:"
+msgstr ""
+
+#: skipkey.py:775
+msgid "Import from a CSV file:"
+msgstr ""
+
+#: skipkey.py:782
+msgid "Export %s to CSV:"
+msgstr ""
+
+#: skipkey.py:878
+msgid "Exit %s without saving?"
+msgstr ""
+
+#: skipkey.py:878
+msgid "Leave"
+msgstr ""
+
+#: skipkey.py:891
+msgid "No file is opened"
+msgstr ""
+
+#: skipkey.py:893
+msgid ""
+"Save file error:\n"
+"%s"
+msgstr ""
+
+#: skipkey.py:893 skipkey.py:1137
+msgid "Error"
+msgstr ""
+
+#: skipkey.py:1004
+msgid "Delete Item Error"
+msgstr ""
+
+#: skipkey.py:1017
+msgid "\"%s\" exists. Choose another name"
+msgstr ""
+
+#: skipkey.py:1017
+msgid "Duplicate key"
+msgstr ""
+
+#: skipkey.py:1026
+msgid "Exception: %s"
+msgstr ""
+
+#: skipkey.py:1026
+msgid "Save item"
+msgstr ""
+
+#: skipkey.py:1034
+msgid "No changes."
+msgstr ""
+
+#: skipkey.py:1038
+msgid "No password defined"
+msgstr ""
+
+#: skipkey.py:1041
+msgid "Name is mandatory"
+msgstr ""
+
+#: skipkey.py:1047
+msgid "Check email adress: %s"
+msgstr ""
+
+#: skipkey.py:1049
+msgid "Warning"
+msgstr ""
+
+#: skipkey.py:1137
+msgid ""
+"Check the syntax:\n"
+"%s"
+msgstr ""
+
+#: skipkey.py:1146
+msgid "Import error"
+msgstr ""
+
+#: skipkey.py:1155
+msgid "Import report"
+msgstr ""
+
+#: skipkey.py:1156
+msgid ""
+"Imported items: %d \n"
+" -New items: %d \n"
+" -Duplicated items: %d"
+msgstr ""
+
+#: skipkey.py:1162
+msgid ""
+"Write couples separated by comma:\n"
+"('<source>', '<target>')."
+msgstr ""
+
+#: skipkey.py:1234
+msgid "No changes"
+msgstr ""
+
+#: skipkey.py:1258
+msgid "Undo"
+msgstr ""
+
+#: skipkey.py:1259
+msgid "Revert action \"%s\" failed: %s"
+msgstr ""
+
+#: skipkey.py:1583 skipkey_kv_messages.py:34 skipkey_kv_messages.py:60
+msgid "Name"
+msgstr ""
+
+#: skipkey.py:1584 skipkey_kv_messages.py:36 skipkey_kv_messages.py:62
+msgid "Web site"
+msgstr ""
+
+#: skipkey.py:1585 skipkey_kv_messages.py:38 skipkey_kv_messages.py:64
+msgid "Login user"
+msgstr ""
+
+#: skipkey.py:1586 skipkey_kv_messages.py:40 skipkey_kv_messages.py:41
+#: skipkey_kv_messages.py:66 skipkey_kv_messages.py:67
+msgid "e-mail"
+msgstr ""
+
+#: skipkey.py:1587 skipkey_kv_messages.py:42 skipkey_kv_messages.py:43
+#: skipkey_kv_messages.py:68 skipkey_kv_messages.py:69
+msgid "Free text"
+msgstr ""
+
+#: skipkey.py:1588 skipkey_kv_messages.py:54 skipkey_kv_messages.py:79
+msgid "Tag"
+msgstr ""
+
+#: skipkey.py:1590 skipkey_kv_messages.py:44 skipkey_kv_messages.py:70
+msgid "Created"
+msgstr ""
+
+#: skipkey.py:1591 skipkey_kv_messages.py:45 skipkey_kv_messages.py:71
+msgid "Changed"
+msgstr ""
+
+#: skipkey.py:1592 skipkey_kv_messages.py:146
+msgid "Auto"
+msgstr ""
+
+#: skipkey.py:1593 skipkey_kv_messages.py:5
+msgid "Length"
+msgstr ""
+
+#: skipkey.py:1594 skipkey_kv_messages.py:7
+msgid "Letters"
+msgstr ""
+
+#: skipkey.py:1595 skipkey_kv_messages.py:8
+msgid "Numbers"
+msgstr ""
+
+#: skipkey.py:1596 skipkey_kv_messages.py:11
+msgid "Symbols"
+msgstr ""
+
+#: skipkey.py:1598 skipkey_kv_messages.py:46
+msgid "Cipher Data"
+msgstr ""
+
+#: skipkey_kv_messages.py:6
+msgid "password length"
+msgstr ""
+
+#: skipkey_kv_messages.py:9 skipkey_kv_messages.py:12
+msgid "At least"
+msgstr ""
+
+#: skipkey_kv_messages.py:10 skipkey_kv_messages.py:13
+msgid "a number"
+msgstr ""
+
+#: skipkey_kv_messages.py:14
+msgid "Generate"
+msgstr ""
+
+#: skipkey_kv_messages.py:15
+msgid "Password hint"
+msgstr ""
+
+#: skipkey_kv_messages.py:17 skipkey_kv_messages.py:117
+msgid "Changes"
+msgstr ""
+
+#: skipkey_kv_messages.py:20 skipkey_kv_messages.py:128
+msgid "Password for data encryption"
+msgstr ""
+
+#: skipkey_kv_messages.py:21 skipkey_kv_messages.py:129
+msgid "Seed for password generation"
+msgstr ""
+
+#: skipkey_kv_messages.py:22
+msgid "Cipher"
+msgstr ""
+
+#: skipkey_kv_messages.py:23
+msgid "Key generation"
+msgstr ""
+
+#: skipkey_kv_messages.py:24
+msgid "Iters."
+msgstr ""
+
+#: skipkey_kv_messages.py:25 skipkey_kv_messages.py:30
+#: skipkey_kv_messages.py:86 skipkey_kv_messages.py:103
+#: skipkey_kv_messages.py:130 skipkey_kv_messages.py:138
+#: skipkey_kv_messages.py:150 skipkey_kv_messages.py:157
+msgid "Cancel"
+msgstr ""
+
+#: skipkey_kv_messages.py:26 skipkey_kv_messages.py:131
+msgid "Enter"
+msgstr ""
+
+#: skipkey_kv_messages.py:28 skipkey_kv_messages.py:133
+msgid "Message"
+msgstr ""
+
+#: skipkey_kv_messages.py:29 skipkey_kv_messages.py:87
+#: skipkey_kv_messages.py:134
+msgid "OK"
+msgstr ""
+
+#: skipkey_kv_messages.py:33 skipkey_kv_messages.py:59
+msgid "Edit account"
+msgstr ""
+
+#: skipkey_kv_messages.py:35 skipkey_kv_messages.py:61
+msgid "name"
+msgstr ""
+
+#: skipkey_kv_messages.py:37 skipkey_kv_messages.py:63
+msgid "web site url"
+msgstr ""
+
+#: skipkey_kv_messages.py:39 skipkey_kv_messages.py:65
+msgid "login user"
+msgstr ""
+
+#: skipkey_kv_messages.py:47 skipkey_kv_messages.py:48
+#: skipkey_kv_messages.py:72 skipkey_kv_messages.py:73
+msgid "Colors"
+msgstr ""
+
+#: skipkey_kv_messages.py:49 skipkey_kv_messages.py:74
+msgid "White"
+msgstr ""
+
+#: skipkey_kv_messages.py:50 skipkey_kv_messages.py:75
+msgid "Red"
+msgstr ""
+
+#: skipkey_kv_messages.py:51 skipkey_kv_messages.py:76
+msgid "Green"
+msgstr ""
+
+#: skipkey_kv_messages.py:52 skipkey_kv_messages.py:77
+msgid "Blue"
+msgstr ""
+
+#: skipkey_kv_messages.py:53 skipkey_kv_messages.py:78
+msgid "Yellow"
+msgstr ""
+
+#: skipkey_kv_messages.py:55 skipkey_kv_messages.py:80
+msgid "Rename"
+msgstr ""
+
+#: skipkey_kv_messages.py:56 skipkey_kv_messages.py:81
+#: skipkey_kv_messages.py:115
+msgid "Add"
+msgstr ""
+
+#: skipkey_kv_messages.py:57 skipkey_kv_messages.py:82
+msgid "Delete"
+msgstr ""
+
+#: skipkey_kv_messages.py:85
+msgid "Custom tag"
+msgstr ""
+
+#: skipkey_kv_messages.py:89
+msgid "Clear recents"
+msgstr ""
+
+#: skipkey_kv_messages.py:92
+msgid "Fields mapping"
+msgstr ""
+
+#: skipkey_kv_messages.py:93
+msgid "Mapping the app keys to the imported file keys or leave blank to skip"
+msgstr ""
+
+#: skipkey_kv_messages.py:96
+msgid "File"
+msgstr ""
+
+#: skipkey_kv_messages.py:97
+msgid "Security"
+msgstr ""
+
+#: skipkey_kv_messages.py:98
+msgid "Algorithm"
+msgstr ""
+
+#: skipkey_kv_messages.py:99
+msgid "Chain mode"
+msgstr ""
+
+#: skipkey_kv_messages.py:100
+msgid "Key size"
+msgstr ""
+
+#: skipkey_kv_messages.py:101
+msgid "Key derivator"
+msgstr ""
+
+#: skipkey_kv_messages.py:102
+msgid "Iterations"
+msgstr ""
+
+#: skipkey_kv_messages.py:106
+msgid "Edit"
+msgstr ""
+
+#: skipkey_kv_messages.py:107
+msgid "Login"
+msgstr ""
+
+#: skipkey_kv_messages.py:108 skipkey_kv_messages.py:147
+msgid "User"
+msgstr ""
+
+#: skipkey_kv_messages.py:113
+msgid "Back"
+msgstr ""
+
+#: skipkey_kv_messages.py:114 skipkey_kv_messages.py:149
+#: skipkey_kv_messages.py:158
+msgid "Save"
+msgstr ""
+
+#: skipkey_kv_messages.py:118
+msgid "Copy to..."
+msgstr ""
+
+#: skipkey_kv_messages.py:119
+msgid "Export as..."
+msgstr ""
+
+#: skipkey_kv_messages.py:120
+msgid "Import from..."
+msgstr ""
+
+#: skipkey_kv_messages.py:122
+msgid "find"
+msgstr ""
+
+#: skipkey_kv_messages.py:123
+msgid "Expiring"
+msgstr ""
+
+#: skipkey_kv_messages.py:125 skipkey_kv_messages.py:164
+msgid "Display password"
+msgstr ""
+
+#: skipkey_kv_messages.py:126 skipkey_kv_messages.py:165
+msgid "type your password"
+msgstr ""
+
+#: skipkey_kv_messages.py:136 skipkey_kv_messages.py:155
+msgid "List"
+msgstr ""
+
+#: skipkey_kv_messages.py:137
+msgid "Icons"
+msgstr ""
+
+#: skipkey_kv_messages.py:139
+msgid "Load"
+msgstr ""
+
+#: skipkey_kv_messages.py:141
+msgid "Create Password"
+msgstr ""
+
+#: skipkey_kv_messages.py:143
+msgid "Password set"
+msgstr ""
+
+#: skipkey_kv_messages.py:144
+msgid "Label"
+msgstr ""
+
+#: skipkey_kv_messages.py:156
+msgid "Icon"
+msgstr ""
+
+#: skipkey_kv_messages.py:160
+msgid "Display seed"
+msgstr ""
+
+#: skipkey_kv_messages.py:161
+msgid "input your seed"
+msgstr ""
+
+#: skipkey_kv_messages.py:166
+msgid "Confirm"
+msgstr ""
+
+#: skipkey_kv_messages.py:167
+msgid "confirm your password"
+msgstr ""
+

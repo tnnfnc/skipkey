@@ -30,10 +30,10 @@ class GuiController():
             for w in iterator:
                 if not hasattr(w, 'gui_manager'):
                     if isinstance(w, kivy.uix.boxlayout.BoxLayout):
-                        print(w.__class__)
+                        # print(w.__class__)
                         LayoutDelegate(w)
                     elif isinstance(w, kivy.uix.widget.Widget):
-                        print(w.__class__)
+                        # print(w.__class__)
                         WidgetDelegate(w)
 
 

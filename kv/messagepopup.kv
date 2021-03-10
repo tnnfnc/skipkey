@@ -9,7 +9,8 @@
 	
     auto_dismiss: False
     size_hint: 1, 0.5
-    orientation: "vertical"
+    title_size: ui.font_big
+	orientation: "vertical"
     padding: ui.screen_padding
 	ScrollView:
 		BoxLayout:
@@ -17,22 +18,23 @@
 			size_hint_y: None
 			height: self.minimum_height	
 			BoxLayout:
-				orientation: 'horizontal'
+				orientation: 'vertical'
 				size_hint_min_y: _img_image.height + _lab_message.height
 				Image:
 					id: _img_image
 					allow_stretch: True
 					size_hint: None, None
 					size: dp(40), dp(40)
+				
 				Label:
 					id: _lab_message
 					text: _('Message')
 					markup: True
 					size_hint_y: None
-					font_size: ui.font_big #1.1*font_size
-					text_size: self.parent.width - _img_image.width, None
+					font_size: ui.font_big 
+					text_size: self.parent.width, None
 					size: self.texture_size
-					halign: 'justify'
+					halign: 'center'
 					valign: 'middle'		
 
 			#--------------------------------- Main buttons

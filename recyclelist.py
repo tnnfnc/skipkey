@@ -1,5 +1,3 @@
-# from kivy.factory import Factory
-# from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
@@ -76,7 +74,13 @@ class ItemController(RecycleView):
 
 class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
                                  RecycleBoxLayout):
-    ''' Adds selection and focus behaviour to the view. '''
+    """Adds selection and focus behaviour to the view.
+
+    Args:
+        FocusBehavior: manages focus on the widget
+        LayoutSelectionBehavior: [description]
+        RecycleBoxLayout): [description]
+    """
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -88,7 +92,6 @@ class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
         self.multiselect = False
         self.touch_multiselect = False
         self.bind(minimum_height=self.setter('height'))
-
 
     def select_node(self, node):
         node.selected = True
@@ -159,6 +162,6 @@ class ItemAdapter(RecycleDataViewBehavior, GridLayout):
 class SubItem(Label):
     """Part of ItemAdapter"""
     id = StringProperty('')
-    
+
     def __init__(self, **kwargs):
         super(SubItem, self).__init__(**kwargs)

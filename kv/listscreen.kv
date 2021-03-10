@@ -22,9 +22,17 @@
                     icon: 'data/icons/reload.png'
                     on_release:
                         if hasattr(app, 'timeout'): getattr(app, 'timeout')()
+                IconButton:
+                    icon: 'data/icons/lock.png'
+                    on_release:
+                        if hasattr(app, 'lock'): getattr(app, 'lock')()
                 OptionLabel:
                     text: app.timer
                     halign: 'left'
+                IconButton:
+                    icon: app.blinking_icon
+                    on_release:
+                        if hasattr(root, 'cmd_display_log'): getattr(root, 'cmd_display_log')(self)
                 # horizontal spacing
                 BoxLayout:
                     orientation: 'horizontal'
@@ -117,15 +125,8 @@
                     if hasattr(root, 'cmd_expiring'): getattr(root, 'cmd_expiring')(*args)
         #--------------------------------- List of items
         BBoxLayout:
-			orientation: 'horizontal'
+			orientation: 'vertical'
 			BubbleMenu:
 				ScrollView:
 					AccountItemList:
 						id: _account_list
-        # ScrollView:
-        #     BBoxLayout:
-        #         orientation: 'horizontal'
-		# 	    BubbleMenu:
-		# 			AccountItemList:
-		# 				id: _account_list
-

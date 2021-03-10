@@ -1,18 +1,42 @@
+"""This module allows to implement a context menu over the
+    touched widget.
+
+    extends a FloatLayout in order to display
+    a context menu over the contained widget.
+
+    Follow these steps in order to add a context menu to a widget:
+
+    1. The widget must inherit from BubbleBehavior
+    2. Add the widget to the `BubbleMenu` container
+    3. Add a subclass of `Menu` instance to this BubbleMenu.
+    
+    The subclass of `Menu` is the context menu you want to appear over the
+    widget.
+
+    Example in kv:
+
+        BubbleMenu: 
+            ScrollView: 
+                ....
+                    <yhe widget>:
+"""
 from kivy.uix.bubble import Bubble
 from kivy.uix.floatlayout import FloatLayout
 from kivy.metrics import dp
 
 
 class BubbleBehavior():
-    """Extends this class for adding a bubble menu to the widget.
+    """BubbleBehavior add a bubble menu behavior to the widget which
+    inherits from it.
     """
     # Need store the menu before the widget tree will be created
-    menu = None
+    # menu = None
 
     def show_bubble(self, widg):
         if hasattr(self, 'walk_reverse'):
             for widget in self.walk_reverse(loopback=False):
                 if isinstance(widget, BubbleMenu):
+                    # Add the Menu to the BubbleMenu instance the first time
                     if self.menu:
                         widget.add_bubble(self.menu)
                         self.menu = None
@@ -25,7 +49,7 @@ class BubbleBehavior():
                 if isinstance(widget, BubbleMenu):
                     widget.hide_bubble(widg)
                     break
-    
+
     def add_bubble(self, bubble):
         """Add a bubble menu.
 
@@ -34,24 +58,25 @@ class BubbleBehavior():
                 bubble: the Bubble menu.
         """
         self.menu = bubble
-        # if hasattr(self, 'walk_reverse'):
-        #     for widget in self.walk_reverse(loopback=False):
-        #         if isinstance(widget, BubbleMenu):
-        #             widget.add_bubble(self.menu)
-        #             self.menu = None
-        #             break
 
 
 class BubbleMenu(FloatLayout):
     """This class extends a FloatLayout in order to display
     a context menu over the contained widget.
-    
+
     Follow these steps in order to add a context menu to a widget:
-   
+
     1. The widget must inherit from BubbleBehavior
     2. Add the widget to this container
     3. Add a Menu instance to this BubbleMenu.
+    
+    Example in kv:
+
+        BubbleMenu: 
+            ScrollView: 
+                SelectableList:
     """
+
     def __init__(self, **kwargs):
         super(BubbleMenu, self).__init__(**kwargs)
         self.bubble = None
@@ -94,7 +119,7 @@ class BubbleMenu(FloatLayout):
         if not (touch.is_double_tap or touch.is_mouse_scrolling):
             if self.collide_point(touch.x, touch.y):
                 self.touch_pos = touch.pos
-            else: 
+            else:
                 # Focus outside the decorator: anything to close?
                 pass
         return super().on_touch_down(touch)
@@ -110,7 +135,7 @@ class Menu(Bubble):
         super(Menu, self).__init__(**kwargs)
         self.widget = None
         self.border = (2, 2, 2, 1)
-        #self.background_color = (1, 0, 0, .5)  # 50% translucent red
+        # self.background_color = (1, 0, 0, .5)  # 50% translucent red
         #self.background_image = 'data/full.png'
         # arrow_image = 'path/to/arrow/image'
 
