@@ -3,9 +3,9 @@
 block_cipher = None
 
 
-a = Analysis(['..\\skipkey\\skipkey.py'],
-             pathex=['..\\skipkey', 'C:\\Python\\skipkey\\compiled'],
-             binaries=[],
+a = Analysis(['skipkey.py'],
+             pathex=['..\\skipkey', 'C:\\Python\\skipkey\\skipkey'],
+             binaries=[('..\\share\\sdl2\\bin\\libpng16-16.dll', '.')],
              datas=[('..\\skipkey\\*.json', '.'), ('..\\skipkey\\locale\\it\\LC_MESSAGES\\*', 'locale\\it\\LC_MESSAGES\\.'), ('..\\skipkey\\data\\icons\\*', 'data\\icons\\.'), ('..\\skipkey\\data\\*.*', 'data\\.'), ('..\\skipkey\\kv\\*', 'kv\\.'), ('..\\skipkey\\*.kv', '.')],
              hiddenimports=['win32timezone', 'pynput.keyboard._win32', 'pynput.mouse._win32'],
              hookspath=[],

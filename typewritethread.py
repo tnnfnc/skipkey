@@ -1,13 +1,4 @@
 from threading import Thread, Timer
-from pynput._util.win32 import (
-    INPUT,
-    INPUT_union,
-    KEYBDINPUT,
-    KeyTranslator,
-    ListenerMixin,
-    SendInput,
-    SystemHook,
-    VkKeyScan)
 from pynput import keyboard, mouse
 import time
 
